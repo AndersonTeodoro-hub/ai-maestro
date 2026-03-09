@@ -4,6 +4,7 @@ import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function DashboardLayout() {
   const { user, loading, profile } = useAuth();
