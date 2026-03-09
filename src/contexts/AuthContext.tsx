@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import i18n from "@/i18n";
 
 type Profile = {
   id: string;
@@ -10,6 +10,7 @@ type Profile = {
   monthly_budget_eur: number;
   content_preference: string | null;
   onboarding_completed: boolean;
+  language: string;
 };
 
 type AuthContextType = {
@@ -38,13 +39,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const applyLanguage = (lang: string) => {
+    if (lang && lang !== "auto") {
+      localStorage.setItem("promptos-language", lang);
+      i18n.changeLanguage(lang);
+    } else {
+      localStorage.setItem("promptos-language", "auto");
+      const detected = navigator.language?.split("-")[0];
+      const supported = ["en", "pt", "fr", "es"];
+      i18n.changeLanguage(supported.includes(detected) ? detected : "en");
+    }
+  };
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
-    if (data) setProfile(data as Profile);
+    if (data) {
+      const p = data as Profile;
+      setProfile(p);
+      applyLanguage(p.language);
+    }
   };
 
   const refreshProfile = async () => {

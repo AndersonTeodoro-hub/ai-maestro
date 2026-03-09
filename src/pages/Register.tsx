@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export default function Register() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Check your email to confirm your account!");
+      toast.success(t("auth.checkEmail"));
       navigate("/login");
     }
   };
@@ -50,13 +52,13 @@ export default function Register() {
             <Zap className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold text-foreground">PromptOS</span>
           </div>
-          <CardTitle className="text-2xl">Create your account</CardTitle>
-          <CardDescription>Start using AI the smart way</CardDescription>
+          <CardTitle className="text-2xl">{t("auth.createAccount")}</CardTitle>
+          <CardDescription>{t("auth.startSmart")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
             <Input
-              placeholder="Full name"
+              placeholder={t("auth.fullName")}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
@@ -64,7 +66,7 @@ export default function Register() {
             />
             <Input
               type="email"
-              placeholder="Email"
+              placeholder={t("auth.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -72,7 +74,7 @@ export default function Register() {
             />
             <Input
               type="password"
-              placeholder="Password (min. 6 characters)"
+              placeholder={t("auth.passwordMin")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -80,7 +82,7 @@ export default function Register() {
               className="bg-secondary border-border"
             />
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? t("auth.creatingAccount") : t("auth.createAccountBtn")}
             </Button>
           </form>
           <div className="relative my-6">
@@ -88,16 +90,16 @@ export default function Register() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
+              <span className="bg-card px-2 text-muted-foreground">{t("common.or")}</span>
             </div>
           </div>
           <Button variant="outline" className="w-full" onClick={handleGoogleSignup}>
-            Continue with Google
+            {t("auth.continueGoogle")}
           </Button>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account?{" "}
+            {t("auth.hasAccount")}{" "}
             <Link to="/login" className="text-primary hover:underline">
-              Sign in
+              {t("auth.signIn")}
             </Link>
           </p>
         </CardContent>

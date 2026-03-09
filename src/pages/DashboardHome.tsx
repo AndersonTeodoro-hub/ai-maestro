@@ -5,17 +5,19 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare, TrendingDown, Activity, Euro } from "lucide-react";
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
+import { useTranslation } from "react-i18next";
 
 export default function DashboardHome() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return t("dashboard.goodMorning");
+    if (h < 18) return t("dashboard.goodAfternoon");
+    return t("dashboard.goodEvening");
+  }
 
   const { data: stats } = useQuery({
     queryKey: ["dashboard-stats", user?.id],
@@ -55,47 +57,29 @@ export default function DashboardHome() {
   });
 
   const statCards = [
-    {
-      title: "This month's spend",
-      value: `€${(stats?.totalSpend || 0).toFixed(2)}`,
-      icon: Euro,
-    },
-    {
-      title: "Requests made",
-      value: stats?.totalRequests || 0,
-      icon: Activity,
-    },
-    {
-      title: "Optimisation savings",
-      value: `€${(stats?.moneySaved || 0).toFixed(2)}`,
-      icon: TrendingDown,
-    },
-    {
-      title: "Money saved vs ChatGPT",
-      value: `€${(stats?.moneySaved || 0).toFixed(2)}`,
-      icon: TrendingDown,
-    },
+    { title: t("dashboard.monthSpend"), value: `€${(stats?.totalSpend || 0).toFixed(2)}`, icon: Euro },
+    { title: t("dashboard.requestsMade"), value: stats?.totalRequests || 0, icon: Activity },
+    { title: t("dashboard.optimisationSavings"), value: `€${(stats?.moneySaved || 0).toFixed(2)}`, icon: TrendingDown },
+    { title: t("dashboard.moneySaved"), value: `€${(stats?.moneySaved || 0).toFixed(2)}`, icon: TrendingDown },
   ];
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Welcome */}
       <Card className="bg-card border-border/50">
         <CardContent className="p-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
               {getGreeting()}, {profile?.full_name || "there"} 👋
             </h1>
-            <p className="text-muted-foreground mt-1">Here's your AI activity overview.</p>
+            <p className="text-muted-foreground mt-1">{t("dashboard.activityOverview")}</p>
           </div>
           <Button onClick={() => navigate("/dashboard/chat")}>
             <MessageSquare className="mr-2 h-4 w-4" />
-            New Chat
+            {t("dashboard.newChat")}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s) => (
           <Card key={s.title} className="bg-card border-border/50">
@@ -110,10 +94,9 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      {/* Recent Activity */}
       <Card className="bg-card border-border/50">
         <CardHeader>
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardTitle className="text-lg">{t("dashboard.recentActivity")}</CardTitle>
         </CardHeader>
         <CardContent>
           {recentActivity && recentActivity.length > 0 ? (
@@ -126,7 +109,7 @@ export default function DashboardHome() {
                 >
                   <div>
                     <p className="text-sm font-medium text-foreground">{conv.title}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{conv.mode} mode</p>
+                    <p className="text-xs text-muted-foreground capitalize">{conv.mode} {t("dashboard.mode")}</p>
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {new Date(conv.created_at).toLocaleDateString()}
@@ -136,8 +119,8 @@ export default function DashboardHome() {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No activity yet. Start your first chat!</p>
-              <Button onClick={() => navigate("/dashboard/chat")}>Start Chatting</Button>
+              <p className="text-muted-foreground mb-4">{t("dashboard.noActivityYet")}</p>
+              <Button onClick={() => navigate("/dashboard/chat")}>{t("dashboard.startChatting")}</Button>
             </div>
           )}
         </CardContent>

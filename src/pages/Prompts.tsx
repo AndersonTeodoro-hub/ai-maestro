@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, BookOpen, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const categories = ["Content", "Marketing", "Email", "Social", "Other"];
 
@@ -28,6 +29,7 @@ export default function Prompts() {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showCreate, setShowCreate] = useState(false);
   const [showVars, setShowVars] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
@@ -56,36 +58,24 @@ export default function Prompts() {
   };
 
   const handleSave = async () => {
-    if (!editTitle || !editContent) {
-      toast.error("Title and content are required.");
-      return;
-    }
-
-    if (profile?.plan === "free" && !editId && (prompts?.length || 0) >= 3) {
-      toast.error("Free plan allows up to 3 saved prompts. Upgrade to save more.");
-      return;
-    }
+    if (!editTitle || !editContent) { toast.error(t("prompts.titleRequired")); return; }
+    if (profile?.plan === "free" && !editId && (prompts?.length || 0) >= 3) { toast.error(t("prompts.freeLimitPrompts")); return; }
 
     if (editId) {
       await supabase.from("prompts").update({ title: editTitle, category: editCategory, content: editContent }).eq("id", editId);
     } else {
       await supabase.from("prompts").insert({ user_id: user!.id, title: editTitle, category: editCategory, content: editContent });
     }
-
     queryClient.invalidateQueries({ queryKey: ["prompts"] });
     setShowCreate(false);
     resetForm();
-    toast.success("Prompt saved!");
+    toast.success(t("prompts.promptSaved"));
   };
 
   const handleUse = (prompt: any) => {
     const vars = extractVars(prompt.content);
-    if (vars.length > 0) {
-      setSelectedPrompt(prompt);
-      setVarValues({});
-      setShowVars(true);
-    } else {
-      // Increment use count
+    if (vars.length > 0) { setSelectedPrompt(prompt); setVarValues({}); setShowVars(true); }
+    else {
       supabase.from("prompts").update({ use_count: (prompt.use_count || 0) + 1 }).eq("id", prompt.id).then(() => {});
       navigate(`/dashboard/chat?prompt=${encodeURIComponent(prompt.content)}`);
     }
@@ -107,31 +97,19 @@ export default function Prompts() {
       await supabase.from("prompts").insert({ user_id: user!.id, ...sp, is_starter: true });
     }
     queryClient.invalidateQueries({ queryKey: ["prompts"] });
-    toast.success("Starter prompts loaded!");
+    toast.success(t("prompts.startersLoaded"));
   };
 
-  const resetForm = () => {
-    setEditTitle("");
-    setEditCategory("Content");
-    setEditContent("");
-    setEditId(null);
-  };
+  const resetForm = () => { setEditTitle(""); setEditCategory("Content"); setEditContent(""); setEditId(null); };
 
-  const openEdit = (p: any) => {
-    setEditId(p.id);
-    setEditTitle(p.title);
-    setEditCategory(p.category);
-    setEditContent(p.content);
-    setShowCreate(true);
-  };
+  const openEdit = (p: any) => { setEditId(p.id); setEditTitle(p.title); setEditCategory(p.category); setEditContent(p.content); setShowCreate(true); };
 
   const handleDelete = async (id: string) => {
     await supabase.from("prompts").delete().eq("id", id);
     queryClient.invalidateQueries({ queryKey: ["prompts"] });
-    toast.success("Prompt deleted.");
+    toast.success(t("prompts.promptDeleted"));
   };
 
-  // Highlight variables in content preview
   const highlightVars = (text: string) =>
     text.replace(/\{(\w+)\}/g, '<span class="text-primary font-medium">{$1}</span>');
 
@@ -139,12 +117,12 @@ export default function Prompts() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Prompt Library</h1>
-          <p className="text-muted-foreground">Save and reuse your best prompts.</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("prompts.title")}</h1>
+          <p className="text-muted-foreground">{t("prompts.subtitle")}</p>
         </div>
         <Button onClick={() => { resetForm(); setShowCreate(true); }}>
           <Plus className="mr-2 h-4 w-4" />
-          New Prompt
+          {t("prompts.newPrompt")}
         </Button>
       </div>
 
@@ -152,9 +130,9 @@ export default function Prompts() {
         <Card className="bg-card border-border/50">
           <CardContent className="p-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No prompts yet</h3>
-            <p className="text-muted-foreground mb-4">Start with our ContentCreator starter prompts!</p>
-            <Button onClick={loadStarters}>Load Starter Prompts</Button>
+            <h3 className="text-lg font-semibold text-foreground mb-2">{t("prompts.noPrompts")}</h3>
+            <p className="text-muted-foreground mb-4">{t("prompts.noPromptsDesc")}</p>
+            <Button onClick={loadStarters}>{t("prompts.loadStarters")}</Button>
           </CardContent>
         </Card>
       )}
@@ -166,25 +144,18 @@ export default function Prompts() {
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-semibold text-foreground">{p.title}</h3>
                 <Badge variant="secondary" className="text-xs shrink-0 ml-2">
-                  {p.category}
+                  {t(`prompts.categories.${p.category}`, p.category)}
                 </Badge>
               </div>
-              <p
-                className="text-sm text-muted-foreground line-clamp-3 mb-4"
-                dangerouslySetInnerHTML={{ __html: highlightVars(p.content) }}
-              />
+              <p className="text-sm text-muted-foreground line-clamp-3 mb-4" dangerouslySetInnerHTML={{ __html: highlightVars(p.content) }} />
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Used {p.use_count}×</span>
+                <span className="text-xs text-muted-foreground">{t("prompts.used")} {p.use_count}{t("prompts.times")}</span>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => openEdit(p)}>
-                    Edit
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
-                    Delete
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => openEdit(p)}>{t("common.edit")}</Button>
+                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(p.id)}>{t("common.delete")}</Button>
                   <Button size="sm" onClick={() => handleUse(p)}>
                     <Play className="mr-1 h-3 w-3" />
-                    Use
+                    {t("prompts.use")}
                   </Button>
                 </div>
               </div>
@@ -193,53 +164,40 @@ export default function Prompts() {
         ))}
       </div>
 
-      {/* Create/Edit Modal */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Prompt" : "New Prompt"}</DialogTitle>
+            <DialogTitle>{editId ? t("prompts.editPrompt") : t("prompts.newPrompt")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input placeholder="Prompt title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="bg-secondary border-border" />
+            <Input placeholder={t("prompts.promptTitle")} value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="bg-secondary border-border" />
             <Select value={editCategory} onValueChange={setEditCategory}>
               <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {categories.map((c) => <SelectItem key={c} value={c}>{t(`prompts.categories.${c}`, c)}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Textarea
-              placeholder="Write your prompt... Use {variable} for dynamic parts"
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              rows={6}
-              className="bg-secondary border-border"
-            />
-            <Button className="w-full" onClick={handleSave}>Save Prompt</Button>
+            <Textarea placeholder={t("prompts.promptContent")} value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={6} className="bg-secondary border-border" />
+            <Button className="w-full" onClick={handleSave}>{t("prompts.savePrompt")}</Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Variable Fill Modal */}
       <Dialog open={showVars} onOpenChange={setShowVars}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>Fill in the details</DialogTitle>
+            <DialogTitle>{t("prompts.fillDetails")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {selectedPrompt && extractVars(selectedPrompt.content).map((v) => (
               <div key={v}>
                 <label className="text-sm text-muted-foreground capitalize mb-1 block">{v}</label>
-                <Input
-                  value={varValues[v] || ""}
-                  onChange={(e) => setVarValues((prev) => ({ ...prev, [v]: e.target.value }))}
-                  className="bg-secondary border-border"
-                  placeholder={`Enter ${v}...`}
-                />
+                <Input value={varValues[v] || ""} onChange={(e) => setVarValues((prev) => ({ ...prev, [v]: e.target.value }))} className="bg-secondary border-border" placeholder={`Enter ${v}...`} />
               </div>
             ))}
             <Button className="w-full" onClick={handleFillAndGo}>
               <Play className="mr-2 h-4 w-4" />
-              Use in Chat
+              {t("prompts.useInChat")}
             </Button>
           </div>
         </DialogContent>
