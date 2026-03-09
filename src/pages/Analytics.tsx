@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Euro, Activity, TrendingDown, BarChart3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const PIE_COLORS = ["hsl(217 91% 60%)", "hsl(160 84% 39%)", "hsl(280 70% 60%)"];
 
 export default function Analytics() {
   const { user } = useAuth();
   const [range, setRange] = useState("month");
+  const { t } = useTranslation();
 
   const getStartDate = () => {
     const d = new Date();
@@ -38,7 +40,6 @@ export default function Analytics() {
       const totalRequests = items.length;
       const moneySaved = totalSpend * 0.4;
 
-      // Daily spend
       const dailyMap: Record<string, number> = {};
       items.forEach((l) => {
         const day = new Date(l.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
@@ -46,7 +47,6 @@ export default function Analytics() {
       });
       const dailySpend = Object.entries(dailyMap).map(([date, spend]) => ({ date, spend: +spend.toFixed(4) }));
 
-      // Mode distribution
       const modeMap: Record<string, number> = { quick: 0, deep: 0, creator: 0 };
       items.forEach((l) => { modeMap[l.mode] = (modeMap[l.mode] || 0) + 1; });
       const modeData = Object.entries(modeMap)
@@ -56,7 +56,6 @@ export default function Analytics() {
           value,
         }));
 
-      // Recent requests
       const recent = items.slice(-20).reverse().map((l) => ({
         date: new Date(l.created_at).toLocaleDateString(),
         mode: l.mode,
@@ -69,24 +68,22 @@ export default function Analytics() {
   });
 
   const stats = [
-    { title: "Total Spend", value: `€${(data?.totalSpend || 0).toFixed(2)}`, icon: Euro },
-    { title: "Requests", value: data?.totalRequests || 0, icon: Activity },
-    { title: "Money Saved", value: `€${(data?.moneySaved || 0).toFixed(2)}`, icon: TrendingDown },
-    { title: "Avg per Request", value: `€${data?.totalRequests ? ((data.totalSpend || 0) / data.totalRequests).toFixed(4) : "0.00"}`, icon: BarChart3 },
+    { title: t("analytics.totalSpend"), value: `€${(data?.totalSpend || 0).toFixed(2)}`, icon: Euro },
+    { title: t("analytics.requests"), value: data?.totalRequests || 0, icon: Activity },
+    { title: t("analytics.moneySaved"), value: `€${(data?.moneySaved || 0).toFixed(2)}`, icon: TrendingDown },
+    { title: t("analytics.avgPerRequest"), value: `€${data?.totalRequests ? ((data.totalSpend || 0) / data.totalRequests).toFixed(4) : "0.00"}`, icon: BarChart3 },
   ];
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t("analytics.title")}</h1>
         <Select value={range} onValueChange={setRange}>
-          <SelectTrigger className="w-[160px] bg-card border-border">
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger className="w-[160px] bg-card border-border"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
-            <SelectItem value="quarter">Last 3 months</SelectItem>
+            <SelectItem value="week">{t("analytics.thisWeek")}</SelectItem>
+            <SelectItem value="month">{t("analytics.thisMonth")}</SelectItem>
+            <SelectItem value="quarter">{t("analytics.last3Months")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -106,9 +103,8 @@ export default function Analytics() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Daily Spend Chart */}
         <Card className="bg-card border-border/50">
-          <CardHeader><CardTitle className="text-lg">Daily Spend</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t("analytics.dailySpend")}</CardTitle></CardHeader>
           <CardContent>
             {data?.dailySpend && data.dailySpend.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
@@ -120,45 +116,41 @@ export default function Analytics() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-muted-foreground text-center py-12">No data yet.</p>
+              <p className="text-muted-foreground text-center py-12">{t("common.noDataYet")}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Mode Distribution */}
         <Card className="bg-card border-border/50">
-          <CardHeader><CardTitle className="text-lg">Usage by Mode</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t("analytics.usageByMode")}</CardTitle></CardHeader>
           <CardContent>
             {data?.modeData && data.modeData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie data={data.modeData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {data.modeData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
+                    {data.modeData.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />))}
                   </Pie>
                   <Tooltip contentStyle={{ background: "hsl(217 33% 17%)", border: "1px solid hsl(217 33% 25%)", borderRadius: "8px", color: "hsl(210 40% 96%)" }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-muted-foreground text-center py-12">No data yet.</p>
+              <p className="text-muted-foreground text-center py-12">{t("common.noDataYet")}</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Request History */}
       <Card className="bg-card border-border/50">
-        <CardHeader><CardTitle className="text-lg">Recent Requests</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">{t("analytics.recentRequests")}</CardTitle></CardHeader>
         <CardContent>
           {data?.recent && data.recent.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Mode</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
+                  <TableHead>{t("analytics.date")}</TableHead>
+                  <TableHead>{t("analytics.mode")}</TableHead>
+                  <TableHead>{t("analytics.model")}</TableHead>
+                  <TableHead className="text-right">{t("analytics.cost")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -173,7 +165,7 @@ export default function Analytics() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground text-center py-8">No requests yet. Start chatting to see analytics!</p>
+            <p className="text-muted-foreground text-center py-8">{t("analytics.noRequests")}</p>
           )}
         </CardContent>
       </Card>
