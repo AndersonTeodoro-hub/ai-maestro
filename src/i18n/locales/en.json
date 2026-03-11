@@ -26,11 +26,11 @@
       "cta": "Get Started"
     },
     "hero": {
-      "badge": "YOUR AI OPERATING SYSTEM",
-      "h1a": "You create.",
-      "h1b": "AI optimises everything.",
-      "subtitle": "PromptOS takes your prompts, removes the unnecessary, improves context — and sends them to the ideal model. Text, image, video and audio. All in one interface. Costs up to 90% lower.",
-      "cta": "Explore PromptOS →"
+      "badge": "PROMPT OPTIMISATION ENGINE",
+      "h1a": "Spend less on AI.",
+      "h1b": "Get better results.",
+      "subtitle": "PromptOS automatically optimises your prompts and routes each task to the most efficient model. Text only. Real savings.",
+      "cta": "Try PromptOS free →"
     },
     "optimize": {
       "badge": "SMART OPTIMISATION",
@@ -48,36 +48,36 @@
       "stat4_label": "SAVINGS",
       "stat4_value": "€0.009"
     },
-    "tools": {
-      "badge": "ALL YOUR AIs",
-      "title_a": "Not just text.",
-      "title_b": "Everything.",
-      "subtitle": "PromptOS integrates the AIs that creators and marketing teams actually use every day. One interface for all.",
-      "tab_text": "TEXT",
-      "tab_image": "IMAGE",
-      "tab_video": "VIDEO",
-      "tab_audio": "AUDIO"
-    },
-    "routing": {
-      "badge": "SMART ROUTING",
-      "header": "REAL-TIME ROUTING",
-      "prompt": "Create a 60s script for a Reel about productivity with AI",
-      "tags": ["Script", "Short-form", "Persuasive"],
-      "result_desc": "Persuasive copy · Short-form · Speed",
-      "result_cost": "€0.004",
-      "result_vs": "vs €0.011 on Claude Opus",
-      "result_saved": "63% SAVED"
+    "howItWorks": {
+      "badge": "HOW IT WORKS",
+      "title_a": "Three steps.",
+      "title_b": "Zero waste.",
+      "step1_title": "Write your prompt",
+      "step1_desc": "Type what you need in natural language. No special formatting required.",
+      "step2_title": "PromptOS optimises",
+      "step2_desc": "The engine analyses your prompt, removes redundancies, improves context and reformulates for maximum efficiency.",
+      "step3_title": "Best model executes",
+      "step3_desc": "Your optimised prompt is automatically routed to Gemini Flash or Gemini Pro — whichever fits the task best."
     },
     "why": {
-      "badge": "WHO IT'S FOR",
-      "title_a": "Built for those who",
-      "title_b": "create every day.",
-      "card1_title": "Content Creators",
-      "card1_desc": "Scripts, captions, thumbnails, post ideas — all with the right AI, optimised, without spending more than you need.",
-      "card2_title": "Influencers",
-      "card2_desc": "Quick replies to brands, content calendars, copy for stories and reels — automated and in your voice.",
-      "card3_title": "Marketing Agencies",
-      "card3_desc": "Multiple clients, multiple AIs, one budget. PromptOS gives you total cost control per client and project."
+      "badge": "WHY PROMPTOS",
+      "title_a": "Concrete results.",
+      "title_b": "Not promises.",
+      "card1_title": "Up to 64% fewer tokens",
+      "card1_desc": "Every prompt is analysed and compressed before sending. You pay for what matters, not for filler words.",
+      "card2_title": "Automatic model routing",
+      "card2_desc": "Simple tasks go to Gemini Flash (fast, cheap). Complex tasks go to Gemini Pro (precise, powerful). No manual selection.",
+      "card3_title": "Real-time cost tracking",
+      "card3_desc": "See exactly what you spend per prompt, per day, per month. Set budgets. No surprises."
+    },
+    "models": {
+      "badge": "AVAILABLE MODELS",
+      "title_a": "Two models.",
+      "title_b": "One smart choice.",
+      "subtitle": "PromptOS automatically selects the best model for each task.",
+      "flash_desc": "Fast and affordable. Ideal for simple tasks: summaries, classifications, quick copy, translations.",
+      "pro_desc": "Precise and powerful. Best for complex reasoning, long-form content, strategy, and nuanced writing.",
+      "coming_soon": "More models coming soon."
     },
     "features": {
       "badge": "THE PRODUCT",
@@ -88,15 +88,15 @@
       "f2_label": "SMART ROUTING",
       "f2_title_a": "The right model.",
       "f2_title_b": "Always.",
-      "f2_desc": "Each prompt is classified by task type, complexity and language — and automatically routed to the best-performing model. Text, image, video or audio.",
+      "f2_desc": "Each prompt is classified by task type, complexity and language — and automatically routed to the best-performing model between Gemini Flash and Gemini Pro.",
       "f3_label": "COST ANALYTICS",
       "f3_title_a": "Know exactly",
       "f3_title_b": "what you spend.",
-      "f3_desc": "Real-time dashboard. Cost per prompt, per model, per project, per client. See how much you saved. Set limits. No surprises.",
+      "f3_desc": "Real-time dashboard. Cost per prompt, per model, per day. See how much you saved. Set limits. No surprises.",
       "f4_label": "PROMPT LIBRARY",
       "f4_title_a": "Your best prompts.",
       "f4_title_b": "Saved.",
-      "f4_desc": "Save what works. Organise by project, type, model. Share with the team. Your knowledge compounds."
+      "f4_desc": "Save what works. Organise by category. Reuse with one click. Your knowledge compounds."
     },
     "pricing": {
       "badge": "PRICING",
@@ -104,12 +104,12 @@
       "title_b": "Transparent.",
       "free_label": "ESSENTIAL",
       "month": "mo",
-      "free_features": ["5 prompts/day", "Text models", "Basic analytics", "Basic optimisation"],
+      "free_features": ["5 prompts/day", "Gemini Flash & Pro", "Basic analytics", "Basic optimisation"],
       "free_cta": "START FREE",
       "pro_label": "PROFESSIONAL",
       "popular": "POPULAR",
-      "pro_features": ["Unlimited prompts", "Text + Image + Video + Audio", "Full analytics", "Advanced optimisation", "Unlimited library", "Priority support"],
-      "pro_cta": "GET STARTED"
+      "pro_features": ["Unlimited prompts", "Advanced optimisation", "Full analytics", "Unlimited library", "Priority support"],
+      "pro_cta": "COMING SOON"
     },
     "cta_final": {
       "title_a": "Ready to create",

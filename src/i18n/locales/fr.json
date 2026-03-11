@@ -26,11 +26,11 @@
       "cta": "Commencer"
     },
     "hero": {
-      "badge": "LE SYSTÈME D'EXPLOITATION DE VOTRE IA",
-      "h1a": "Vous créez.",
-      "h1b": "L'IA optimise tout.",
-      "subtitle": "PromptOS reçoit vos prompts, supprime le superflu, améliore le contexte — et les envoie au modèle idéal. Texte, image, vidéo et audio. Tout en une interface. Coûts réduits jusqu'à 90%.",
-      "cta": "Explorer PromptOS →"
+      "badge": "MOTEUR D'OPTIMISATION DE PROMPTS",
+      "h1a": "Dépensez moins en IA.",
+      "h1b": "Obtenez de meilleurs résultats.",
+      "subtitle": "PromptOS optimise automatiquement vos prompts et choisit le modèle le plus efficace pour chaque tâche. Texte uniquement. Économies réelles.",
+      "cta": "Essayez gratuitement →"
     },
     "optimize": {
       "badge": "OPTIMISATION INTELLIGENTE",
@@ -48,36 +48,36 @@
       "stat4_label": "ÉCONOMIE",
       "stat4_value": "0,009 €"
     },
-    "tools": {
-      "badge": "TOUTES VOS IAs",
-      "title_a": "Pas que du texte.",
-      "title_b": "Tout.",
-      "subtitle": "PromptOS intègre les IAs que les créateurs et les équipes marketing utilisent au quotidien. Une interface pour toutes.",
-      "tab_text": "TEXTE",
-      "tab_image": "IMAGE",
-      "tab_video": "VIDÉO",
-      "tab_audio": "AUDIO"
-    },
-    "routing": {
-      "badge": "ROUTAGE INTELLIGENT",
-      "header": "ROUTAGE EN TEMPS RÉEL",
-      "prompt": "Crée un script de 60s pour un Reel sur la productivité avec l'IA",
-      "tags": ["Script", "Format court", "Persuasif"],
-      "result_desc": "Copy persuasif · Format court · Rapidité",
-      "result_cost": "0,004 €",
-      "result_vs": "vs 0,011 € sur Claude Opus",
-      "result_saved": "63% ÉCONOMISÉ"
+    "howItWorks": {
+      "badge": "COMMENT ÇA MARCHE",
+      "title_a": "Trois étapes.",
+      "title_b": "Zéro gaspillage.",
+      "step1_title": "Écrivez votre prompt",
+      "step1_desc": "Tapez ce dont vous avez besoin en langage naturel. Aucun formatage spécial requis.",
+      "step2_title": "PromptOS optimise",
+      "step2_desc": "Le moteur analyse votre prompt, supprime les redondances, améliore le contexte et reformule pour une efficacité maximale.",
+      "step3_title": "Le meilleur modèle exécute",
+      "step3_desc": "Votre prompt optimisé est automatiquement dirigé vers Gemini Flash ou Gemini Pro — selon ce qui convient le mieux à la tâche."
     },
     "why": {
-      "badge": "POUR QUI",
-      "title_a": "Conçu pour ceux qui",
-      "title_b": "créent tous les jours.",
-      "card1_title": "Créateurs de Contenu",
-      "card1_desc": "Scripts, légendes, miniatures, idées de posts — tout avec la bonne IA, optimisée, sans dépenser plus que nécessaire.",
-      "card2_title": "Influenceurs",
-      "card2_desc": "Réponses rapides aux marques, calendriers de contenu, copy pour stories et reels — automatisé et avec votre voix.",
-      "card3_title": "Agences Marketing",
-      "card3_desc": "Plusieurs clients, plusieurs IAs, un budget. PromptOS vous donne le contrôle total des coûts par client et par projet."
+      "badge": "POURQUOI PROMPTOS",
+      "title_a": "Des résultats concrets.",
+      "title_b": "Pas des promesses.",
+      "card1_title": "Jusqu'à 64% de tokens en moins",
+      "card1_desc": "Chaque prompt est analysé et compressé avant envoi. Vous payez pour ce qui compte, pas pour le superflu.",
+      "card2_title": "Routage automatique des modèles",
+      "card2_desc": "Les tâches simples vont vers Gemini Flash (rapide, économique). Les tâches complexes vers Gemini Pro (précis, puissant). Sans sélection manuelle.",
+      "card3_title": "Suivi des coûts en temps réel",
+      "card3_desc": "Voyez exactement ce que vous dépensez par prompt, par jour, par mois. Définissez des budgets. Sans surprises."
+    },
+    "models": {
+      "badge": "MODÈLES DISPONIBLES",
+      "title_a": "Deux modèles.",
+      "title_b": "Un choix intelligent.",
+      "subtitle": "PromptOS sélectionne automatiquement le meilleur modèle pour chaque tâche.",
+      "flash_desc": "Rapide et abordable. Idéal pour les tâches simples : résumés, classifications, copy rapide, traductions.",
+      "pro_desc": "Précis et puissant. Idéal pour le raisonnement complexe, le contenu long, la stratégie et l'écriture nuancée.",
+      "coming_soon": "Plus de modèles bientôt."
     },
     "features": {
       "badge": "LE PRODUIT",
@@ -88,15 +88,15 @@
       "f2_label": "ROUTAGE INTELLIGENT",
       "f2_title_a": "Le bon modèle.",
       "f2_title_b": "Toujours.",
-      "f2_desc": "Chaque prompt est classé par type de tâche, complexité et langue — et automatiquement dirigé vers le modèle le plus performant. Texte, image, vidéo ou audio.",
+      "f2_desc": "Chaque prompt est classé par type de tâche, complexité et langue — et automatiquement dirigé vers le modèle le plus performant entre Gemini Flash et Gemini Pro.",
       "f3_label": "ANALYTICS DES COÛTS",
       "f3_title_a": "Sachez exactement",
       "f3_title_b": "ce que vous dépensez.",
-      "f3_desc": "Tableau de bord en temps réel. Coût par prompt, par modèle, par projet, par client. Voyez combien vous avez économisé. Définissez des limites. Sans surprises.",
+      "f3_desc": "Tableau de bord en temps réel. Coût par prompt, par modèle, par jour. Voyez combien vous avez économisé. Définissez des limites. Sans surprises.",
       "f4_label": "BIBLIOTHÈQUE DE PROMPTS",
       "f4_title_a": "Vos meilleurs prompts.",
       "f4_title_b": "Sauvegardés.",
-      "f4_desc": "Sauvegardez ce qui fonctionne. Organisez par projet, type, modèle. Partagez avec l'équipe. Votre savoir s'accumule."
+      "f4_desc": "Sauvegardez ce qui fonctionne. Organisez par catégorie. Réutilisez en un clic. Votre savoir s'accumule."
     },
     "pricing": {
       "badge": "TARIFS",
@@ -104,12 +104,12 @@
       "title_b": "Transparent.",
       "free_label": "ESSENTIEL",
       "month": "mois",
-      "free_features": ["5 prompts/jour", "Modèles de texte", "Analytics basique", "Optimisation basique"],
+      "free_features": ["5 prompts/jour", "Gemini Flash & Pro", "Analytics basique", "Optimisation basique"],
       "free_cta": "COMMENCER GRATUITEMENT",
       "pro_label": "PROFESSIONNEL",
       "popular": "POPULAIRE",
-      "pro_features": ["Prompts illimités", "Texte + Image + Vidéo + Audio", "Analytics complet", "Optimisation avancée", "Bibliothèque illimitée", "Support prioritaire"],
-      "pro_cta": "COMMENCER"
+      "pro_features": ["Prompts illimités", "Optimisation avancée", "Analytics complet", "Bibliothèque illimitée", "Support prioritaire"],
+      "pro_cta": "BIENTÔT DISPONIBLE"
     },
     "cta_final": {
       "title_a": "Prêt à créer",
