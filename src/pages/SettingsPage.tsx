@@ -44,10 +44,43 @@ export default function SettingsPage() {
     toast.success(t("settings.deleteRequested"));
   };
 
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
   const planColors: Record<string, string> = {
     free: "bg-secondary text-secondary-foreground",
     starter: "bg-primary/20 text-primary",
     pro: "bg-accent/20 text-accent",
+  };
+
+  const handleUpgrade = async (plan: string) => {
+    setCheckoutLoading(plan);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { action: "create-checkout", plan },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to start checkout");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { action: "create-portal" },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to open billing portal");
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   return (
