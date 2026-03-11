@@ -87,6 +87,57 @@ export type Database = {
           },
         ]
       }
+      model_registry: {
+        Row: {
+          cost_per_1k_input: number | null
+          cost_per_1k_output: number | null
+          created_at: string | null
+          display_name: string | null
+          gateway_model_string: string | null
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          min_plan: string | null
+          model_id: string
+          provider: string | null
+          quality_tier: string | null
+          speed_tier: string | null
+          strengths: string[] | null
+        }
+        Insert: {
+          cost_per_1k_input?: number | null
+          cost_per_1k_output?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          gateway_model_string?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          min_plan?: string | null
+          model_id: string
+          provider?: string | null
+          quality_tier?: string | null
+          speed_tier?: string | null
+          strengths?: string[] | null
+        }
+        Update: {
+          cost_per_1k_input?: number | null
+          cost_per_1k_output?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          gateway_model_string?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          min_plan?: string | null
+          model_id?: string
+          provider?: string | null
+          quality_tier?: string | null
+          speed_tier?: string | null
+          strengths?: string[] | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           content_preference: string | null
