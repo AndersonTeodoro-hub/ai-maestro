@@ -203,12 +203,56 @@ export default function Chat() {
                   <div className="prose prose-sm prose-invert max-w-none">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
-                  {msg.role === "assistant" && msg.model_used && (
+                   {msg.role === "assistant" && msg.model_used && (
                     <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="bg-secondary px-2 py-0.5 rounded-full">
                         {msg.model_used?.split("/").pop()} • €{(msg.cost_eur || 0).toFixed(4)}
                       </span>
                     </div>
+                  )}
+                  {msg.role === "assistant" && msg.optimized_content && (
+                    <Collapsible className="mt-2">
+                      <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full group">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        <span>Optimizado pelo PromptOS</span>
+                        {msg.model_recommended && (
+                          <span className="text-muted-foreground/70">• {msg.model_recommended.split("/").pop()}</span>
+                        )}
+                        <ChevronDown className="h-3 w-3 ml-auto transition-transform group-data-[state=open]:rotate-180" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="mt-2 bg-accent/5 border border-border/50 rounded-lg p-3 space-y-2 text-xs">
+                          {msg.model_recommended && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Modelo usado</span>
+                              <span className="text-foreground font-medium">{msg.model_recommended.split("/").pop()}</span>
+                            </div>
+                          )}
+                          {msg.task_type && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Tipo de tarefa</span>
+                              <span className="text-foreground font-medium">{msg.task_type}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Poupança estimada</span>
+                            <span className="text-foreground font-medium">
+                              {msg.optimization_savings_eur ? `€${msg.optimization_savings_eur.toFixed(4)}` : "—"}
+                            </span>
+                          </div>
+                          <Collapsible>
+                            <CollapsibleTrigger className="text-primary hover:text-primary/80 transition-colors text-xs font-medium mt-1">
+                              Ver prompt otimizado
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <pre className="mt-2 bg-muted/50 border border-border/30 rounded-md p-2.5 text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                                {msg.optimized_content}
+                              </pre>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   )}
                 </div>
               </div>
