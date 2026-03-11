@@ -119,9 +119,34 @@ export default function SettingsPage() {
               {(profile?.plan || "free").charAt(0).toUpperCase() + (profile?.plan || "free").slice(1)}
             </Badge>
           </div>
-          {profile?.plan === "free" && <Button className="glow-primary">{t("settings.upgradeStarter")}</Button>}
-          {profile?.plan === "starter" && <Button className="glow-primary">{t("settings.upgradePro")}</Button>}
-          {profile?.plan === "pro" && <p className="text-sm text-muted-foreground">{t("settings.topPlan")}</p>}
+          {profile?.plan === "free" && (
+            <div className="flex gap-2">
+              <Button className="glow-primary" onClick={() => handleUpgrade("starter")} disabled={!!checkoutLoading}>
+                {checkoutLoading === "starter" ? t("settings.saving") : t("settings.upgradeStarter")}
+              </Button>
+              <Button variant="outline" onClick={() => handleUpgrade("pro")} disabled={!!checkoutLoading}>
+                {checkoutLoading === "pro" ? t("settings.saving") : t("settings.upgradePro")}
+              </Button>
+            </div>
+          )}
+          {profile?.plan === "starter" && (
+            <div className="flex gap-2">
+              <Button className="glow-primary" onClick={() => handleUpgrade("pro")} disabled={!!checkoutLoading}>
+                {checkoutLoading === "pro" ? t("settings.saving") : t("settings.upgradePro")}
+              </Button>
+              <Button variant="outline" onClick={handleManageSubscription} disabled={portalLoading}>
+                {portalLoading ? t("settings.saving") : t("settings.manageSubscription", "Manage Subscription")}
+              </Button>
+            </div>
+          )}
+          {profile?.plan === "pro" && (
+            <div className="flex gap-2">
+              <p className="text-sm text-muted-foreground self-center">{t("settings.topPlan")}</p>
+              <Button variant="outline" onClick={handleManageSubscription} disabled={portalLoading}>
+                {portalLoading ? t("settings.saving") : t("settings.manageSubscription", "Manage Subscription")}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
