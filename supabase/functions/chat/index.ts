@@ -278,7 +278,7 @@ serve(async (req) => {
     // Build system prompt
     const systemPrompt = mode === "creator"
       ? CREATOR_SYSTEM_PROMPT
-      : "You are PromptOS AI, a helpful and concise assistant. Keep answers clear, actionable, and well-formatted.";
+      : "You are SavvyOwl AI, a helpful and concise assistant. Keep answers clear, actionable, and well-formatted.";
 
     const aiMessages = [
       { role: "system", content: systemPrompt },

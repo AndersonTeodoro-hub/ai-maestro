@@ -38,7 +38,7 @@ export function DashboardSidebar() {
         <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 glow-primary">
           <Zap className="h-4 w-4 text-primary" />
         </div>
-        {!collapsed && <span className="text-lg font-bold text-sidebar-foreground text-tracking-tight">PromptOS</span>}
+        {!collapsed && <span className="text-lg font-bold text-sidebar-foreground text-tracking-tight">SavvyOwl</span>}
       </div>
       <SidebarContent>
         <SidebarGroup>

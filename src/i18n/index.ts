@@ -30,7 +30,7 @@ i18n
     interpolation: { escapeValue: false },
     detection: {
       order: ["localStorage", "navigator"],
-      lookupLocalStorage: "promptos-language",
+      lookupLocalStorage: "savvyowl-language",
       caches: ["localStorage"],
     },
   });
