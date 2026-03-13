@@ -29,14 +29,14 @@
       "badge": "MOTOR DE OPTIMIZACIÓN DE PROMPTS",
       "h1a": "Gasta menos en IA.",
       "h1b": "Obtén mejores resultados.",
-      "subtitle": "PromptOS optimiza automáticamente tus prompts y elige el modelo más eficiente para cada tarea. Solo texto. Ahorro real.",
+      "subtitle": "SavvyOwl optimiza automáticamente tus prompts y elige el modelo más eficiente para cada tarea. Solo texto. Ahorro real.",
       "cta": "Prueba gratis →"
     },
     "optimize": {
       "badge": "OPTIMIZACIÓN INTELIGENTE",
       "title_a": "Tu prompt,",
       "title_b": "antes y después.",
-      "subtitle": "Mira cómo PromptOS transforma un prompt confuso en una instrucción precisa.",
+      "subtitle": "Mira cómo SavvyOwl transforma un prompt confuso en una instrucción precisa.",
       "prompt_before": "Hola, me gustaría que me escribieras un texto tipo copy de marketing para publicar en mi Instagram hablando de cómo mis seguidores pueden usar inteligencia artificial para crear contenido para sus redes sociales de forma más eficiente y barata, con un tono motivacional e inspirador si es posible",
       "prompt_after": "Copy para Instagram: cómo usar IA para crear contenido para redes sociales — eficiente, accesible. Tono: motivacional. Formato: post. Público: creadores de contenido.",
       "stat1_label": "TOKENS ORIGINALES",
@@ -54,13 +54,13 @@
       "title_b": "Cero desperdicio.",
       "step1_title": "Escribe tu prompt",
       "step1_desc": "Escribe lo que necesitas en lenguaje natural. Sin formato especial.",
-      "step2_title": "PromptOS optimiza",
+      "step2_title": "SavvyOwl optimiza",
       "step2_desc": "El motor analiza tu prompt, elimina redundancias, mejora el contexto y reformula para máxima eficiencia.",
       "step3_title": "El mejor modelo ejecuta",
       "step3_desc": "Tu prompt optimizado se dirige automáticamente a Gemini Flash o Gemini Pro — el que mejor se adapte a la tarea."
     },
     "why": {
-      "badge": "POR QUÉ PROMPTOS",
+      "badge": "POR QUÉ SAVVYOWL",
       "title_a": "Resultados concretos.",
       "title_b": "No promesas.",
       "card1_title": "Hasta 64% menos tokens",
@@ -74,7 +74,7 @@
       "badge": "MODELOS DISPONIBLES",
       "title_a": "Dos modelos.",
       "title_b": "Una elección inteligente.",
-      "subtitle": "PromptOS selecciona automáticamente el mejor modelo para cada tarea.",
+      "subtitle": "SavvyOwl selecciona automáticamente el mejor modelo para cada tarea.",
       "flash_desc": "Rápido y asequible. Ideal para tareas simples: resúmenes, clasificaciones, copy rápido, traducciones.",
       "pro_desc": "Preciso y potente. Ideal para razonamiento complejo, contenido largo, estrategia y escritura con matices.",
       "coming_soon": "Más modelos próximamente."
@@ -84,7 +84,7 @@
       "f1_label": "OPTIMIZACIÓN DE PROMPT",
       "f1_title_a": "Menos tokens.",
       "f1_title_b": "Mejores resultados.",
-      "f1_desc": "Antes de enviar, PromptOS analiza tu prompt, elimina redundancias, mejora el contexto y reformula para máxima eficacia. Ahorras tokens y dinero sin perder calidad.",
+      "f1_desc": "Antes de enviar, SavvyOwl analiza tu prompt, elimina redundancias, mejora el contexto y reformula para máxima eficacia. Ahorras tokens y dinero sin perder calidad.",
       "f2_label": "ENRUTAMIENTO INTELIGENTE",
       "f2_title_a": "El modelo correcto.",
       "f2_title_b": "Siempre.",
@@ -117,7 +117,7 @@
       "cta": "Empezar gratis →"
     },
     "footer": {
-      "text": "PromptOS · Lisboa, 2026"
+      "text": "SavvyOwl · Lisboa, 2026"
     }
   },
   "auth": {
@@ -157,7 +157,7 @@
   "chat": {
     "newChat": "Nuevo Chat",
     "startConversation": "Inicia una conversación",
-    "startConversationDesc": "Elige un modo y escribe tu mensaje. PromptOS lo dirigirá a la mejor IA automáticamente.",
+    "startConversationDesc": "Elige un modo y escribe tu mensaje. SavvyOwl lo dirigirá a la mejor IA automáticamente.",
     "typeMessage": "Escribe tu mensaje...",
     "quick": "Rápido",
     "quickDesc": "Rápido y asequible",
@@ -168,7 +168,7 @@
     "contentCreatorBanner": "ContentCreator AI — optimizado para subtítulos, guiones y textos",
     "upgradeMode": "Sube a Starter o Pro para usar este modo.",
     "somethingWrong": "Algo salió mal. Inténtalo de nuevo.",
-    "optimizedBy": "Optimizado por PromptOS",
+    "optimizedBy": "Optimizado por SavvyOwl",
     "modelUsed": "Modelo usado",
     "taskType": "Tipo de tarea",
     "estimatedSavings": "Ahorro estimado",
@@ -264,7 +264,7 @@
     "step3Title": "¡Todo listo! 🚀",
     "step3Desc": "Hemos cargado 6 prompts iniciales de ContentCreator AI para ti.",
     "letsGo": "¡Vamos!",
-    "welcome": "¡Bienvenido a PromptOS! 🎉",
+    "welcome": "¡Bienvenido a SavvyOwl! 🎉",
     "contentTypes": {
       "YouTube Videos": "Vídeos de YouTube",
       "Instagram/TikTok": "Instagram/TikTok",
