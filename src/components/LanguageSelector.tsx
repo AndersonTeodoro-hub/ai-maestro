@@ -28,7 +28,7 @@ export function LanguageSelector() {
       const lang = supported.includes(detected) ? detected : "en";
       i18nInstance.changeLanguage(lang);
     } else {
-      localStorage.setItem("promptos-language", code);
+      localStorage.setItem("savvyowl-language", code);
       i18nInstance.changeLanguage(code);
     }
 

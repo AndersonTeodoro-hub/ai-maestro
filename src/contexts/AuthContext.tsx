@@ -41,10 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const applyLanguage = (lang: string) => {
     if (lang && lang !== "auto") {
-      localStorage.setItem("promptos-language", lang);
+      localStorage.setItem("savvyowl-language", lang);
       i18n.changeLanguage(lang);
     } else {
-      localStorage.setItem("promptos-language", "auto");
+      localStorage.setItem("savvyowl-language", "auto");
       const detected = navigator.language?.split("-")[0];
       const supported = ["en", "pt", "fr", "es"];
       i18n.changeLanguage(supported.includes(detected) ? detected : "en");
