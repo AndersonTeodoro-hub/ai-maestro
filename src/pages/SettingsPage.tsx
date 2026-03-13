@@ -182,7 +182,7 @@ export default function SettingsPage() {
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">{t("settings.deleteAccount")}</Button>
+              <Button variant="destructive" disabled={deleting}>{deleting ? t("settings.saving") : t("settings.deleteAccount")}</Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[hsl(var(--surface-2))] border-border shadow-elevated">
               <AlertDialogHeader>
