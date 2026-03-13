@@ -167,7 +167,12 @@
     "contentCreatorDesc": "Optimisé pour le contenu",
     "contentCreatorBanner": "ContentCreator AI — optimisé pour les légendes, scripts et textes",
     "upgradeMode": "Passez à Starter ou Pro pour utiliser ce mode.",
-    "somethingWrong": "Quelque chose s'est mal passé. Réessayez."
+    "somethingWrong": "Quelque chose s'est mal passé. Réessayez.",
+    "optimizedBy": "Optimisé par PromptOS",
+    "modelUsed": "Modèle utilisé",
+    "taskType": "Type de tâche",
+    "estimatedSavings": "Économie estimée",
+    "viewOptimizedPrompt": "Voir le prompt optimisé"
   },
   "prompts": {
     "title": "Bibliothèque de Prompts",
@@ -235,6 +240,7 @@
     "upgradeStarter": "Passer à Starter — 9€/mois",
     "upgradePro": "Passer à Pro — 19€/mois",
     "topPlan": "Vous êtes sur notre meilleur plan ! 🎉",
+    "manageSubscription": "Gérer l'Abonnement",
     "monthlyBudget": "Budget Mensuel",
     "budgetDesc": "Définissez une limite de dépenses. Vous serez averti à 80%.",
     "perMonth": "€ / mois",
@@ -246,7 +252,8 @@
     "deleteAccount": "Supprimer le Compte",
     "deleteConfirm": "Êtes-vous sûr ?",
     "deleteWarning": "Cela supprimera définitivement votre compte et toutes vos données. Cette action est irréversible.",
-    "deleteRequested": "Demande de suppression de compte envoyée."
+    "deleteRequested": "Compte supprimé avec succès.",
+    "deleteFailed": "Échec de la suppression du compte. Veuillez réessayer."
   },
   "onboarding": {
     "step1Title": "Quel est votre nom ?",
@@ -265,7 +272,13 @@
       "Email Marketing": "Email Marketing",
       "Social Media": "Réseaux Sociaux",
       "Podcasts": "Podcasts"
-    }
+    },
+    "starterPrompt1": "✍️ Rédacteur de légendes Instagram",
+    "starterPrompt2": "🎬 Créateur de scripts YouTube",
+    "starterPrompt3": "🐦 Générateur de variations de tweets",
+    "starterPrompt4": "📧 Créateur d'objets d'email",
+    "starterPrompt5": "📱 Rédacteur de hooks TikTok",
+    "starterPrompt6": "♻️ Recycleur de contenu"
   },
   "notFound": {
     "title": "404",

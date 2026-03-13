@@ -167,7 +167,12 @@
     "contentCreatorDesc": "Otimizado para conteúdo",
     "contentCreatorBanner": "ContentCreator AI — otimizado para legendas, scripts e textos",
     "upgradeMode": "Faz upgrade para Starter ou Pro para usar este modo.",
-    "somethingWrong": "Algo correu mal. Tenta novamente."
+    "somethingWrong": "Algo correu mal. Tenta novamente.",
+    "optimizedBy": "Optimizado pelo PromptOS",
+    "modelUsed": "Modelo usado",
+    "taskType": "Tipo de tarefa",
+    "estimatedSavings": "Poupança estimada",
+    "viewOptimizedPrompt": "Ver prompt otimizado"
   },
   "prompts": {
     "title": "Biblioteca de Prompts",
@@ -235,6 +240,7 @@
     "upgradeStarter": "Upgrade para Starter — €9/mês",
     "upgradePro": "Upgrade para Pro — €19/mês",
     "topPlan": "Estás no nosso melhor plano! 🎉",
+    "manageSubscription": "Gerir Subscrição",
     "monthlyBudget": "Orçamento Mensal",
     "budgetDesc": "Define um limite de gastos. Serás avisado aos 80%.",
     "perMonth": "€ / mês",
@@ -246,7 +252,8 @@
     "deleteAccount": "Eliminar Conta",
     "deleteConfirm": "Tens a certeza?",
     "deleteWarning": "Isto irá eliminar permanentemente a tua conta e todos os teus dados. Esta ação não pode ser revertida.",
-    "deleteRequested": "Pedido de eliminação de conta enviado."
+    "deleteRequested": "Conta eliminada com sucesso.",
+    "deleteFailed": "Falha ao eliminar a conta. Tenta novamente."
   },
   "onboarding": {
     "step1Title": "Qual é o teu nome?",
@@ -265,7 +272,13 @@
       "Email Marketing": "Email Marketing",
       "Social Media": "Redes Sociais",
       "Podcasts": "Podcasts"
-    }
+    },
+    "starterPrompt1": "✍️ Escritor de legendas para Instagram",
+    "starterPrompt2": "🎬 Criador de roteiros para YouTube",
+    "starterPrompt3": "🐦 Gerador de variações de tweets",
+    "starterPrompt4": "📧 Criador de assuntos de email",
+    "starterPrompt5": "📱 Escritor de hooks para TikTok",
+    "starterPrompt6": "♻️ Reaproveitador de conteúdo"
   },
   "notFound": {
     "title": "404",

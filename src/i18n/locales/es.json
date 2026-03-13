@@ -167,7 +167,12 @@
     "contentCreatorDesc": "Optimizado para contenido",
     "contentCreatorBanner": "ContentCreator AI — optimizado para subtítulos, guiones y textos",
     "upgradeMode": "Sube a Starter o Pro para usar este modo.",
-    "somethingWrong": "Algo salió mal. Inténtalo de nuevo."
+    "somethingWrong": "Algo salió mal. Inténtalo de nuevo.",
+    "optimizedBy": "Optimizado por PromptOS",
+    "modelUsed": "Modelo usado",
+    "taskType": "Tipo de tarea",
+    "estimatedSavings": "Ahorro estimado",
+    "viewOptimizedPrompt": "Ver prompt optimizado"
   },
   "prompts": {
     "title": "Biblioteca de Prompts",
@@ -235,6 +240,7 @@
     "upgradeStarter": "Subir a Starter — 9€/mes",
     "upgradePro": "Subir a Pro — 19€/mes",
     "topPlan": "¡Estás en nuestro mejor plan! 🎉",
+    "manageSubscription": "Gestionar Suscripción",
     "monthlyBudget": "Presupuesto Mensual",
     "budgetDesc": "Establece un límite de gasto. Te avisaremos al 80%.",
     "perMonth": "€ / mes",
@@ -246,7 +252,8 @@
     "deleteAccount": "Eliminar Cuenta",
     "deleteConfirm": "¿Estás seguro?",
     "deleteWarning": "Esto eliminará permanentemente tu cuenta y todos tus datos. Esta acción no se puede deshacer.",
-    "deleteRequested": "Solicitud de eliminación de cuenta enviada."
+    "deleteRequested": "Cuenta eliminada con éxito.",
+    "deleteFailed": "Error al eliminar la cuenta. Inténtalo de nuevo."
   },
   "onboarding": {
     "step1Title": "¿Cómo te llamas?",
@@ -265,7 +272,13 @@
       "Email Marketing": "Email Marketing",
       "Social Media": "Redes Sociales",
       "Podcasts": "Podcasts"
-    }
+    },
+    "starterPrompt1": "✍️ Escritor de subtítulos para Instagram",
+    "starterPrompt2": "🎬 Creador de guiones para YouTube",
+    "starterPrompt3": "🐦 Generador de variaciones de tweets",
+    "starterPrompt4": "📧 Creador de asuntos de email",
+    "starterPrompt5": "📱 Escritor de hooks para TikTok",
+    "starterPrompt6": "♻️ Reciclador de contenido"
   },
   "notFound": {
     "title": "404",

@@ -245,7 +245,7 @@ export default function Chat() {
                           </div>
                           <Collapsible>
                             <CollapsibleTrigger className="text-primary hover:text-primary/80 transition-colors text-xs font-medium mt-1">
-                              Ver prompt otimizado
+                              {t("chat.viewOptimizedPrompt")}
                             </CollapsibleTrigger>
                             <CollapsibleContent>
                               <pre className="mt-2 bg-muted/50 border border-border/30 rounded-md p-2.5 text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">

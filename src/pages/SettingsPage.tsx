@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [budget, setBudget] = useState(String(profile?.monthly_budget_eur || 10));
   const [saving, setSaving] = useState(false);
   const { t } = useTranslation();
+  
 
   useEffect(() => {
     setName(profile?.full_name || "");
