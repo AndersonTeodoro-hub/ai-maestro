@@ -39,9 +39,19 @@ export default function SettingsPage() {
     toast.success(t("settings.budgetUpdated"));
   };
 
+  const [deleting, setDeleting] = useState(false);
+
   const handleDeleteAccount = async () => {
-    await signOut();
-    toast.success(t("settings.deleteRequested"));
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+      await signOut();
+      toast.success(t("settings.deleteRequested"));
+    } catch (e: any) {
+      toast.error(t("settings.deleteFailed"));
+      setDeleting(false);
+    }
   };
 
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
