@@ -1,20 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <!-- Owl head shape -->
-  <path d="M256 460C160 460 80 380 80 270C80 180 120 120 170 80C200 58 228 48 256 48C284 48 312 58 342 80C392 120 432 180 432 270C432 380 352 460 256 460Z" fill="#F0F6FF"/>
-  <!-- Left ear -->
-  <polygon points="140,160 180,100 200,180" fill="#F0F6FF"/>
-  <!-- Right ear -->
-  <polygon points="372,160 332,100 312,180" fill="#F0F6FF"/>
-  <!-- Left eye circle (solid blue) -->
-  <circle cx="196" cy="260" r="52" fill="#3A86FF"/>
-  <!-- Left eye pupil -->
-  <circle cx="196" cy="260" r="20" fill="#080B14"/>
-  <!-- Right eye circle -->
-  <circle cx="316" cy="260" r="52" fill="#3A86FF"/>
-  <!-- Right eye pupil -->
-  <circle cx="316" cy="260" r="20" fill="#080B14"/>
-  <!-- Lightning bolt in right eye -->
-  <path d="M310 244L318 244L314 256L322 256L308 276L312 262L306 262Z" fill="#F0F6FF"/>
-  <!-- Beak -->
-  <polygon points="246,330 256,355 266,330" fill="#3A86FF" opacity="0.6"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" fill="#080B14" rx="80"/>
+
+<!-- Glow -->
+<ellipse cx="256" cy="256" rx="140" ry="130" fill="#3A86FF" opacity="0.07"/>
+
+<!-- Body -->
+<ellipse cx="256" cy="290" rx="88" ry="100" fill="#0D1117" stroke="#3A86FF" stroke-width="2"/>
+
+<!-- Ear tufts -->
+<polygon points="218,175 232,135 246,175" fill="#0D1117" stroke="#3A86FF" stroke-width="2"/>
+<polygon points="266,175 280,135 294,175" fill="#0D1117" stroke="#3A86FF" stroke-width="2"/>
+
+<!-- Face -->
+<ellipse cx="256" cy="255" rx="70" ry="66" fill="#161B27" stroke="#1E2D40" stroke-width="1.5"/>
+
+<!-- Left eye -->
+<circle cx="228" cy="243" r="22" fill="#0D1117" stroke="#3A86FF" stroke-width="2.5"/>
+<circle cx="228" cy="243" r="13" fill="#3A86FF"/>
+<circle cx="228" cy="243" r="6" fill="#080B14"/>
+<circle cx="233" cy="238" r="3" fill="#F0F6FF" opacity="0.9"/>
+
+<!-- Right eye -->
+<circle cx="284" cy="243" r="22" fill="#0D1117" stroke="#3A86FF" stroke-width="2.5"/>
+<circle cx="284" cy="243" r="13" fill="#161B27"/>
+<!-- Lightning bolt -->
+<polygon points="287,231 281,245 286,245 280,257 290,241 284,241 289,231" fill="#3A86FF"/>
+<circle cx="289" cy="238" r="3" fill="#F0F6FF" opacity="0.9"/>
+
+<!-- Beak -->
+<polygon points="256,268 246,281 266,281" fill="#3A86FF" opacity="0.9"/>
+
+<!-- Wing left -->
+<path d="M168,272 Q148,318 162,358 Q184,334 220,322" fill="#0D1117" stroke="#1E2D40" stroke-width="2" fill-opacity="0.95"/>
+<!-- Wing right -->
+<path d="M344,272 Q364,318 350,358 Q328,334 292,322" fill="#0D1117" stroke="#1E2D40" stroke-width="2" fill-opacity="0.95"/>
+
+<!-- Chest lines -->
+<path d="M236,308 Q256,316 276,308" stroke="#1E2D40" stroke-width="1.5" fill="none"/>
+<path d="M232,324 Q256,333 280,324" stroke="#1E2D40" stroke-width="1.5" fill="none"/>
+<path d="M234,340 Q256,348 278,340" stroke="#1E2D40" stroke-width="1.5" fill="none"/>
+
+<!-- Feet -->
+<line x1="234" y1="388" x2="218" y2="410" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="234" y1="388" x2="230" y2="412" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="234" y1="388" x2="242" y2="412" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="278" y1="388" x2="270" y2="412" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="278" y1="388" x2="278" y2="412" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="278" y1="388" x2="294" y2="410" stroke="#3A86FF" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
