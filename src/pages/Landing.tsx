@@ -73,11 +73,11 @@ export default function Landing() {
         }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between h-16 px-4 md:px-8">
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt="SavvyOwl" className="h-9 w-9" />
+          <div className="flex items-center">
+            <img src="/logo.svg" alt="SavvyOwl" className="h-[44px] w-auto" style={{ marginRight: "8px" }} />
             <span
-              className="text-[#f5f0e8] text-xs font-medium hidden sm:inline"
-              style={{ letterSpacing: "4px" }}
+              className="text-xs font-medium hidden sm:inline"
+              style={{ letterSpacing: "0.15em", color: "#F0F6FF" }}
             >
               SAVVYOWL
             </span>
