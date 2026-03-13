@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [budget, setBudget] = useState(String(profile?.monthly_budget_eur || 10));
   const [saving, setSaving] = useState(false);
   const { t } = useTranslation();
+  
 
   useEffect(() => {
     setName(profile?.full_name || "");
@@ -39,9 +40,19 @@ export default function SettingsPage() {
     toast.success(t("settings.budgetUpdated"));
   };
 
+  const [deleting, setDeleting] = useState(false);
+
   const handleDeleteAccount = async () => {
-    await signOut();
-    toast.success(t("settings.deleteRequested"));
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+      await signOut();
+      toast.success(t("settings.deleteRequested"));
+    } catch (e: any) {
+      toast.error(t("settings.deleteFailed"));
+      setDeleting(false);
+    }
   };
 
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
@@ -172,7 +183,7 @@ export default function SettingsPage() {
         <CardContent>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">{t("settings.deleteAccount")}</Button>
+              <Button variant="destructive" disabled={deleting}>{deleting ? t("settings.saving") : t("settings.deleteAccount")}</Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-[hsl(var(--surface-2))] border-border shadow-elevated">
               <AlertDialogHeader>

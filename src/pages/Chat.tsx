@@ -122,8 +122,11 @@ export default function Chat() {
         });
       };
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
       await streamChat({
-        messages: allMessages, mode, conversationId: convId,
+        messages: allMessages, mode, conversationId: convId, accessToken,
         onDelta: upsertAssistant,
         onDone: async (meta) => {
           await supabase.from("messages").insert({ conversation_id: convId!, role: "assistant", content: assistantSoFar, model_used: meta.model, cost_eur: meta.cost_eur });
@@ -214,7 +217,7 @@ export default function Chat() {
                     <Collapsible className="mt-2">
                       <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full group">
                         <Sparkles className="h-3 w-3 text-primary" />
-                        <span>Optimizado pelo PromptOS</span>
+                        <span>{t("chat.optimizedBy")}</span>
                         {msg.model_recommended && (
                           <span className="text-muted-foreground/70">• {msg.model_recommended.split("/").pop()}</span>
                         )}
@@ -224,25 +227,25 @@ export default function Chat() {
                         <div className="mt-2 bg-accent/5 border border-border/50 rounded-lg p-3 space-y-2 text-xs">
                           {msg.model_recommended && (
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Modelo usado</span>
+                              <span className="text-muted-foreground">{t("chat.modelUsed")}</span>
                               <span className="text-foreground font-medium">{msg.model_recommended.split("/").pop()}</span>
                             </div>
                           )}
                           {msg.task_type && (
                             <div className="flex justify-between">
-                              <span className="text-muted-foreground">Tipo de tarefa</span>
+                              <span className="text-muted-foreground">{t("chat.taskType")}</span>
                               <span className="text-foreground font-medium">{msg.task_type}</span>
                             </div>
                           )}
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Poupança estimada</span>
+                            <span className="text-muted-foreground">{t("chat.estimatedSavings")}</span>
                             <span className="text-foreground font-medium">
                               {msg.optimization_savings_eur ? `€${msg.optimization_savings_eur.toFixed(4)}` : "—"}
                             </span>
                           </div>
                           <Collapsible>
                             <CollapsibleTrigger className="text-primary hover:text-primary/80 transition-colors text-xs font-medium mt-1">
-                              Ver prompt otimizado
+                              {t("chat.viewOptimizedPrompt")}
                             </CollapsibleTrigger>
                             <CollapsibleContent>
                               <pre className="mt-2 bg-muted/50 border border-border/30 rounded-md p-2.5 text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">

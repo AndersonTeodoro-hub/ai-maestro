@@ -167,7 +167,12 @@
     "contentCreatorDesc": "Optimized for content",
     "contentCreatorBanner": "ContentCreator AI — optimized for captions, scripts, and copy",
     "upgradeMode": "Upgrade to Starter or Pro to use this mode.",
-    "somethingWrong": "Something went wrong. Try again."
+    "somethingWrong": "Something went wrong. Try again.",
+    "optimizedBy": "Optimised by PromptOS",
+    "modelUsed": "Model used",
+    "taskType": "Task type",
+    "estimatedSavings": "Estimated savings",
+    "viewOptimizedPrompt": "View optimised prompt"
   },
   "prompts": {
     "title": "Prompt Library",
@@ -235,6 +240,7 @@
     "upgradeStarter": "Upgrade to Starter — €9/mo",
     "upgradePro": "Upgrade to Pro — €19/mo",
     "topPlan": "You're on our top plan! 🎉",
+    "manageSubscription": "Manage Subscription",
     "monthlyBudget": "Monthly Budget",
     "budgetDesc": "Set a spending limit. You'll be warned at 80%.",
     "perMonth": "€ / month",
@@ -246,7 +252,8 @@
     "deleteAccount": "Delete Account",
     "deleteConfirm": "Are you sure?",
     "deleteWarning": "This will permanently delete your account and all your data. This action cannot be undone.",
-    "deleteRequested": "Account deletion requested."
+    "deleteRequested": "Account deleted successfully.",
+    "deleteFailed": "Failed to delete account. Please try again."
   },
   "onboarding": {
     "step1Title": "What's your name?",
@@ -265,7 +272,13 @@
       "Email Marketing": "Email Marketing",
       "Social Media": "Social Media",
       "Podcasts": "Podcasts"
-    }
+    },
+    "starterPrompt1": "✍️ Instagram caption writer",
+    "starterPrompt2": "🎬 YouTube script outliner",
+    "starterPrompt3": "🐦 Tweet variation generator",
+    "starterPrompt4": "📧 Email subject line creator",
+    "starterPrompt5": "📱 TikTok hook writer",
+    "starterPrompt6": "♻️ Content repurposer"
   },
   "notFound": {
     "title": "404",

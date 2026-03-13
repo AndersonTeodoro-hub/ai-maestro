@@ -64,8 +64,8 @@ serve(async (req) => {
         customer_email: customerId ? undefined : user.email,
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
-        success_url: `${origin}/settings?checkout=success`,
-        cancel_url: `${origin}/settings?checkout=cancel`,
+        success_url: `${origin}/dashboard/settings?checkout=success`,
+        cancel_url: `${origin}/dashboard/settings?checkout=cancel`,
         metadata: { user_id: user.id, plan },
       });
 
@@ -88,7 +88,7 @@ serve(async (req) => {
       const origin = req.headers.get("origin") || "https://id-preview--c61db60d-9395-47a5-a12f-fab9aa279a04.lovable.app";
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: profile.stripe_customer_id,
-        return_url: `${origin}/settings`,
+        return_url: `${origin}/dashboard/settings`,
       });
 
       logStep("Portal session created");

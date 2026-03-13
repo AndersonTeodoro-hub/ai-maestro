@@ -74,12 +74,12 @@ export function OnboardingModal() {
         {step === 3 && (
           <div className="space-y-4">
             <div className="grid gap-2 text-sm text-muted-foreground">
-              <p>✍️ Instagram caption writer</p>
-              <p>🎬 YouTube script outliner</p>
-              <p>🐦 Tweet variation generator</p>
-              <p>📧 Email subject line creator</p>
-              <p>📱 TikTok hook writer</p>
-              <p>♻️ Content repurposer</p>
+              <p>{t("onboarding.starterPrompt1")}</p>
+              <p>{t("onboarding.starterPrompt2")}</p>
+              <p>{t("onboarding.starterPrompt3")}</p>
+              <p>{t("onboarding.starterPrompt4")}</p>
+              <p>{t("onboarding.starterPrompt5")}</p>
+              <p>{t("onboarding.starterPrompt6")}</p>
             </div>
             <Button className="w-full glow-primary" onClick={handleFinish}>{t("onboarding.letsGo")}</Button>
           </div>

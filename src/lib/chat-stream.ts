@@ -6,6 +6,7 @@ export async function streamChat({
   messages,
   mode,
   conversationId,
+  accessToken,
   onDelta,
   onDone,
   onError,
@@ -13,6 +14,7 @@ export async function streamChat({
   messages: ChatMessage[];
   mode: string;
   conversationId: string;
+  accessToken?: string;
   onDelta: (text: string) => void;
   onDone: (response: { model: string; cost_eur: number; tokens_input: number; tokens_output: number }) => void;
   onError: (error: string) => void;
@@ -22,7 +24,8 @@ export async function streamChat({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
       body: JSON.stringify({ messages, mode, conversationId }),
     });
