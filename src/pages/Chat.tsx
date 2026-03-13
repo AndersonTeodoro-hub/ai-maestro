@@ -31,6 +31,7 @@ export default function Chat() {
     quick: { label: t("chat.quick"), icon: Zap, desc: t("chat.quickDesc") },
     deep: { label: t("chat.deepThink"), icon: Brain, desc: t("chat.deepThinkDesc") },
     creator: { label: t("chat.contentCreator"), icon: Pen, desc: t("chat.contentCreatorDesc") },
+    opus: { label: "Opus", icon: Sparkles, desc: "Claude Opus — maximum power (Pro only)" },
   };
 
   const { data: conversations } = useQuery({
