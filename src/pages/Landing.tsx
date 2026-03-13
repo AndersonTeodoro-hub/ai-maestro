@@ -439,7 +439,7 @@ export default function Landing() {
                 {t("landing.pricing.popular")}
               </span>
               <p className="text-[10px] text-[#1a1814]/40 mb-1" style={{ letterSpacing: "3px" }}>{t("landing.pricing.pro_label")}</p>
-              <p className="text-5xl mb-6" style={{ fontFamily: FONT_DISPLAY }}>€12<span className="text-lg text-[#1a1814]/40">/{t("landing.pricing.month")}</span></p>
+              <p className="text-5xl mb-6" style={{ fontFamily: FONT_DISPLAY }}>€19<span className="text-lg text-[#1a1814]/40">/{t("landing.pricing.month")}</span></p>
               <ul className="space-y-3 mb-8">
                 {(t("landing.pricing.pro_features", { returnObjects: true }) as string[]).map((f: string) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-[#1a1814]/80">
