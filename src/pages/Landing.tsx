@@ -78,13 +78,13 @@ export default function Landing() {
               className="h-9 w-9 rounded-full flex items-center justify-center"
               style={{ border: `1.5px solid ${gold}` }}
             >
-              <span style={{ fontFamily: FONT_DISPLAY, fontStyle: "italic", color: gold, fontSize: 18 }}>P</span>
+              <span style={{ fontFamily: FONT_DISPLAY, fontStyle: "italic", color: gold, fontSize: 18 }}>S</span>
             </div>
             <span
               className="text-[#f5f0e8] text-xs font-medium hidden sm:inline"
               style={{ letterSpacing: "4px" }}
             >
-              PROMPTOS
+              SAVVYOWL
             </span>
           </div>
 
