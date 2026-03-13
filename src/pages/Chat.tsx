@@ -282,20 +282,31 @@ export default function Chat() {
           <div className="max-w-3xl mx-auto flex gap-3 items-end">
             {/* Mode selector as pills */}
             <div className="flex bg-[hsl(var(--surface-1))] rounded-xl p-1 border border-border">
-              {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => (
-                <button
-                  key={key}
-                  onClick={() => setMode(key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                    mode === key
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <val.icon className="h-3 w-3" />
-                  {val.label}
-                </button>
-              ))}
+              {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => {
+                const isOpusLocked = key === "opus" && profile?.plan !== "pro";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      if (isOpusLocked) {
+                        toast.error("Upgrade to Pro to use Claude Opus");
+                        return;
+                      }
+                      setMode(key);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      isOpusLocked
+                        ? "text-muted-foreground/40 cursor-not-allowed"
+                        : mode === key
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {isOpusLocked ? <Lock className="h-3 w-3" /> : <val.icon className="h-3 w-3" />}
+                    {val.label}
+                  </button>
+                );
+              })}
             </div>
             <div className="flex-1 relative">
               <Input
