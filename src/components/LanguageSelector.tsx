@@ -16,7 +16,7 @@ export function LanguageSelector() {
   const { i18n: i18nInstance } = useTranslation();
   const { user } = useAuth();
 
-  const currentLang = localStorage.getItem("promptos-language") || "auto";
+  const currentLang = localStorage.getItem("savvyowl-language") || "auto";
   const currentDisplay = supportedLanguages.find((l) => l.code === currentLang) || supportedLanguages[0];
 
   const handleChange = async (code: string) => {
