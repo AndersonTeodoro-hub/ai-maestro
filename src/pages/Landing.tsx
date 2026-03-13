@@ -74,12 +74,7 @@ export default function Landing() {
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between h-16 px-4 md:px-8">
           <div className="flex items-center gap-3">
-            <div
-              className="h-9 w-9 rounded-full flex items-center justify-center"
-              style={{ border: `1.5px solid ${gold}` }}
-            >
-              <span style={{ fontFamily: FONT_DISPLAY, fontStyle: "italic", color: gold, fontSize: 18 }}>S</span>
-            </div>
+            <img src="/logo.svg" alt="SavvyOwl" className="h-9 w-9" />
             <span
               className="text-[#f5f0e8] text-xs font-medium hidden sm:inline"
               style={{ letterSpacing: "4px" }}

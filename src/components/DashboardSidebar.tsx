@@ -35,9 +35,7 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-[hsl(var(--surface-1))]">
       <div className="h-16 flex items-center gap-2 px-4 border-b border-sidebar-border">
-        <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 glow-primary">
-          <Zap className="h-4 w-4 text-primary" />
-        </div>
+        <img src="/logo.svg" alt="SavvyOwl" className="h-8 w-8 shrink-0" />
         {!collapsed && <span className="text-lg font-bold text-sidebar-foreground text-tracking-tight">SavvyOwl</span>}
       </div>
       <SidebarContent>

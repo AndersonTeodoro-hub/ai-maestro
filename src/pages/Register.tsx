@@ -54,9 +54,7 @@ export default function Register() {
       <Card className="w-full max-w-md bg-[hsl(var(--surface-2))] border-border relative z-10 shadow-elevated">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center glow-primary">
-              <Zap className="h-5 w-5 text-primary" />
-            </div>
+            <img src="/logo.svg" alt="SavvyOwl" className="h-10 w-10" />
           </div>
           <CardTitle className="text-2xl text-tracking-tight">{t("auth.createAccount")}</CardTitle>
           <CardDescription>{t("auth.startSmart")}</CardDescription>
