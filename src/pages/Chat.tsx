@@ -314,7 +314,7 @@ export default function Chat() {
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-full md:max-w-[80%] rounded-2xl px-4 py-3 ${
                   msg.role === "user"
-                    ? "bg-border text-foreground rounded-br-md"
+                    ? "bg-card text-foreground rounded-br-md"
                     : "bg-[hsl(var(--surface-2))] border-l-2 border-primary text-foreground rounded-bl-md"
                 }`}>
                   {msg.role === "user" && msg.image_url && (
