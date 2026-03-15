@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { lovable } from "@/integrations/lovable/index";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -17,7 +18,31 @@ export default function Register() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  const { user, session } = useAuth();
+  const planParam = searchParams.get("plan");
+
+  // If user is already logged in and came with ?plan=pro, redirect to checkout
+  useEffect(() => {
+    if (user && session && planParam === "pro") {
+      const redirectToCheckout = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+            body: { action: "create-checkout", plan: "pro" },
+          });
+          if (error) throw error;
+          if (data?.url) {
+            window.location.href = data.url;
+          }
+        } catch (err: any) {
+          toast.error(err.message || "Error creating checkout");
+          navigate("/dashboard");
+        }
+      };
+      redirectToCheckout();
+    }
+  }, [user, session, planParam, navigate]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +52,9 @@ export default function Register() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: planParam === "pro"
+          ? `${window.location.origin}/register?plan=pro`
+          : `${window.location.origin}/dashboard`,
       },
     });
     setLoading(false);
