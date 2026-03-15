@@ -8,29 +8,17 @@ const corsHeaders = {
 };
 
 // ─── MODEL REGISTRY ───────────────────────────────────────────────────────────
-//
-//  PROVIDER     MODEL                        TIER     COST INPUT  COST OUTPUT
-//  Anthropic    claude-sonnet-4-5            premium  $0.003/1K   $0.015/1K
-//  Anthropic    claude-opus-4-5              elite    $0.015/1K   $0.075/1K
-//  Google       gemini-2.0-flash             cheap    $0.0001/1K  $0.0004/1K
-//  Google       gemini-2.5-pro               mid      $0.007/1K   $0.021/1K
-//
-// ROUTING LOGIC:
-//  quick   → Gemini Flash        (free + starter + pro)
-//  deep    → Claude Sonnet 4.5   (starter + pro only)
-//  creator → Claude Sonnet 4.5   (starter + pro only)  + creator system prompt
-//  opus    → Claude Opus 4.5     (pro only)
-// ─────────────────────────────────────────────────────────────────────────────
 
 type Provider = "anthropic" | "google";
 
 interface ModelConfig {
   provider: Provider;
-  modelId: string;       // model string for API call
-  displayName: string;   // shown to user in UI
-  costInput: number;     // USD per 1K tokens
-  costOutput: number;    // USD per 1K tokens
+  modelId: string;
+  displayName: string;
+  costInput: number;
+  costOutput: number;
   minPlan: "free" | "starter" | "pro";
+  supportsVision: boolean;
 }
 
 const MODELS: Record<string, ModelConfig> = {
@@ -41,6 +29,7 @@ const MODELS: Record<string, ModelConfig> = {
     costInput: 0.0001,
     costOutput: 0.0004,
     minPlan: "free",
+    supportsVision: true,
   },
   deep: {
     provider: "anthropic",
@@ -49,6 +38,7 @@ const MODELS: Record<string, ModelConfig> = {
     costInput: 0.003,
     costOutput: 0.015,
     minPlan: "starter",
+    supportsVision: true,
   },
   creator: {
     provider: "anthropic",
@@ -57,6 +47,7 @@ const MODELS: Record<string, ModelConfig> = {
     costInput: 0.003,
     costOutput: 0.015,
     minPlan: "starter",
+    supportsVision: true,
   },
   opus: {
     provider: "anthropic",
@@ -65,6 +56,7 @@ const MODELS: Record<string, ModelConfig> = {
     costInput: 0.015,
     costOutput: 0.075,
     minPlan: "pro",
+    supportsVision: true,
   },
 };
 
@@ -82,7 +74,7 @@ const PLAN_RANK: Record<string, number> = {
 
 // ─── SYSTEM PROMPTS ───────────────────────────────────────────────────────────
 
-const BASE_SYSTEM_PROMPT = `You are PromptOS AI, a helpful and concise assistant. Keep answers clear, actionable, and well-formatted. Use markdown when it improves readability.`;
+const BASE_SYSTEM_PROMPT = `You are PromptOS AI, a helpful and concise assistant. Keep answers clear, actionable, and well-formatted. Use markdown when it improves readability. You can analyze images when provided.`;
 
 const CREATOR_SYSTEM_PROMPT = `You are ContentCreator AI, built on Claude — the world's most advanced writing model. You are an expert assistant for content creators, influencers, and social media managers.
 
@@ -92,6 +84,7 @@ You specialize in:
 - Hook writing (first 3 seconds that stop the scroll)
 - Content repurposing across platforms
 - Brand voice development and consistency
+- Analyzing screenshots, mockups, and visual references when provided
 
 Guidelines:
 - Always write in an engaging, human tone — never robotic
@@ -107,8 +100,31 @@ async function streamAnthropic(
   apiKey: string,
   model: string,
   systemPrompt: string,
-  messages: { role: string; content: string }[]
+  messages: any[],
+  image?: { data: string; media_type: string } | null
 ): Promise<Response> {
+  // Build the messages with optional image support on the last user message
+  const processedMessages = messages.filter((m: any) => m.role !== "system").map((m: any, i: number, arr: any[]) => {
+    // Attach image to the last user message
+    if (image && m.role === "user" && i === arr.length - 1) {
+      return {
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: image.media_type,
+              data: image.data,
+            },
+          },
+          { type: "text", text: m.content },
+        ],
+      };
+    }
+    return { role: m.role, content: m.content };
+  });
+
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -120,7 +136,7 @@ async function streamAnthropic(
       model,
       max_tokens: 4096,
       system: systemPrompt,
-      messages: messages.filter((m) => m.role !== "system"),
+      messages: processedMessages,
       stream: true,
     }),
   });
@@ -134,8 +150,28 @@ async function streamGoogle(
   apiKey: string,
   model: string,
   systemPrompt: string,
-  messages: { role: string; content: string }[]
+  messages: any[],
+  image?: { data: string; media_type: string } | null
 ): Promise<Response> {
+  // Build messages with optional image via OpenAI-compatible format
+  const processedMessages = messages.map((m: any, i: number, arr: any[]) => {
+    if (image && m.role === "user" && i === arr.length - 1) {
+      return {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: {
+              url: `data:${image.media_type};base64,${image.data}`,
+            },
+          },
+          { type: "text", text: m.content },
+        ],
+      };
+    }
+    return m;
+  });
+
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -144,83 +180,12 @@ async function streamGoogle(
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      messages: [{ role: "system", content: systemPrompt }, ...processedMessages],
       stream: true,
     }),
   });
 
   return response;
-}
-
-// ─── ANTHROPIC SSE → UNIFIED SSE TRANSFORM ────────────────────────────────────
-// Anthropic uses a different SSE format than OpenAI.
-// We normalise it to OpenAI format so the frontend works unchanged.
-
-function transformAnthropicStream(
-  anthropicStream: ReadableStream<Uint8Array>,
-  onDone: (fullText: string, inputTokens: number, outputTokens: number) => void
-): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  let fullContent = "";
-  let inputTokens = 0;
-  let outputTokens = 0;
-
-  return new ReadableStream({
-    async start(controller) {
-      const reader = anthropicStream.getReader();
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-
-          for (const line of chunk.split("\n")) {
-            if (!line.startsWith("data: ")) continue;
-            const jsonStr = line.slice(6).trim();
-            if (!jsonStr) continue;
-
-            try {
-              const event = JSON.parse(jsonStr);
-
-              // Content delta — forward as OpenAI-compatible chunk
-              if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
-                const text = event.delta.text || "";
-                fullContent += text;
-
-                const openAIChunk = {
-                  choices: [{ delta: { content: text } }],
-                };
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(openAIChunk)}\n\n`));
-              }
-
-              // Usage data
-              if (event.type === "message_delta" && event.usage) {
-                outputTokens = event.usage.output_tokens || 0;
-              }
-              if (event.type === "message_start" && event.message?.usage) {
-                inputTokens = event.message.usage.input_tokens || 0;
-              }
-
-              // Stream end
-              if (event.type === "message_stop") {
-                onDone(fullContent, inputTokens, outputTokens);
-              }
-            } catch {
-              // Skip malformed lines
-            }
-          }
-
-          // Forward raw bytes for non-parsed content
-          controller.enqueue(value);
-        }
-      } finally {
-        controller.close();
-      }
-    },
-  });
 }
 
 // ─── MAIN HANDLER ─────────────────────────────────────────────────────────────
@@ -248,7 +213,7 @@ serve(async (req) => {
     );
 
     const { data: { user } } = await anonClient.auth.getUser();
-    const { messages, mode, conversationId } = await req.json();
+    const { messages, mode, conversationId, image } = await req.json();
 
     // ── Validate mode ──
     const modeKey = (mode || "quick") as keyof typeof MODELS;
@@ -266,7 +231,6 @@ serve(async (req) => {
       if (profile) {
         userPlan = profile.plan || "free";
 
-        // ── Check plan allows this mode ──
         if (PLAN_RANK[userPlan] < PLAN_RANK[modelConfig.minPlan]) {
           return new Response(
             JSON.stringify({
@@ -278,7 +242,6 @@ serve(async (req) => {
           );
         }
 
-        // ── Check monthly request limit ──
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
@@ -302,6 +265,57 @@ serve(async (req) => {
       }
     }
 
+    // ── Upload image to Storage if present ──
+    let imageUrl: string | null = null;
+    if (image && user) {
+      try {
+        const ext = image.media_type.split("/")[1] || "png";
+        const filePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const imageBuffer = Uint8Array.from(atob(image.data), (c) => c.charCodeAt(0));
+
+        const { error: uploadError } = await supabaseAdmin.storage
+          .from("chat-images")
+          .upload(filePath, imageBuffer, {
+            contentType: image.media_type,
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error("Image upload error:", uploadError);
+        } else {
+          // Create signed URL (valid for 1 year)
+          const { data: signedData } = await supabaseAdmin.storage
+            .from("chat-images")
+            .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+
+          if (signedData?.signedUrl) {
+            imageUrl = signedData.signedUrl;
+
+            // Update the last user message with image_url
+            // Find the most recent user message in this conversation
+            const { data: recentMsg } = await supabaseAdmin
+              .from("messages")
+              .select("id")
+              .eq("conversation_id", conversationId)
+              .eq("role", "user")
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single();
+
+            if (recentMsg) {
+              await supabaseAdmin
+                .from("messages")
+                .update({ image_url: imageUrl })
+                .eq("id", recentMsg.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Image processing error:", e);
+        // Continue without image — don't block the request
+      }
+    }
+
     // ── Build system prompt ──
     const systemPrompt = modeKey === "creator" ? CREATOR_SYSTEM_PROMPT : BASE_SYSTEM_PROMPT;
 
@@ -313,14 +327,16 @@ serve(async (req) => {
         ANTHROPIC_API_KEY,
         modelConfig.modelId,
         systemPrompt,
-        messages
+        messages,
+        image
       );
     } else {
       providerResponse = await streamGoogle(
         LOVABLE_API_KEY,
         modelConfig.modelId,
         systemPrompt,
-        messages
+        messages,
+        image
       );
     }
 
@@ -328,23 +344,51 @@ serve(async (req) => {
       const errorText = await providerResponse.text();
       console.error(`Provider error (${modelConfig.provider}):`, providerResponse.status, errorText);
 
-      if (providerResponse.status === 429) {
+      // If vision failed, retry without image
+      if (image && providerResponse.status >= 400) {
+        console.log("Retrying without image...");
+        if (modelConfig.provider === "anthropic") {
+          providerResponse = await streamAnthropic(
+            ANTHROPIC_API_KEY,
+            modelConfig.modelId,
+            systemPrompt,
+            messages,
+            null
+          );
+        } else {
+          providerResponse = await streamGoogle(
+            LOVABLE_API_KEY,
+            modelConfig.modelId,
+            systemPrompt,
+            messages,
+            null
+          );
+        }
+
+        if (!providerResponse.ok) {
+          return new Response(
+            JSON.stringify({ error: "Something went wrong. Try again." }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } else {
+        if (providerResponse.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (providerResponse.status === 401) {
+          return new Response(
+            JSON.stringify({ error: "AI provider authentication failed. Contact support." }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         return new Response(
-          JSON.stringify({ error: "Rate limit reached. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (providerResponse.status === 401) {
-        return new Response(
-          JSON.stringify({ error: "AI provider authentication failed. Contact support." }),
+          JSON.stringify({ error: "Something went wrong. Try again." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      return new Response(
-        JSON.stringify({ error: "Something went wrong. Try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     // ── Transform + stream to client ──
@@ -356,7 +400,6 @@ serve(async (req) => {
       const costUsd = (tokensInput * modelConfig.costInput + tokensOutput * modelConfig.costOutput) / 1000;
       const costEur = +(costUsd * 0.92).toFixed(6);
 
-      // Send metadata to client
       const metadata = {
         model: modelConfig.modelId,
         display_name: modelConfig.displayName,
@@ -364,12 +407,12 @@ serve(async (req) => {
         cost_eur: costEur,
         tokens_input: tokensInput,
         tokens_output: tokensOutput,
+        image_url: imageUrl,
       };
 
       await writer.write(encoder.encode(`data: ${JSON.stringify({ metadata })}\n\n`));
       await writer.write(encoder.encode("data: [DONE]\n\n"));
 
-      // Log to DB
       if (user && conversationId) {
         await supabaseAdmin.from("usage_logs").insert({
           user_id: user.id,
@@ -393,7 +436,7 @@ serve(async (req) => {
       await writer.close();
     };
 
-    // ── Handle Anthropic stream (different SSE format) ──
+    // ── Handle Anthropic stream ──
     if (modelConfig.provider === "anthropic") {
       const decoder = new TextDecoder();
       let fullContent = "";
@@ -479,7 +522,6 @@ serve(async (req) => {
             await writer.write(value);
           }
 
-          // Estimate tokens if not provided
           if (!tokensInput) tokensInput = Math.ceil(JSON.stringify(messages).length / 4);
           if (!tokensOutput) tokensOutput = Math.ceil(fullContent.length / 4);
 

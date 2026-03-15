@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { streamChat, ChatMessage } from "@/lib/chat-stream";
+import { streamChat, ChatMessage, ChatImage } from "@/lib/chat-stream";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Send, Plus, MessageSquare, Zap, Brain, Pen, Sparkles, ChevronDown, Lock, Menu } from "lucide-react";
+import { Send, Plus, MessageSquare, Zap, Brain, Pen, Sparkles, ChevronDown, Lock, Menu, ImagePlus, X } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Drawer, DrawerTrigger, DrawerContent } from "@/components/ui/drawer";
 import ReactMarkdown from "react-markdown";
@@ -23,7 +23,10 @@ type ExtendedMessage = ChatMessage & {
   model_recommended?: string | null;
   task_type?: string | null;
   optimization_savings_eur?: number | null;
+  image_url?: string | null;
 };
+
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export default function Chat() {
   const { user, profile } = useAuth();
@@ -34,7 +37,9 @@ export default function Chat() {
   const [mode, setMode] = useState<Mode>("quick");
   const [isLoading, setIsLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingImage, setPendingImage] = useState<{ file: File; preview: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const sentFirstMessage = useRef(false);
@@ -64,7 +69,7 @@ export default function Chat() {
     (async () => {
       const { data } = await supabase
         .from("messages")
-        .select("role, content, model_used, cost_eur, optimized_content, model_recommended, task_type, optimization_savings_eur")
+        .select("role, content, model_used, cost_eur, optimized_content, model_recommended, task_type, optimization_savings_eur, image_url")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
       if (data) setMessages(data as any);
@@ -85,6 +90,45 @@ export default function Chat() {
     }
   }, []);
 
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
+    };
+  }, [pendingImage]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error(t("chat.imageTooBig"));
+      return;
+    }
+    if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
+    setPendingImage({ file, preview: URL.createObjectURL(file) });
+    // Reset file input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removePendingImage = () => {
+    if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
+    setPendingImage(null);
+  };
+
+  const fileToBase64 = (file: File): Promise<ChatImage> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove "data:image/png;base64," prefix
+        const base64 = result.split(",")[1];
+        resolve({ data: base64, media_type: file.type });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const createConversation = async (): Promise<string> => {
     const { data, error } = await supabase
       .from("conversations")
@@ -97,7 +141,8 @@ export default function Chat() {
 
   const handleSend = async (overrideInput?: string) => {
     const text = overrideInput || input.trim();
-    if (!text || isLoading) return;
+    const hasImage = !!pendingImage;
+    if ((!text && !hasImage) || isLoading) return;
     if (!overrideInput) setInput("");
 
     if (profile?.plan === "free" && mode !== "quick") {
@@ -107,19 +152,38 @@ export default function Chat() {
 
     setIsLoading(true);
     let convId = conversationId;
+    let imagePayload: ChatImage | null = null;
+    const currentImage = pendingImage;
+    setPendingImage(null);
 
     try {
+      // Convert image to base64
+      if (currentImage) {
+        imagePayload = await fileToBase64(currentImage.file);
+        URL.revokeObjectURL(currentImage.preview);
+      }
+
       if (!convId) {
         convId = await createConversation();
         setConversationId(convId);
-        const title = text.slice(0, 50) + (text.length > 50 ? "..." : "");
+        const title = (text || t("chat.imageUpload")).slice(0, 50) + ((text || "").length > 50 ? "..." : "");
         await supabase.from("conversations").update({ title }).eq("id", convId);
       }
 
-      const userMsg: ExtendedMessage = { role: "user", content: text };
+      const userMsg: ExtendedMessage = {
+        role: "user",
+        content: text || t("chat.imageUpload"),
+        // Show local preview immediately
+        image_url: currentImage?.preview || null,
+      };
       setMessages((prev) => [...prev, userMsg]);
 
-      await supabase.from("messages").insert({ conversation_id: convId, role: "user", content: text });
+      // Insert user message (image_url will be set by edge function)
+      await supabase.from("messages").insert({
+        conversation_id: convId,
+        role: "user",
+        content: text || t("chat.imageUpload"),
+      });
 
       // Trigger install prompt after first message
       if (!sentFirstMessage.current) {
@@ -128,7 +192,10 @@ export default function Chat() {
       }
 
       let assistantSoFar = "";
-      const allMessages = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
+      const allMessages = [...messages, { role: userMsg.role, content: userMsg.content }].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
 
       const upsertAssistant = (chunk: string) => {
         assistantSoFar += chunk;
@@ -145,16 +212,43 @@ export default function Chat() {
       const accessToken = sessionData?.session?.access_token;
 
       await streamChat({
-        messages: allMessages, mode, conversationId: convId, accessToken,
+        messages: allMessages,
+        mode,
+        conversationId: convId,
+        accessToken,
+        image: imagePayload,
         onDelta: upsertAssistant,
         onDone: async (meta) => {
-          await supabase.from("messages").insert({ conversation_id: convId!, role: "assistant", content: assistantSoFar, model_used: meta.model, cost_eur: meta.cost_eur });
-          setMessages((prev) => prev.map((m, i) => i === prev.length - 1 ? { ...m, model_used: meta.model, cost_eur: meta.cost_eur } : m));
+          await supabase.from("messages").insert({
+            conversation_id: convId!,
+            role: "assistant",
+            content: assistantSoFar,
+            model_used: meta.model,
+            cost_eur: meta.cost_eur,
+          });
+          setMessages((prev) =>
+            prev.map((m, i) =>
+              i === prev.length - 1 ? { ...m, model_used: meta.model, cost_eur: meta.cost_eur } : m
+            )
+          );
+          // Update user message with stored image_url if returned
+          if (meta.image_url) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.role === "user" && m.image_url === currentImage?.preview
+                  ? { ...m, image_url: meta.image_url }
+                  : m
+              )
+            );
+          }
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
           queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
           setIsLoading(false);
         },
-        onError: (err) => { toast.error(err); setIsLoading(false); },
+        onError: (err) => {
+          toast.error(err);
+          setIsLoading(false);
+        },
       });
     } catch {
       toast.error(t("chat.somethingWrong"));
@@ -162,8 +256,19 @@ export default function Chat() {
     }
   };
 
-  const startNewChat = () => { setConversationId(null); setMessages([]); setInput(""); setSearchParams({}, { replace: true }); setDrawerOpen(false); };
-  const selectConversation = (id: string) => { setConversationId(id); setSearchParams({ id }, { replace: true }); setDrawerOpen(false); };
+  const startNewChat = () => {
+    setConversationId(null);
+    setMessages([]);
+    setInput("");
+    setPendingImage(null);
+    setSearchParams({}, { replace: true });
+    setDrawerOpen(false);
+  };
+  const selectConversation = (id: string) => {
+    setConversationId(id);
+    setSearchParams({ id }, { replace: true });
+    setDrawerOpen(false);
+  };
 
   const ConversationList = () => (
     <div className="space-y-1 p-2">
@@ -252,6 +357,15 @@ export default function Chat() {
                     ? "bg-border text-foreground rounded-br-md"
                     : "bg-[hsl(var(--surface-2))] border-l-2 border-primary text-foreground rounded-bl-md"
                 }`}>
+                  {/* Render image if present */}
+                  {msg.role === "user" && msg.image_url && (
+                    <img
+                      src={msg.image_url}
+                      alt="Uploaded"
+                      className="max-w-[300px] w-full border border-border mb-2"
+                      loading="lazy"
+                    />
+                  )}
                   <div className="prose prose-sm prose-invert max-w-none">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
@@ -325,10 +439,30 @@ export default function Chat() {
           </div>
         </ScrollArea>
 
+        {/* Image preview */}
+        {pendingImage && (
+          <div className="border-t border-border px-3 md:px-4 pt-2 bg-background">
+            <div className="max-w-3xl mx-auto relative inline-block">
+              <img
+                src={pendingImage.preview}
+                alt="Preview"
+                className="max-w-[200px] max-h-[120px] border border-border object-cover"
+              />
+              <button
+                onClick={removePendingImage}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 hover:opacity-80 transition-opacity"
+                aria-label={t("chat.removeImage")}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Input bar */}
         <div className="border-t border-border p-3 md:p-4 bg-background">
           <div className="max-w-3xl mx-auto space-y-2 md:space-y-0 md:flex md:gap-3 md:items-end">
-            {/* Mode selector - horizontally scrollable on mobile */}
+            {/* Mode selector */}
             <div className="flex bg-[hsl(var(--surface-1))] rounded-xl p-1 border border-border overflow-x-auto shrink-0">
               {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => {
                 const isOpusLocked = key === "opus" && profile?.plan !== "pro";
@@ -357,6 +491,25 @@ export default function Chat() {
               })}
             </div>
             <div className="flex gap-2 md:gap-3 flex-1">
+              {/* Image upload button */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-primary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                title={t("chat.imageUpload")}
+              >
+                <ImagePlus className="h-5 w-5" />
+              </Button>
               <div className="flex-1 relative">
                 <Input
                   value={input}
@@ -367,7 +520,12 @@ export default function Chat() {
                   disabled={isLoading}
                 />
               </div>
-              <Button onClick={() => handleSend()} disabled={isLoading || !input.trim()} size="icon" className="glow-primary shrink-0 min-h-[44px] min-w-[44px]">
+              <Button
+                onClick={() => handleSend()}
+                disabled={isLoading || (!input.trim() && !pendingImage)}
+                size="icon"
+                className="glow-primary shrink-0 min-h-[44px] min-w-[44px]"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>

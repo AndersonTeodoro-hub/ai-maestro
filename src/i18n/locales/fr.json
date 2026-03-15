@@ -166,7 +166,11 @@
     "modelUsed": "Modèle utilisé",
     "taskType": "Type de tâche",
     "estimatedSavings": "Économie estimée",
-    "viewOptimizedPrompt": "Voir le prompt optimisé"
+    "viewOptimizedPrompt": "Voir le prompt optimisé",
+    "imageUpload": "Envoyer une image",
+    "imageTooBig": "L'image est trop lourde. Maximum 4 Mo.",
+    "imageUploading": "Envoi de l'image...",
+    "removeImage": "Supprimer l'image"
   },
   "prompts": {
     "title": "Bibliothèque de Prompts",
