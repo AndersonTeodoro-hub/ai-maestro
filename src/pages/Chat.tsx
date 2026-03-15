@@ -399,7 +399,7 @@ export default function Chat() {
         </ScrollArea>
 
         {/* Bottom: mode pills + input */}
-        <div className="border-t border-border bg-background shrink-0">
+        <div className="border-t border-[rgba(245,240,232,0.06)] bg-[hsl(var(--surface-1))] shrink-0">
           <div className="flex gap-1.5 px-3 md:px-4 pt-3 pb-1 overflow-x-auto">
             {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => {
               const isOpusLocked = key === "opus" && profile?.plan !== "pro";
