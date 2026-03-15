@@ -28,8 +28,35 @@ const fadeInView = {
 
 export default function Landing() {
   const { t } = useTranslation();
+  const { user, session } = useAuth();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [proLoading, setProLoading] = useState(false);
+
+  const handleProClick = async () => {
+    if (!user || !session) {
+      navigate("/register?plan=pro");
+      return;
+    }
+    // Logged in — go directly to Stripe checkout
+    setProLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { action: "create-checkout", plan: "pro" },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error creating checkout session");
+    } finally {
+      setProLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
