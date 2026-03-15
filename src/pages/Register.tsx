@@ -8,7 +8,6 @@ import { toast } from "sonner";
 
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { lovable } from "@/integrations/lovable/index";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -120,8 +119,13 @@ export default function Register() {
             variant="outline"
             className="w-full"
             onClick={async () => {
-              const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+              const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                  redirectTo: planParam === 'pro'
+                    ? 'https://savvyowl.app/register?plan=pro'
+                    : 'https://savvyowl.app/dashboard',
+                },
               });
               if (error) toast.error(error.message);
             }}
