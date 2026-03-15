@@ -1,12 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="6" fill="#080B14"/>
-  <path d="M16 27C11.5 27 8 23.5 8 18.5C8 14 9.5 11 12 9C13.5 7.8 14.8 7.2 16 7.2C17.2 7.2 18.5 7.8 20 9C22.5 11 24 14 24 18.5C24 23.5 20.5 27 16 27Z" fill="#F0F6FF"/>
-  <polygon points="10,12.5 12,10 12.8,13" fill="#F0F6FF"/>
-  <polygon points="22,12.5 20,10 19.2,13" fill="#F0F6FF"/>
-  <circle cx="13.2" cy="17.5" r="3.2" fill="#3A86FF"/>
-  <circle cx="13.2" cy="17.5" r="1.2" fill="#080B14"/>
-  <circle cx="18.8" cy="17.5" r="3.2" fill="#3A86FF"/>
-  <circle cx="18.8" cy="17.5" r="1.2" fill="#080B14"/>
-  <path d="M18.2 16L19 16L18.6 17L19.2 17L17.8 19.2L18 18L17.6 18Z" fill="#F0F6FF"/>
-  <polygon points="15.2,22 16,23.5 16.8,22" fill="#3A86FF" opacity="0.6"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+<!-- NO background - transparent -->
+
+<!-- Ear tufts -->
+<polygon points="188,185 204,148 220,185" fill="#F0F6FF" stroke="#3A86FF" stroke-width="2"/>
+<polygon points="292,185 308,148 324,185" fill="#F0F6FF" stroke="#3A86FF" stroke-width="2"/>
+
+<!-- Body -->
+<ellipse cx="256" cy="300" rx="95" ry="105" fill="#1E293B" stroke="#3A86FF" stroke-width="2.5"/>
+
+<!-- Face -->
+<ellipse cx="256" cy="258" rx="75" ry="72" fill="#0F172A" stroke="#3A86FF" stroke-width="2"/>
+
+<!-- Left eye outer ring -->
+<circle cx="224" cy="248" r="24" fill="#0F172A" stroke="#3A86FF" stroke-width="3"/>
+<!-- Left eye blue fill -->
+<circle cx="224" cy="248" r="14" fill="#3A86FF"/>
+<!-- Left eye pupil -->
+<circle cx="224" cy="248" r="7" fill="#080B14"/>
+<!-- Left eye shine -->
+<circle cx="229" cy="243" r="3.5" fill="#FFFFFF" opacity="0.95"/>
+
+<!-- Right eye outer ring -->
+<circle cx="288" cy="248" r="24" fill="#0F172A" stroke="#3A86FF" stroke-width="3"/>
+<!-- Right eye dark fill -->
+<circle cx="288" cy="248" r="14" fill="#1E293B"/>
+<!-- Lightning bolt in right eye -->
+<polygon points="291,235 284,251 290,251 283,263 294,246 287,246 293,235" fill="#3A86FF"/>
+<!-- Right eye shine -->
+<circle cx="293" cy="241" r="3.5" fill="#FFFFFF" opacity="0.95"/>
+
+<!-- Beak -->
+<polygon points="256,276 245,292 267,292" fill="#3A86FF"/>
+
+<!-- Wing left -->
+<path d="M162,285 Q138,335 155,378 Q180,350 222,336" fill="#1E293B" stroke="#3A86FF" stroke-width="1.5" fill-opacity="0.95"/>
+<!-- Wing right -->
+<path d="M350,285 Q374,335 357,378 Q332,350 290,336" fill="#1E293B" stroke="#3A86FF" stroke-width="1.5" fill-opacity="0.95"/>
+
+<!-- Chest feather lines -->
+<path d="M234,318 Q256,327 278,318" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
+<path d="M230,336 Q256,346 282,336" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
+<path d="M232,354 Q256,363 280,354" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
+
+<!-- Feet -->
+<line x1="232" y1="400" x2="214" y2="424" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+<line x1="232" y1="400" x2="228" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+<line x1="232" y1="400" x2="242" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+<line x1="280" y1="400" x2="270" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+<line x1="280" y1="400" x2="280" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+<line x1="280" y1="400" x2="298" y2="424" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
+
 </svg>
