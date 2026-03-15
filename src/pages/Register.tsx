@@ -119,8 +119,13 @@ export default function Register() {
             variant="outline"
             className="w-full"
             onClick={async () => {
-              const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+              const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                  redirectTo: planParam === 'pro'
+                    ? 'https://savvyowl.app/register?plan=pro'
+                    : 'https://savvyowl.app/dashboard',
+                },
               });
               if (error) toast.error(error.message);
             }}
