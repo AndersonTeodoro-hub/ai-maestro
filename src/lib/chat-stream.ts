@@ -2,11 +2,17 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
+export interface ChatImage {
+  data: string; // base64 without prefix
+  media_type: string; // e.g. "image/png"
+}
+
 export async function streamChat({
   messages,
   mode,
   conversationId,
   accessToken,
+  image,
   onDelta,
   onDone,
   onError,
@@ -15,8 +21,9 @@ export async function streamChat({
   mode: string;
   conversationId: string;
   accessToken?: string;
+  image?: ChatImage | null;
   onDelta: (text: string) => void;
-  onDone: (response: { model: string; cost_eur: number; tokens_input: number; tokens_output: number }) => void;
+  onDone: (response: { model: string; cost_eur: number; tokens_input: number; tokens_output: number; image_url?: string }) => void;
   onError: (error: string) => void;
 }) {
   try {
@@ -27,7 +34,7 @@ export async function streamChat({
         Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
-      body: JSON.stringify({ messages, mode, conversationId }),
+      body: JSON.stringify({ messages, mode, conversationId, ...(image ? { image } : {}) }),
     });
 
     if (resp.status === 429) {
@@ -78,7 +85,6 @@ export async function streamChat({
         try {
           const parsed = JSON.parse(jsonStr);
           
-          // Check for metadata (sent as last event before [DONE])
           if (parsed.metadata) {
             metadata = parsed.metadata;
             continue;

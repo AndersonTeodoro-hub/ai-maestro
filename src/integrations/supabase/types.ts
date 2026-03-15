@@ -56,6 +56,7 @@ export type Database = {
           cost_eur: number | null
           created_at: string
           id: string
+          image_url: string | null
           model_recommended: string | null
           model_used: string | null
           optimization_savings_eur: number | null
@@ -69,6 +70,7 @@ export type Database = {
           cost_eur?: number | null
           created_at?: string
           id?: string
+          image_url?: string | null
           model_recommended?: string | null
           model_used?: string | null
           optimization_savings_eur?: number | null
@@ -82,6 +84,7 @@ export type Database = {
           cost_eur?: number | null
           created_at?: string
           id?: string
+          image_url?: string | null
           model_recommended?: string | null
           model_used?: string | null
           optimization_savings_eur?: number | null

@@ -166,7 +166,11 @@
     "modelUsed": "Model used",
     "taskType": "Task type",
     "estimatedSavings": "Estimated savings",
-    "viewOptimizedPrompt": "View optimised prompt"
+    "viewOptimizedPrompt": "View optimised prompt",
+    "imageUpload": "Send image",
+    "imageTooBig": "Image is too large. Maximum 4MB.",
+    "imageUploading": "Uploading image...",
+    "removeImage": "Remove image"
   },
   "prompts": {
     "title": "Prompt Library",
