@@ -8,11 +8,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Send, Plus, MessageSquare, Zap, Brain, Pen, Sparkles, ChevronDown, Lock, Menu, ImagePlus, X } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Drawer, DrawerTrigger, DrawerContent } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { ChatSidebar } from "@/components/ChatSidebar";
 
 type Mode = "quick" | "deep" | "creator" | "opus";
 
@@ -26,7 +29,7 @@ type ExtendedMessage = ChatMessage & {
   image_url?: string | null;
 };
 
-const MAX_IMAGE_SIZE = 4 * 1024 * 1024; // 4MB
+const MAX_IMAGE_SIZE = 4 * 1024 * 1024;
 
 export default function Chat() {
   const { user, profile } = useAuth();
@@ -36,7 +39,7 @@ export default function Chat() {
   const [input, setInput] = useState(searchParams.get("prompt") || "");
   const [mode, setMode] = useState<Mode>("quick");
   const [isLoading, setIsLoading] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [pendingImage, setPendingImage] = useState<{ file: File; preview: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,19 +53,6 @@ export default function Chat() {
     creator: { label: t("chat.contentCreator"), icon: Pen, desc: t("chat.contentCreatorDesc") },
     opus: { label: "Opus", icon: Sparkles, desc: "Claude Opus — maximum power (Pro only)" },
   };
-
-  const { data: conversations } = useQuery({
-    queryKey: ["conversations", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, title, mode, created_at")
-        .eq("user_id", user!.id)
-        .order("updated_at", { ascending: false });
-      return data || [];
-    },
-  });
 
   useEffect(() => {
     if (!conversationId) { setMessages([]); return; }
@@ -90,7 +80,6 @@ export default function Chat() {
     }
   }, []);
 
-  // Cleanup preview URL on unmount
   useEffect(() => {
     return () => {
       if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
@@ -106,7 +95,6 @@ export default function Chat() {
     }
     if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
     setPendingImage({ file, preview: URL.createObjectURL(file) });
-    // Reset file input so same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -120,7 +108,6 @@ export default function Chat() {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        // Remove "data:image/png;base64," prefix
         const base64 = result.split(",")[1];
         resolve({ data: base64, media_type: file.type });
       };
@@ -157,7 +144,6 @@ export default function Chat() {
     setPendingImage(null);
 
     try {
-      // Convert image to base64
       if (currentImage) {
         imagePayload = await fileToBase64(currentImage.file);
         URL.revokeObjectURL(currentImage.preview);
@@ -173,19 +159,16 @@ export default function Chat() {
       const userMsg: ExtendedMessage = {
         role: "user",
         content: text || t("chat.imageUpload"),
-        // Show local preview immediately
         image_url: currentImage?.preview || null,
       };
       setMessages((prev) => [...prev, userMsg]);
 
-      // Insert user message (image_url will be set by edge function)
       await supabase.from("messages").insert({
         conversation_id: convId,
         role: "user",
         content: text || t("chat.imageUpload"),
       });
 
-      // Trigger install prompt after first message
       if (!sentFirstMessage.current) {
         sentFirstMessage.current = true;
         window.dispatchEvent(new CustomEvent("install-prompt-trigger"));
@@ -231,7 +214,6 @@ export default function Chat() {
               i === prev.length - 1 ? { ...m, model_used: meta.model, cost_eur: meta.cost_eur } : m
             )
           );
-          // Update user message with stored image_url if returned
           if (meta.image_url) {
             setMessages((prev) =>
               prev.map((m) =>
@@ -262,90 +244,68 @@ export default function Chat() {
     setInput("");
     setPendingImage(null);
     setSearchParams({}, { replace: true });
-    setDrawerOpen(false);
   };
+
   const selectConversation = (id: string) => {
     setConversationId(id);
     setSearchParams({ id }, { replace: true });
-    setDrawerOpen(false);
   };
 
-  const ConversationList = () => (
-    <div className="space-y-1 p-2">
-      {conversations?.map((c) => (
-        <button
-          key={c.id}
-          onClick={() => selectConversation(c.id)}
-          className={`w-full text-left p-2.5 rounded-lg text-sm transition-all duration-200 truncate min-h-[44px] ${
-            conversationId === c.id
-              ? "bg-primary/10 text-primary border border-primary/20"
-              : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground border border-transparent"
-          }`}
-        >
-          <MessageSquare className="h-3 w-3 inline mr-2" />
-          {c.title}
-        </button>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="flex h-[calc(100vh-3.5rem-4rem)] md:h-[calc(100vh-3.5rem)]">
-      {/* Mobile conversation drawer trigger */}
-      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DrawerContent className="max-h-[80vh]">
-          <div className="p-3">
-            <Button onClick={startNewChat} className="w-full glow-primary" size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              {t("chat.newChat")}
-            </Button>
-          </div>
-          <ScrollArea className="flex-1">
-            <ConversationList />
-          </ScrollArea>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Desktop conversation sidebar */}
-      <div className="w-64 border-r border-border bg-[hsl(var(--surface-1))] flex-col shrink-0 hidden md:flex">
-        <div className="p-3">
-          <Button onClick={startNewChat} className="w-full glow-primary" size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            {t("chat.newChat")}
-          </Button>
-        </div>
-        <ScrollArea className="flex-1">
-          <ConversationList />
-        </ScrollArea>
+    <div className="flex h-full w-full">
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex w-[280px] shrink-0 h-full">
+        <ChatSidebar
+          conversationId={conversationId}
+          onSelectConversation={selectConversation}
+          onNewChat={startNewChat}
+        />
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center gap-2 px-3 py-2 border-b border-border bg-[hsl(var(--surface-1))]/50">
-          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" onClick={() => setDrawerOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-          <Button onClick={startNewChat} size="sm" variant="ghost" className="min-h-[44px]">
-            <Plus className="mr-1 h-4 w-4" />
-            {t("chat.newChat")}
-          </Button>
-        </div>
+      {/* Chat area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        {/* Header */}
+        <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-[hsl(var(--surface-1))]/50 backdrop-blur-sm shrink-0">
+          <div className="md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px]">
+                <ChatSidebar
+                  conversationId={conversationId}
+                  onSelectConversation={selectConversation}
+                  onNewChat={startNewChat}
+                  onCloseMobile={() => setMobileOpen(false)}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
+          <div className="hidden md:block" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSelector />
+          </div>
+        </header>
 
         {mode === "creator" && (
-          <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 text-sm text-primary flex items-center gap-2">
+          <div className="bg-primary/10 border-b border-primary/20 px-4 py-2 text-sm text-primary flex items-center gap-2 shrink-0">
             <Pen className="h-4 w-4" />
             {t("chat.contentCreatorBanner")}
           </div>
         )}
 
+        {/* Messages */}
         <ScrollArea className="flex-1 p-4">
-          <div className="max-w-3xl mx-auto md:max-w-3xl space-y-4">
+          <div className="max-w-3xl mx-auto space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-[50vh] text-center">
                 <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 glow-primary">
                   <MessageSquare className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-xl font-semibold text-foreground mb-2 text-tracking-tight">{t("chat.startConversation")}</h2>
+                <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">{t("chat.startConversation")}</h2>
                 <p className="text-muted-foreground max-w-md">{t("chat.startConversationDesc")}</p>
               </div>
             )}
@@ -357,7 +317,6 @@ export default function Chat() {
                     ? "bg-border text-foreground rounded-br-md"
                     : "bg-[hsl(var(--surface-2))] border-l-2 border-primary text-foreground rounded-bl-md"
                 }`}>
-                  {/* Render image if present */}
                   {msg.role === "user" && msg.image_url && (
                     <img
                       src={msg.image_url}
@@ -369,7 +328,7 @@ export default function Chat() {
                   <div className="prose prose-sm prose-invert max-w-none">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
-                   {msg.role === "assistant" && msg.model_used && (
+                  {msg.role === "assistant" && msg.model_used && (
                     <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="bg-secondary px-2 py-0.5 rounded-full">
                         {msg.model_used?.split("/").pop()} • €{(msg.cost_eur || 0).toFixed(4)}
@@ -439,9 +398,8 @@ export default function Chat() {
           </div>
         </ScrollArea>
 
-        {/* Bottom section: mode pills + input bar */}
-        <div className="border-t border-border bg-background">
-          {/* Mode selector pills */}
+        {/* Bottom: mode pills + input */}
+        <div className="border-t border-border bg-background shrink-0">
           <div className="flex gap-1.5 px-3 md:px-4 pt-3 pb-1 overflow-x-auto">
             {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => {
               const isOpusLocked = key === "opus" && profile?.plan !== "pro";
@@ -470,7 +428,6 @@ export default function Chat() {
             })}
           </div>
 
-          {/* Image preview */}
           {pendingImage && (
             <div className="px-3 md:px-4 pt-2">
               <div className="relative inline-block">
@@ -490,7 +447,6 @@ export default function Chat() {
             </div>
           )}
 
-          {/* Input row */}
           <div className="flex items-end gap-2 px-3 md:px-4 py-3">
             <input
               ref={fileInputRef}

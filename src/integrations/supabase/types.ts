@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: string
           mode: string
+          project_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           id?: string
           mode?: string
+          project_id?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -35,11 +37,19 @@ export type Database = {
           created_at?: string
           id?: string
           mode?: string
+          project_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_user_id_fkey"
             columns: ["user_id"]
@@ -189,6 +199,30 @@ export type Database = {
           plan?: string
           stripe_customer_id?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

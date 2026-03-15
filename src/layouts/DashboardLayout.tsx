@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,8 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 export default function DashboardLayout() {
   const { user, loading, profile } = useAuth();
+  const location = useLocation();
+  const isChatRoute = location.pathname === "/dashboard/chat";
 
   if (loading) {
     return (
@@ -23,6 +25,16 @@ export default function DashboardLayout() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
+
+  // Chat route: full-screen layout managed by Chat page itself
+  if (isChatRoute) {
+    return (
+      <div className="h-screen w-screen flex flex-col">
+        <Outlet />
+        {profile && !profile.onboarding_completed && <OnboardingModal />}
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
