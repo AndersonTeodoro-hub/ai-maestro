@@ -263,7 +263,7 @@ export default function Chat() {
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
+      <div className="flex-1 flex flex-col min-w-0 h-full bg-background">
         {/* Header */}
         <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-[hsl(var(--surface-1))]/50 backdrop-blur-sm shrink-0">
           <div className="md:hidden">
