@@ -273,7 +273,7 @@ export default function Chat() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px]">
+              <SheetContent side="left" className="p-0 w-[260px]">
                 <ChatSidebar
                   conversationId={conversationId}
                   onSelectConversation={selectConversation}
