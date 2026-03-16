@@ -196,11 +196,11 @@ export function ChatSidebar({
       <div className="p-3 shrink-0">
         <Button
           onClick={() => { onNewChat(); onCloseMobile?.(); }}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold whitespace-nowrap gap-1.5"
           size="sm"
         >
-          <Plus className="mr-1.5 h-4 w-4" />
-          {t("chat.newChat")}
+          <Plus className="h-4 w-4 shrink-0" />
+          <span className="truncate">{t("chat.newChat")}</span>
         </Button>
       </div>
 
