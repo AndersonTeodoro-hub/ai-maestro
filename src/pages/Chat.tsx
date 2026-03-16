@@ -254,7 +254,7 @@ export default function Chat() {
   return (
     <div className="flex h-full w-full">
       {/* Desktop sidebar */}
-      <div className="hidden md:flex w-[280px] shrink-0 h-full">
+      <div className="hidden md:flex w-[260px] shrink-0 h-full">
         <ChatSidebar
           conversationId={conversationId}
           onSelectConversation={selectConversation}
