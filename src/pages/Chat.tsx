@@ -265,7 +265,7 @@ export default function Chat() {
       {/* Chat area */}
       <div className="flex-1 flex flex-col min-w-0 h-full bg-background">
         {/* Header */}
-        <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-[hsl(var(--surface-1))]/50 backdrop-blur-sm shrink-0">
+        <header className="h-14 flex items-center justify-between border-b border-[rgba(245,240,232,0.06)] px-4 bg-background backdrop-blur-sm shrink-0">
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>

@@ -295,7 +295,9 @@ export function ChatSidebar({
                       {c.title}
                     </span>
                   </button>
-                  <div className="flex items-center pr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={`flex items-center pr-1 transition-opacity ${
+                    conversationId === c.id ? "opacity-100" : "opacity-0 group-hover:opacity-100 md:opacity-0 max-md:opacity-100"
+                  }`}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
