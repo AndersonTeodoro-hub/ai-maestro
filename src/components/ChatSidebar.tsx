@@ -185,9 +185,9 @@ export function ChatSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--surface-1))] border-r border-border">
+    <div className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border">
       {/* Logo */}
-      <div className="h-14 flex items-center gap-2 px-4 border-b border-border shrink-0">
+      <div className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
         <img src="/logo.svg" alt="SavvyOwl" className="h-7 w-7 shrink-0" />
         <span className="text-lg font-bold text-foreground tracking-tight">SavvyOwl</span>
       </div>
@@ -196,10 +196,10 @@ export function ChatSidebar({
       <div className="p-3 shrink-0">
         <Button
           onClick={() => { onNewChat(); onCloseMobile?.(); }}
-          className="w-full glow-primary"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold"
           size="sm"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-1.5 h-4 w-4" />
           {t("chat.newChat")}
         </Button>
       </div>
@@ -229,7 +229,7 @@ export function ChatSidebar({
       </nav>
 
       {/* Separator */}
-      <div className="border-t border-border mx-3" />
+      <div className="border-t border-sidebar-border mx-3" />
 
       {/* Projects filter */}
       <div className="px-3 py-2 flex items-center gap-1 shrink-0">
@@ -280,28 +280,24 @@ export function ChatSidebar({
               {convs.map((c) => (
                 <div
                   key={c.id}
-                  className={`group flex items-center rounded-lg transition-all duration-150 ${
+                  onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
+                  className={`group relative flex items-center w-full px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 ${
                     conversationId === c.id
-                      ? "bg-primary/10 border border-primary/20"
-                      : "hover:bg-secondary/50 border border-transparent"
+                      ? "bg-primary/10"
+                      : "hover:bg-secondary/50"
                   }`}
                 >
-                  <button
-                    onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
-                    className="flex-1 text-left px-2.5 py-2 text-sm truncate min-h-[40px] flex items-center gap-2"
-                  >
-                    <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
-                    <span className={conversationId === c.id ? "text-primary" : "text-muted-foreground"}>
-                      {c.title}
-                    </span>
-                  </button>
-                  <div className={`flex items-center pr-1 transition-opacity ${
-                    conversationId === c.id ? "opacity-100" : "opacity-0 group-hover:opacity-100 md:opacity-0 max-md:opacity-100"
+                  <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground mr-2" />
+                  <span className={`truncate flex-1 text-sm ${
+                    conversationId === c.id ? "text-primary" : "text-muted-foreground"
                   }`}>
+                    {c.title}
+                  </span>
+                  <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="p-2 min-w-[32px] min-h-[32px] rounded flex items-center justify-center hover:bg-secondary/80 text-muted-foreground hover:text-foreground"
+                          className="p-1.5 rounded hover:bg-secondary/80 text-muted-foreground hover:text-foreground"
                           title={t("chat.moveToProject")}
                           onClick={(e) => { e.stopPropagation(); setMoveTarget(c.id); }}
                         >
@@ -309,18 +305,18 @@ export function ChatSidebar({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={() => handleMoveToProject(null)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToProject(null); }}>
                           {t("chat.noProject")}
                         </DropdownMenuItem>
                         {projects?.map((p) => (
-                          <DropdownMenuItem key={p.id} onClick={() => handleMoveToProject(p.id)}>
+                          <DropdownMenuItem key={p.id} onClick={(e) => { e.stopPropagation(); handleMoveToProject(p.id); }}>
                             {p.name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <button
-                      className="p-2 min-w-[32px] min-h-[32px] rounded flex items-center justify-center hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
+                      className="p-1.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
                       title={t("chat.deleteConversation")}
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget(c.id); }}
                     >
@@ -338,7 +334,7 @@ export function ChatSidebar({
       </ScrollArea>
 
       {/* User footer */}
-      <div className="border-t border-border p-3 shrink-0">
+      <div className="border-t border-sidebar-border p-3 shrink-0">
         {profile && (
           <div className="flex items-center gap-2 px-1 mb-2">
             <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0">

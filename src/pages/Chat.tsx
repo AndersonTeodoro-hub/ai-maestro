@@ -254,7 +254,7 @@ export default function Chat() {
   return (
     <div className="flex h-full w-full">
       {/* Desktop sidebar */}
-      <div className="hidden md:flex w-[280px] shrink-0 h-full">
+      <div className="hidden md:flex w-[260px] shrink-0 h-full">
         <ChatSidebar
           conversationId={conversationId}
           onSelectConversation={selectConversation}
@@ -265,7 +265,7 @@ export default function Chat() {
       {/* Chat area */}
       <div className="flex-1 flex flex-col min-w-0 h-full bg-background">
         {/* Header */}
-        <header className="h-14 flex items-center justify-between border-b border-[rgba(245,240,232,0.06)] px-4 bg-background backdrop-blur-sm shrink-0">
+        <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-background backdrop-blur-sm shrink-0">
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -273,7 +273,7 @@ export default function Chat() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px]">
+              <SheetContent side="left" className="p-0 w-[260px]">
                 <ChatSidebar
                   conversationId={conversationId}
                   onSelectConversation={selectConversation}
@@ -399,7 +399,7 @@ export default function Chat() {
         </ScrollArea>
 
         {/* Bottom: mode pills + input */}
-        <div className="border-t border-[rgba(245,240,232,0.06)] bg-[hsl(var(--surface-1))] shrink-0">
+        <div className="border-t border-border bg-[hsl(var(--surface-1))] shrink-0">
           <div className="flex gap-1.5 px-3 md:px-4 pt-3 pb-1 overflow-x-auto">
             {(Object.entries(modeLabels) as [Mode, typeof modeLabels.quick][]).map(([key, val]) => {
               const isOpusLocked = key === "opus" && profile?.plan !== "pro";
@@ -418,7 +418,7 @@ export default function Chat() {
                       ? "text-muted-foreground/40 cursor-not-allowed border-transparent bg-transparent"
                       : mode === key
                         ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-[rgba(245,240,232,0.05)] text-muted-foreground hover:text-foreground border-transparent hover:border-muted-foreground/30"
+                        : "bg-secondary/50 text-muted-foreground hover:text-foreground border-transparent hover:border-muted-foreground/30"
                   }`}
                 >
                   {isOpusLocked ? <Lock className="h-3 w-3" /> : <val.icon className="h-3 w-3" />}
@@ -471,7 +471,7 @@ export default function Chat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
               placeholder={t("chat.typeMessage")}
-              className="flex-1 min-h-[48px] text-[15px] px-4 py-3 bg-[hsl(var(--surface-2))] border-[rgba(245,240,232,0.06)] focus-visible:border-primary focus-visible:ring-primary/30"
+              className="flex-1 min-h-[48px] text-[15px] px-4 py-3 bg-secondary border-border focus-visible:border-primary focus-visible:ring-primary/30"
               disabled={isLoading}
             />
             <Button
