@@ -36,13 +36,13 @@ export default function Landing() {
 
   const handleProClick = async () => {
     if (!user || !session) {
-      navigate("/register?plan=pro");
+      navigate("/register?plan=starter");
       return;
     }
     setProLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-        body: { action: "create-checkout", plan: "pro" },
+        body: { action: "create-checkout", plan: "starter" },
       });
       if (error) throw error;
       if (data?.url) {
