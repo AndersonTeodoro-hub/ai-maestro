@@ -44,6 +44,7 @@ import {
   FolderPlus,
   ArrowRightLeft,
   Share2,
+  MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -169,14 +170,12 @@ export function ChatSidebar({
     toast.success(t("chat.projectCreated"));
   };
 
-  const handleMoveToProject = async (projectId: string | null) => {
-    if (!moveTarget) return;
+  const handleMoveToProject = async (conversationId: string, projectId: string | null) => {
     await supabase
       .from("conversations")
       .update({ project_id: projectId })
-      .eq("id", moveTarget);
+      .eq("id", conversationId);
     queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    setMoveTarget(null);
     toast.success(t("chat.conversationMoved"));
   };
 
@@ -294,13 +293,43 @@ export function ChatSidebar({
                   }`}>
                     {c.title}
                   </span>
-                  <button
-                    className="absolute right-1 shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 bg-sidebar-background/80 text-muted-foreground/60 hover:bg-destructive/20 hover:text-destructive transition-all"
-                    title={t("chat.deleteConversation")}
-                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDeleteTarget(c.id); }}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="shrink-0 p-1 rounded text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/80 transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {projects && projects.length > 0 && (
+                        <>
+                          <DropdownMenuItem
+                            className="text-xs text-muted-foreground"
+                            disabled
+                          >
+                            {t("chat.moveToProject")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToProject(c.id, null); }}>
+                            {t("chat.noProject")}
+                          </DropdownMenuItem>
+                          {projects.map((p) => (
+                            <DropdownMenuItem key={p.id} onClick={(e) => { e.stopPropagation(); handleMoveToProject(c.id, p.id); }}>
+                              {p.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(c.id); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        {t("chat.deleteConversation")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
             </div>
