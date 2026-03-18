@@ -16,36 +16,36 @@ import { useTranslation } from "react-i18next";
 
 const categories = ["Content", "Marketing", "Email", "Social", "Other"];
 
-const starterPrompts = [
+const getStarterPrompts = (t: (key: string) => string) => [
   {
-    title: "✍️ Instagram Caption Pro",
+    title: t("prompts.starters.caption_title"),
     category: "Social",
-    content: "Write an Instagram caption for {product_or_topic}.\n\nTarget audience: {audience}\nTone: {tone}\nGoal: {goal}\n\nFormat:\n- Hook in the first line (must stop the scroll)\n- 2-3 short paragraphs with line breaks\n- CTA at the end\n- 5 niche hashtags (mix of 10K-500K volume)\n- Relevant emojis"
+    content: t("prompts.starters.caption_content"),
   },
   {
-    title: "🎬 Reels Script (15-30s)",
+    title: t("prompts.starters.reels_title"),
     category: "Social",
-    content: "Create a Reels/TikTok script for a {duration}-second video about {topic}.\n\nStyle: {style}\nTarget audience: {audience}\n\nFormat scene by scene:\n- HOOK (0-3s): What grabs attention\n- CONTENT (3-{duration}s): Main value or story\n- CTA (last 3s): What should viewers do\n\nFor each scene include:\n- Visual: what appears on screen\n- Audio: voiceover text\n- Text overlay: on-screen text"
+    content: t("prompts.starters.reels_content"),
   },
   {
-    title: "📅 Weekly Content Calendar",
+    title: t("prompts.starters.calendar_title"),
     category: "Content",
-    content: "Create a 1-week Instagram content calendar for a {niche} brand.\n\nMonday to Friday, for each day provide:\n- Post type (carousel, Reels, single image, Stories)\n- Theme/topic\n- Hook (first line)\n- Best posting time\n- Goal (awareness, engagement, conversion)\n\nMix content types for variety. Include at least 2 Reels and 1 carousel."
+    content: t("prompts.starters.calendar_content"),
   },
   {
-    title: "🎥 UGC Video Script",
+    title: t("prompts.starters.ugc_title"),
     category: "Content",
-    content: "Create a UGC-style video script to promote {product}.\n\nDuration: {duration} seconds\nPlatform: {platform}\nStyle: authentic, like a real customer review\n\nFormat scene by scene:\n- SCENE 1: Hook + problem\n- SCENE 2: Discovery of the product\n- SCENE 3: Using the product (close-up)\n- SCENE 4: Result + recommendation + CTA\n\nFor each scene: visual, audio (voiceover), and text on screen."
+    content: t("prompts.starters.ugc_content"),
   },
   {
-    title: "📱 Stories Sequence (5 slides)",
+    title: t("prompts.starters.stories_title"),
     category: "Social",
-    content: "Create a 5-Story Instagram sequence about {topic}.\n\nGoal: {goal}\nTone: casual, relatable\n\nFor each Story:\n- Type (text, photo, video, poll, quiz, question box)\n- Visual description\n- Text overlay\n- Interactive element (sticker, poll, slider)\n\nStory 5 must include CTA to link in bio or DM."
+    content: t("prompts.starters.stories_content"),
   },
   {
-    title: "💡 10 Content Ideas",
+    title: t("prompts.starters.ideas_title"),
     category: "Content",
-    content: "Give me 10 content ideas for {platform} in the {niche} niche.\n\nFor each idea:\n- Format (Reels, carousel, post, Stories)\n- Hook / first line\n- Unique angle\n- Expected engagement type (saves, shares, comments)\n\nFocus on content that drives saves and shares. Mix educational, entertaining, and relatable content."
+    content: t("prompts.starters.ideas_content"),
   },
 ];
 
@@ -117,7 +117,8 @@ export default function Prompts() {
   };
 
   const loadStarters = async () => {
-    for (const sp of starterPrompts) {
+    const starters = getStarterPrompts(t);
+    for (const sp of starters) {
       await supabase.from("prompts").insert({ user_id: user!.id, ...sp, is_starter: true });
     }
     queryClient.invalidateQueries({ queryKey: ["prompts"] });

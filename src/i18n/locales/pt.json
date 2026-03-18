@@ -238,6 +238,20 @@
       "Email": "Email",
       "Social": "Social",
       "Other": "Outro"
+    },
+    "starters": {
+      "caption_title": "✍️ Legenda Instagram Pro",
+      "caption_content": "Escreve uma legenda para Instagram sobre {produto_ou_tema}.\n\nPúblico-alvo: {publico}\nTom: {tom}\nObjetivo: {objetivo}\n\nFormato:\n- Hook na primeira linha (tem de parar o scroll)\n- 2-3 parágrafos curtos com quebras de linha\n- CTA no final\n- 5 hashtags de nicho (mix de 10K-500K volume)\n- Emojis relevantes",
+      "reels_title": "🎬 Script para Reels (15-30s)",
+      "reels_content": "Cria um roteiro para Reels/TikTok de {duracao} segundos sobre {tema}.\n\nEstilo: {estilo}\nPúblico-alvo: {publico}\n\nFormato cena a cena:\n- HOOK (0-3s): O que prende a atenção\n- CONTEÚDO (3-{duracao}s): Valor principal ou história\n- CTA (últimos 3s): O que o espectador deve fazer\n\nPara cada cena inclui:\n- Visual: o que aparece no ecrã\n- Áudio: texto da voz off\n- Texto na tela: texto sobreposto",
+      "calendar_title": "📅 Calendário Semanal de Conteúdo",
+      "calendar_content": "Cria um calendário de conteúdo para Instagram de 1 semana para uma marca de {nicho}.\n\nSegunda a sexta, para cada dia indica:\n- Tipo de post (carrossel, Reels, imagem única, Stories)\n- Tema/tópico\n- Hook (primeira linha)\n- Melhor horário para publicar\n- Objetivo (awareness, engagement, conversão)\n\nMistura tipos de conteúdo para variedade. Inclui pelo menos 2 Reels e 1 carrossel.",
+      "ugc_title": "🎥 Roteiro Vídeo UGC",
+      "ugc_content": "Cria um roteiro de vídeo estilo UGC para promover {produto}.\n\nDuração: {duracao} segundos\nPlataforma: {plataforma}\nEstilo: autêntico, como se fosse uma review real\n\nFormato cena a cena:\n- CENA 1: Hook + problema\n- CENA 2: Descoberta do produto\n- CENA 3: A usar o produto (close-up)\n- CENA 4: Resultado + recomendação + CTA\n\nPara cada cena: visual, áudio (voz off), e texto na tela.",
+      "stories_title": "📱 Sequência de Stories (5 slides)",
+      "stories_content": "Cria uma sequência de 5 Stories para Instagram sobre {tema}.\n\nObjetivo: {objetivo}\nTom: casual, próximo\n\nPara cada Story:\n- Tipo (texto, foto, vídeo, enquete, quiz, caixa de perguntas)\n- Descrição visual\n- Texto sobreposto\n- Elemento interativo (sticker, enquete, slider)\n\nO Story 5 tem de incluir CTA para o link na bio ou DM.",
+      "ideas_title": "💡 10 Ideias de Conteúdo",
+      "ideas_content": "Dá-me 10 ideias de conteúdo para {plataforma} no nicho de {nicho}.\n\nPara cada ideia:\n- Formato (Reels, carrossel, post, Stories)\n- Hook / primeira linha\n- Ângulo único\n- Tipo de engagement esperado (saves, shares, comentários)\n\nFoca em conteúdo que gera saves e shares. Mistura conteúdo educativo, entretenimento e relatable."
     }
   },
   "analytics": {
