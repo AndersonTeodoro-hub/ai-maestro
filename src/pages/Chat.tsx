@@ -331,7 +331,7 @@ export default function Chat() {
                   {msg.role === "assistant" && msg.model_used && (
                     <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="bg-secondary px-2 py-0.5 rounded-full">
-                        {msg.model_used?.split("/").pop()} • €{(msg.cost_eur || 0).toFixed(4)}
+                        €{(msg.cost_eur || 0).toFixed(4)}
                       </span>
                     </div>
                   )}
