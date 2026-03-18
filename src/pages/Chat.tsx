@@ -407,11 +407,11 @@ export default function Chat() {
                       </span>
                       <span className="text-muted-foreground/30">·</span>
                       <span className="text-muted-foreground/40 line-through">
-                        ChatGPT: ~€{((msg.cost_eur || 0) * 8).toFixed(4)}
+                        GPT-5.2: ~€{((msg.cost_eur || 0) * 10).toFixed(4)}
                       </span>
                       <span className="text-muted-foreground/30">·</span>
                       <span className="text-muted-foreground/40 line-through">
-                        GPT-4o: ~€{((msg.cost_eur || 0) * 12).toFixed(4)}
+                        Claude Opus: ~€{((msg.cost_eur || 0) * 15).toFixed(4)}
                       </span>
                     </div>
                   )}
