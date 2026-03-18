@@ -185,7 +185,7 @@ export function ChatSidebar({
   };
 
   return (
-    <div className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border">
+    <div className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border overflow-hidden">
       {/* Logo */}
       <div className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
         <img src="/logo.svg" alt="SavvyOwl" className="h-7 w-7 shrink-0" />
@@ -196,7 +196,7 @@ export function ChatSidebar({
       <div className="p-3 shrink-0">
         <Button
           onClick={() => { onNewChat(); onCloseMobile?.(); }}
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold whitespace-nowrap gap-1.5"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold gap-1.5 overflow-hidden"
           size="sm"
         >
           <Plus className="h-4 w-4 shrink-0" />
@@ -293,11 +293,11 @@ export function ChatSidebar({
                   }`}>
                     {c.title}
                   </span>
-                  <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto shrink-0">
+                  <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="p-1 rounded hover:bg-secondary/80 text-muted-foreground hover:text-foreground"
+                          className="p-1.5 rounded hover:bg-secondary/80 text-muted-foreground hover:text-foreground"
                           title={t("chat.moveToProject")}
                           onClick={(e) => { e.stopPropagation(); setMoveTarget(c.id); }}
                         >
@@ -315,14 +315,14 @@ export function ChatSidebar({
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    <button
+                      className="p-1.5 rounded text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                      title={t("chat.deleteConversation")}
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDeleteTarget(c.id); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                  <button
-                    className="p-1 rounded text-muted-foreground/40 hover:bg-destructive/20 hover:text-destructive transition-colors shrink-0"
-                    title={t("chat.deleteConversation")}
-                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(c.id); }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               ))}
             </div>
