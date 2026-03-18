@@ -51,7 +51,7 @@ export default function Chat() {
     quick: { label: t("chat.quick"), icon: Zap, desc: t("chat.quickDesc") },
     deep: { label: t("chat.deepThink"), icon: Brain, desc: t("chat.deepThinkDesc") },
     creator: { label: t("chat.contentCreator"), icon: Pen, desc: t("chat.contentCreatorDesc") },
-    opus: { label: "Opus", icon: Sparkles, desc: t("chat.quickDesc") },
+    opus: { label: "Owl 2.0", icon: Sparkles, desc: t("chat.quickDesc") },
   };
 
   // Auto-resize textarea
