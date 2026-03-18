@@ -280,43 +280,26 @@ export function ChatSidebar({
               {convs.map((c) => (
                 <div
                   key={c.id}
-                  onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
-                  className={`group relative flex items-center w-full px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-150 ${
+                  className={`group flex items-center w-full rounded-lg cursor-pointer transition-all duration-150 ${
                     conversationId === c.id
                       ? "bg-primary/10"
                       : "hover:bg-secondary/50"
                   }`}
                 >
-                  <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground mr-2" />
-                  <span className={`truncate flex-1 text-sm ${
-                    conversationId === c.id ? "text-primary" : "text-muted-foreground"
-                  }`}>
-                    {c.title}
-                  </span>
-                  <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          className="p-1.5 rounded hover:bg-secondary/80 text-muted-foreground hover:text-foreground"
-                          title={t("chat.moveToProject")}
-                          onClick={(e) => { e.stopPropagation(); setMoveTarget(c.id); }}
-                        >
-                          <ArrowRightLeft className="h-3.5 w-3.5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleMoveToProject(null); }}>
-                          {t("chat.noProject")}
-                        </DropdownMenuItem>
-                        {projects?.map((p) => (
-                          <DropdownMenuItem key={p.id} onClick={(e) => { e.stopPropagation(); handleMoveToProject(p.id); }}>
-                            {p.name}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <div
+                    className="flex items-center gap-2 flex-1 min-w-0 px-2.5 py-2"
+                    onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
+                  >
+                    <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <span className={`truncate text-sm ${
+                      conversationId === c.id ? "text-primary" : "text-muted-foreground"
+                    }`}>
+                      {c.title}
+                    </span>
+                  </div>
+                  <div className="flex items-center shrink-0 pr-1">
                     <button
-                      className="p-1.5 rounded text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                      className="p-1.5 rounded text-muted-foreground/40 hover:bg-destructive/20 hover:text-destructive transition-colors"
                       title={t("chat.deleteConversation")}
                       onClick={(e) => { e.stopPropagation(); e.preventDefault(); setDeleteTarget(c.id); }}
                     >
