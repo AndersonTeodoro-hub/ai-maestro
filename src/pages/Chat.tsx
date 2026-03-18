@@ -175,7 +175,10 @@ export default function Chat() {
       }
 
       let assistantSoFar = "";
-      const allMessages = [...messages, { role: userMsg.role, content: userMsg.content }].map((m) => ({
+      // For new conversations (no convId before this send), only send the current message
+      // to prevent leaking history from a previous conversation due to stale state
+      const historyMessages = conversationId ? messages : [];
+      const allMessages = [...historyMessages, { role: userMsg.role, content: userMsg.content }].map((m) => ({
         role: m.role,
         content: m.content,
       }));
