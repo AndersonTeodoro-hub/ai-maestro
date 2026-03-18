@@ -93,12 +93,24 @@
       "free_price": "€0",
       "free_subtitle": "Try it with no commitment",
       "month": "mo",
-      "free_features": ["5 requests per day", "3 AIs available", "Conversation history", "Automatic prompt improvement"],
+      "free_features": [
+        "5 requests per day",
+        "3 AIs available",
+        "Conversation history",
+        "Automatic prompt improvement"
+      ],
       "free_cta": "START FREE",
       "pro_label": "PROFESSIONAL",
       "pro_subtitle": "For those who create content every day",
       "popular": "POPULAR",
-      "pro_features": ["Unlimited requests", "All available AIs", "Saved prompt library", "Advanced prompt optimization", "Full cost control", "Priority support"],
+      "pro_features": [
+        "Unlimited requests",
+        "All available AIs",
+        "Saved prompt library",
+        "Advanced prompt optimization",
+        "Full cost control",
+        "Priority support"
+      ],
       "pro_cta": "START — 7 DAYS FREE"
     },
     "cta_final": {
@@ -183,7 +195,21 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "lastWeek": "Last 7 days",
-    "older": "Older"
+    "older": "Older",
+    "qa": {
+      "caption": "Instagram caption",
+      "captionPrompt": "Create an Instagram caption for a product launch post. Include a strong hook in the first line, relevant emojis, CTA, and 5 niche hashtags.",
+      "reels": "Reels script",
+      "reelsPrompt": "Create a 15-second Reels script. Include a hook in the first 3 seconds, main content, and final CTA. Format: scene by scene with text and action.",
+      "calendar": "Weekly calendar",
+      "calendarPrompt": "Create a 1-week Instagram content calendar (Monday to Friday). For each day: post type (carousel, reels, stories), theme, hook, and best posting time. Niche: digital marketing.",
+      "stories": "Stories sequence",
+      "storiesPrompt": "Create a 5-Story Instagram sequence aimed at driving engagement. Include: poll, quiz, question box, and CTA to link in bio. Tone: casual and relatable.",
+      "ugc": "UGC / Video script",
+      "ugcPrompt": "Create a 30-second UGC video script to promote a skincare product. Format: scene by scene with visual, audio, and on-screen text. Style: authentic, like a real review.",
+      "ideas": "Content ideas",
+      "ideasPrompt": "Give me 10 Instagram content ideas for the digital marketing niche. For each idea: format (reels, carousel, post), hook, and unique angle. Focus on content that drives saves and shares."
+    }
   },
   "prompts": {
     "title": "Prompt Library",

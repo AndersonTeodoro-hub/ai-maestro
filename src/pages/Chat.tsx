@@ -326,16 +326,40 @@ export default function Chat() {
         <ScrollArea className="flex-1 min-h-0">
           <div className="max-w-[48rem] mx-auto w-full px-4 md:px-6 py-6">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-                  <MessageSquare className="h-6 w-6 text-primary" />
+              <div className="flex flex-col items-center min-h-[50vh] pt-[8vh] px-2">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <MessageSquare className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-lg font-semibold text-foreground mb-2">
+                <h2 className="text-base font-semibold text-foreground mb-1">
                   {t("chat.startConversation")}
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+                <p className="text-xs text-muted-foreground mb-8 max-w-xs text-center">
                   {t("chat.startConversationDesc")}
                 </p>
+
+                {/* Quick action cards */}
+                <div className="grid grid-cols-2 gap-2 w-full max-w-lg">
+                  {([
+                    { emoji: "✍️", label: t("chat.qa.caption"), prompt: t("chat.qa.captionPrompt") },
+                    { emoji: "🎬", label: t("chat.qa.reels"), prompt: t("chat.qa.reelsPrompt") },
+                    { emoji: "📅", label: t("chat.qa.calendar"), prompt: t("chat.qa.calendarPrompt") },
+                    { emoji: "📱", label: t("chat.qa.stories"), prompt: t("chat.qa.storiesPrompt") },
+                    { emoji: "🎥", label: t("chat.qa.ugc"), prompt: t("chat.qa.ugcPrompt") },
+                    { emoji: "💡", label: t("chat.qa.ideas"), prompt: t("chat.qa.ideasPrompt") },
+                  ]).map((qa) => (
+                    <button
+                      key={qa.label}
+                      onClick={() => handleSend(qa.prompt)}
+                      disabled={isLoading}
+                      className="flex items-start gap-2.5 p-3 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 hover:border-border transition-all text-left group"
+                    >
+                      <span className="text-base mt-0.5">{qa.emoji}</span>
+                      <span className="text-xs text-muted-foreground group-hover:text-foreground leading-snug">
+                        {qa.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

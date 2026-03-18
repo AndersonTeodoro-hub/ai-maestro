@@ -93,12 +93,24 @@
       "free_price": "€0",
       "free_subtitle": "Para experimentar sem compromisso",
       "month": "mês",
-      "free_features": ["5 pedidos por dia", "3 IAs disponíveis", "Histórico de conversas", "Melhoria automática de prompts"],
+      "free_features": [
+        "5 pedidos por dia",
+        "3 IAs disponíveis",
+        "Histórico de conversas",
+        "Melhoria automática de prompts"
+      ],
       "free_cta": "COMEÇAR GRÁTIS",
       "pro_label": "PROFISSIONAL",
       "pro_subtitle": "Para quem cria conteúdo todos os dias",
       "popular": "POPULAR",
-      "pro_features": ["Pedidos ilimitados", "Todas as IAs disponíveis", "Biblioteca de prompts guardados", "Melhoria avançada de prompts", "Controlo total de custos", "Suporte prioritário"],
+      "pro_features": [
+        "Pedidos ilimitados",
+        "Todas as IAs disponíveis",
+        "Biblioteca de prompts guardados",
+        "Melhoria avançada de prompts",
+        "Controlo total de custos",
+        "Suporte prioritário"
+      ],
       "pro_cta": "COMEÇAR — 7 DIAS GRÁTIS"
     },
     "cta_final": {
@@ -183,7 +195,21 @@
     "today": "Hoje",
     "yesterday": "Ontem",
     "lastWeek": "Últimos 7 dias",
-    "older": "Mais antigo"
+    "older": "Mais antigo",
+    "qa": {
+      "caption": "Legenda para Instagram",
+      "captionPrompt": "Cria uma legenda para Instagram para um post de lançamento de produto. Inclui hook forte na primeira linha, emojis relevantes, CTA e 5 hashtags de nicho.",
+      "reels": "Script para Reels",
+      "reelsPrompt": "Cria um roteiro para um Reels de 15 segundos. Inclui hook nos primeiros 3 segundos, conteúdo principal e CTA final. Formato: cena a cena com texto e ação.",
+      "calendar": "Calendário semanal",
+      "calendarPrompt": "Cria um calendário de conteúdo para Instagram para 1 semana (segunda a sexta). Para cada dia: tipo de post (carrossel, reels, stories), tema, hook e melhor horário. Nicho: marketing digital.",
+      "stories": "Sequência de Stories",
+      "storiesPrompt": "Cria uma sequência de 5 Stories para Instagram com o objetivo de gerar engagement. Inclui: enquete, quiz, caixa de perguntas, e CTA para o link na bio. Tom: casual e próximo.",
+      "ugc": "Roteiro UGC / Vídeo",
+      "ugcPrompt": "Cria um roteiro de vídeo UGC de 30 segundos para promover um produto de skincare. Formato: cena a cena com visual, áudio e texto na tela. Estilo: autêntico, como se fosse uma review real.",
+      "ideas": "Ideias de conteúdo",
+      "ideasPrompt": "Dá-me 10 ideias de conteúdo para Instagram no nicho de marketing digital. Para cada ideia: formato (reels, carrossel, post), hook e ângulo único. Foca em conteúdo que gera saves e shares."
+    }
   },
   "prompts": {
     "title": "Biblioteca de Prompts",
