@@ -39,5 +39,5 @@
   <!-- SavvyOwl text -->
   <text x="600" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="700" fill="#f5f0e8" letter-spacing="3" text-anchor="middle">SavvyOwl</text>
   <!-- Tagline -->
-  <text x="600" y="510" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="400" fill="#c9a96e" letter-spacing="2" text-anchor="middle">The smart way to use AI</text>
+  <text x="600" y="510" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="400" fill="#c9a96e" letter-spacing="3" text-anchor="middle">Conteúdo para redes sociais 3x mais rápido</text>
 </svg>

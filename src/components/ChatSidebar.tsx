@@ -296,10 +296,10 @@ export function ChatSidebar({
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <button
-                        className="shrink-0 p-1 rounded text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/80 transition-all"
+                        className="shrink-0 p-1.5 rounded text-muted-foreground/70 hover:text-foreground hover:bg-secondary transition-all"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>

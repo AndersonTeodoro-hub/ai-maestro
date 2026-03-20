@@ -1,54 +1,27 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-
-<!-- NO background - transparent -->
-
-<!-- Ear tufts -->
-<polygon points="188,185 204,148 220,185" fill="#F0F6FF" stroke="#3A86FF" stroke-width="2"/>
-<polygon points="292,185 308,148 324,185" fill="#F0F6FF" stroke="#3A86FF" stroke-width="2"/>
-
-<!-- Body -->
-<ellipse cx="256" cy="300" rx="95" ry="105" fill="#1E293B" stroke="#3A86FF" stroke-width="2.5"/>
-
-<!-- Face -->
-<ellipse cx="256" cy="258" rx="75" ry="72" fill="#0F172A" stroke="#3A86FF" stroke-width="2"/>
-
-<!-- Left eye outer ring -->
-<circle cx="224" cy="248" r="24" fill="#0F172A" stroke="#3A86FF" stroke-width="3"/>
-<!-- Left eye blue fill -->
-<circle cx="224" cy="248" r="14" fill="#3A86FF"/>
-<!-- Left eye pupil -->
-<circle cx="224" cy="248" r="7" fill="#080B14"/>
-<!-- Left eye shine -->
-<circle cx="229" cy="243" r="3.5" fill="#FFFFFF" opacity="0.95"/>
-
-<!-- Right eye outer ring -->
-<circle cx="288" cy="248" r="24" fill="#0F172A" stroke="#3A86FF" stroke-width="3"/>
-<!-- Right eye dark fill -->
-<circle cx="288" cy="248" r="14" fill="#1E293B"/>
-<!-- Lightning bolt in right eye -->
-<polygon points="291,235 284,251 290,251 283,263 294,246 287,246 293,235" fill="#3A86FF"/>
-<!-- Right eye shine -->
-<circle cx="293" cy="241" r="3.5" fill="#FFFFFF" opacity="0.95"/>
-
-<!-- Beak -->
-<polygon points="256,276 245,292 267,292" fill="#3A86FF"/>
-
-<!-- Wing left -->
-<path d="M162,285 Q138,335 155,378 Q180,350 222,336" fill="#1E293B" stroke="#3A86FF" stroke-width="1.5" fill-opacity="0.95"/>
-<!-- Wing right -->
-<path d="M350,285 Q374,335 357,378 Q332,350 290,336" fill="#1E293B" stroke="#3A86FF" stroke-width="1.5" fill-opacity="0.95"/>
-
-<!-- Chest feather lines -->
-<path d="M234,318 Q256,327 278,318" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
-<path d="M230,336 Q256,346 282,336" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
-<path d="M232,354 Q256,363 280,354" stroke="#3A86FF" stroke-width="1" fill="none" opacity="0.4"/>
-
-<!-- Feet -->
-<line x1="232" y1="400" x2="214" y2="424" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-<line x1="232" y1="400" x2="228" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-<line x1="232" y1="400" x2="242" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-<line x1="280" y1="400" x2="270" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-<line x1="280" y1="400" x2="280" y2="426" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-<line x1="280" y1="400" x2="298" y2="424" stroke="#3A86FF" stroke-width="3" stroke-linecap="round"/>
-
+<circle cx="256" cy="256" r="256" fill="#1a1814"/>
+<polygon points="188,175 204,138 220,175" fill="#f5f0e8" stroke="#c9a96e" stroke-width="3"/>
+<polygon points="292,175 308,138 324,175" fill="#f5f0e8" stroke="#c9a96e" stroke-width="3"/>
+<ellipse cx="256" cy="290" rx="100" ry="110" fill="#272320" stroke="#c9a96e" stroke-width="3"/>
+<ellipse cx="256" cy="248" rx="80" ry="76" fill="#1a1814" stroke="#c9a96e" stroke-width="2.5"/>
+<circle cx="222" cy="238" r="26" fill="#1a1814" stroke="#c9a96e" stroke-width="3.5"/>
+<circle cx="222" cy="238" r="16" fill="#c9a96e"/>
+<circle cx="222" cy="238" r="8" fill="#1a1814"/>
+<circle cx="228" cy="232" r="4" fill="#FFFFFF" opacity="0.95"/>
+<circle cx="290" cy="238" r="26" fill="#1a1814" stroke="#c9a96e" stroke-width="3.5"/>
+<circle cx="290" cy="238" r="16" fill="#272320"/>
+<polygon points="293,224 286,242 292,242 285,255 296,238 289,238 295,224" fill="#c9a96e"/>
+<circle cx="295" cy="232" r="4" fill="#FFFFFF" opacity="0.95"/>
+<polygon points="256,268 244,286 268,286" fill="#c9a96e"/>
+<path d="M158,278 Q132,330 150,375 Q178,345 222,330" fill="#272320" stroke="#c9a96e" stroke-width="2" fill-opacity="0.95"/>
+<path d="M354,278 Q380,330 362,375 Q334,345 290,330" fill="#272320" stroke="#c9a96e" stroke-width="2" fill-opacity="0.95"/>
+<path d="M232,310 Q256,320 280,310" stroke="#c9a96e" stroke-width="1.5" fill="none" opacity="0.5"/>
+<path d="M228,330 Q256,340 284,330" stroke="#c9a96e" stroke-width="1.5" fill="none" opacity="0.5"/>
+<path d="M230,348 Q256,358 282,348" stroke="#c9a96e" stroke-width="1.5" fill="none" opacity="0.5"/>
+<line x1="232" y1="395" x2="214" y2="420" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
+<line x1="232" y1="395" x2="228" y2="422" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
+<line x1="232" y1="395" x2="244" y2="422" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
+<line x1="280" y1="395" x2="268" y2="420" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
+<line x1="280" y1="395" x2="280" y2="422" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
+<line x1="280" y1="395" x2="298" y2="420" stroke="#c9a96e" stroke-width="4" stroke-linecap="round"/>
 </svg>
