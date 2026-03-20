@@ -209,7 +209,10 @@
       "ugcPrompt": "Cria um roteiro de vídeo UGC de 30 segundos para promover um produto de skincare. Formato: cena a cena com visual, áudio e texto na tela. Estilo: autêntico, como se fosse uma review real.",
       "ideas": "Ideias de conteúdo",
       "ideasPrompt": "Dá-me 10 ideias de conteúdo para Instagram no nicho de marketing digital. Para cada ideia: formato (reels, carrossel, post), hook e ângulo único. Foca em conteúdo que gera saves e shares."
-    }
+    },
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "copyAll": "Copiar resposta"
   },
   "prompts": {
     "title": "Biblioteca de Prompts",

@@ -209,7 +209,10 @@
       "ugcPrompt": "Create a 30-second UGC video script to promote a skincare product. Format: scene by scene with visual, audio, and on-screen text. Style: authentic, like a real review.",
       "ideas": "Content ideas",
       "ideasPrompt": "Give me 10 Instagram content ideas for the digital marketing niche. For each idea: format (reels, carousel, post), hook, and unique angle. Focus on content that drives saves and shares."
-    }
+    },
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyAll": "Copy response"
   },
   "prompts": {
     "title": "Prompt Library",

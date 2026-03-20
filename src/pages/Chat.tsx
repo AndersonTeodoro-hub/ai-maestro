@@ -5,7 +5,7 @@ import { streamChat, ChatMessage, ChatImage } from "@/lib/chat-stream";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Send, Plus, MessageSquare, Zap, Brain, Pen, Sparkles, ChevronDown, Lock, Menu, ImagePlus, X, Bot } from "lucide-react";
+import { Send, Plus, MessageSquare, Zap, Brain, Pen, Sparkles, ChevronDown, Lock, Menu, ImagePlus, X, Bot, Copy, Check } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ReactMarkdown from "react-markdown";
@@ -46,6 +46,25 @@ export default function Chat() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const sentFirstMessage = useRef(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const handleCopyMessage = async (text: string, index: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleCopyBlock = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success(t("chat.copied"));
+  };
+
+  const extractTextFromChildren = (children: any): string => {
+    if (typeof children === "string") return children;
+    if (Array.isArray(children)) return children.map(extractTextFromChildren).join("");
+    if (children?.props?.children) return extractTextFromChildren(children.props.children);
+    return "";
+  };
 
   const modeLabels: Record<Mode, { label: string; icon: typeof Zap; desc: string }> = {
     quick: { label: t("chat.quick"), icon: Zap, desc: t("chat.quickDesc") },
@@ -397,8 +416,48 @@ export default function Chat() {
                   )}
 
                   <div className="chat-prose text-sm text-foreground">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        pre: ({ children }) => {
+                          const text = extractTextFromChildren(children);
+                          return (
+                            <div className="relative group/code">
+                              <button
+                                onClick={() => handleCopyBlock(text)}
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary/80 text-muted-foreground hover:text-foreground opacity-0 group-hover/code:opacity-100 transition-opacity"
+                                title={t("chat.copy")}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                              <pre>{children}</pre>
+                            </div>
+                          );
+                        },
+                      }}
+                    >{msg.content}</ReactMarkdown>
                   </div>
+
+                  {/* Copy full response button */}
+                  {msg.role === "assistant" && msg.content && (
+                    <div className="mt-2 flex items-center gap-3">
+                      <button
+                        onClick={() => handleCopyMessage(msg.content, i)}
+                        className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                      >
+                        {copiedIndex === i ? (
+                          <>
+                            <Check className="h-3 w-3 text-primary" />
+                            <span className="text-primary">{t("chat.copied")}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3 w-3" />
+                            <span>{t("chat.copyAll")}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
 
                   {msg.role === "assistant" && msg.model_used && (msg.cost_eur || 0) > 0 && (
                     <div className="mt-2 inline-flex items-center gap-2 text-[10px]">
