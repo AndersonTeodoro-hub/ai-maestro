@@ -293,7 +293,7 @@ export function ChatSidebar({
                   }`}>
                     {c.title}
                   </span>
-                  <DropdownMenu>
+                  <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <button
                         className="shrink-0 p-1 rounded text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/80 transition-all"
@@ -302,7 +302,7 @@ export function ChatSidebar({
                         <MoreHorizontal className="h-3.5 w-3.5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
                       {projects && projects.length > 0 && (
                         <>
                           <DropdownMenuItem
@@ -323,7 +323,7 @@ export function ChatSidebar({
                       )}
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(c.id); }}
+                        onClick={(e) => { e.stopPropagation(); setTimeout(() => setDeleteTarget(c.id), 100); }}
                       >
                         <Trash2 className="h-3.5 w-3.5 mr-2" />
                         {t("chat.deleteConversation")}
