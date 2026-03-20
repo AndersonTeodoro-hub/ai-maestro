@@ -310,26 +310,30 @@ export function ChatSidebar({
               {convs.map((c) => (
                 <div
                   key={c.id}
-                  onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
-                  className={`group relative flex items-center w-full rounded-lg cursor-pointer transition-all duration-150 px-2 py-1.5 ${
+                  className={`flex items-center w-full rounded-lg cursor-pointer transition-all duration-150 h-8 ${
                     conversationId === c.id
                       ? "bg-primary/10"
                       : "hover:bg-secondary/50"
                   }`}
                 >
-                  <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground mr-2" />
-                  <span className={`truncate flex-1 text-xs leading-snug ${
-                    conversationId === c.id ? "text-primary font-medium" : "text-muted-foreground"
-                  }`}>
-                    {c.title}
-                  </span>
+                  <div
+                    className="flex items-center min-w-0 flex-1 overflow-hidden px-2 h-full"
+                    onClick={() => { onSelectConversation(c.id); onCloseMobile?.(); }}
+                  >
+                    <MessageSquare className="h-3 w-3 shrink-0 text-muted-foreground mr-2" />
+                    <span className={`block truncate text-xs ${
+                      conversationId === c.id ? "text-primary font-medium" : "text-muted-foreground"
+                    }`} style={{ maxWidth: "100%" }}>
+                      {c.title}
+                    </span>
+                  </div>
                   <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                       <button
-                        className="shrink-0 p-1.5 rounded text-muted-foreground/70 hover:text-foreground hover:bg-secondary transition-all"
+                        className="shrink-0 h-8 w-8 flex items-center justify-center rounded text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-all"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <MoreHorizontal className="h-4 w-4" />
+                        <MoreHorizontal className="h-3.5 w-3.5" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
