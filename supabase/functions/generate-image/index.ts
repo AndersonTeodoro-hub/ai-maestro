@@ -7,6 +7,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const SAVVYOWL_GOOGLE_KEY = "AIzaSyA_7N4dRvk8mRNeeNVEFJH7VyUO89Wddok";
+const FREE_IMAGE_LIMIT = 10;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,9 +20,12 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader || "" } },
     });
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
     const { data: { user } } = await anonClient.auth.getUser();
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -28,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, apiKey, model, aspectRatio } = await req.json();
+    const { prompt, apiKey } = await req.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
@@ -37,59 +43,62 @@ serve(async (req) => {
       });
     }
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Google API Key is required. Add it in Settings." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Determine which API key to use
+    let activeKey = apiKey || null;
+    let usingFreeCredits = false;
+
+    if (!activeKey) {
+      // Check free tier usage
+      const { count } = await adminClient
+        .from("usage_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("mode", "image_generation");
+
+      const usedImages = count || 0;
+
+      if (usedImages >= FREE_IMAGE_LIMIT) {
+        return new Response(JSON.stringify({
+          error: "free_limit_reached",
+          message: `Usaste as tuas ${FREE_IMAGE_LIMIT} imagens gratuitas. Adiciona a tua Google API Key nas Definicoes para continuar a gerar imagens sem limite.`,
+          used: usedImages,
+          limit: FREE_IMAGE_LIMIT,
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      activeKey = SAVVYOWL_GOOGLE_KEY;
+      usingFreeCredits = true;
+      console.log(`[NANO-BANANA] Free tier: ${usedImages}/${FREE_IMAGE_LIMIT} used for user ${user.id}`);
     }
 
-    // Select model - default to Nano Banana (gemini-2.5-flash)
-    const modelId = model || "gemini-2.0-flash-exp";
-    const validModels = [
-      "gemini-2.0-flash-exp",
-      "gemini-2.5-flash-preview-native-audio",
-      "gemini-2.5-flash-image-generation"
-    ];
+    const modelId = "gemini-2.0-flash-exp";
+    console.log(`[NANO-BANANA] Generating with ${usingFreeCredits ? "SavvyOwl key (free)" : "user key"}`);
 
-    console.log(`[NANO-BANANA] Generating image with model: ${modelId}`);
-    console.log(`[NANO-BANANA] Prompt: ${prompt.substring(0, 100)}...`);
-
-    // Call Gemini API for image generation
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
-
-    const requestBody: any = {
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      }
-    };
+    // Call Gemini API
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${activeKey}`;
 
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+        },
+      }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
       console.error("[NANO-BANANA] API error:", errText);
-
-      // Parse error for user-friendly message
       let userMessage = "Image generation failed";
       try {
         const errJson = JSON.parse(errText);
-        if (errJson.error?.message) {
-          userMessage = errJson.error.message;
-        }
+        if (errJson.error?.message) userMessage = errJson.error.message;
       } catch {}
-
       return new Response(JSON.stringify({ error: userMessage }), {
         status: response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -97,9 +106,8 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-
-    // Extract image from response
     const candidate = data.candidates?.[0];
+
     if (!candidate?.content?.parts) {
       return new Response(JSON.stringify({ error: "No image generated. Try a different prompt." }), {
         status: 422,
@@ -124,7 +132,7 @@ serve(async (req) => {
 
     if (!imageData) {
       return new Response(JSON.stringify({
-        error: "The model returned text but no image. Try adding 'Generate an image of' at the start of your prompt.",
+        error: "The model returned text but no image. Try adding 'Generate an image of' at the start.",
         text: textResponse,
       }), {
         status: 422,
@@ -132,11 +140,31 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[NANO-BANANA] Image generated successfully`);
+    // Log usage (for free tier tracking and analytics)
+    await adminClient.from("usage_logs").insert({
+      user_id: user.id,
+      mode: "image_generation",
+      model: modelId,
+      cost_eur: usingFreeCredits ? 0 : 0.04,
+    });
+
+    // Get remaining free credits
+    let remaining = null;
+    if (usingFreeCredits) {
+      const { count } = await adminClient
+        .from("usage_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("mode", "image_generation");
+      remaining = FREE_IMAGE_LIMIT - (count || 0);
+    }
+
+    console.log(`[NANO-BANANA] Image generated successfully${usingFreeCredits ? ` (${remaining} free remaining)` : ""}`);
 
     return new Response(JSON.stringify({
       image: imageData,
       text: textResponse,
+      freeCredits: usingFreeCredits ? { remaining, limit: FREE_IMAGE_LIMIT } : null,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -410,7 +410,7 @@ export default function Chat() {
                                 <Copy className="h-3 w-3" />
                               </button>
                               <pre>{children}</pre>
-                              {googleApiKey && text.length > 30 && (
+                              {text.length > 30 && (
                                 <GenerateImageButton prompt={text} />
                               )}
                             </div>
