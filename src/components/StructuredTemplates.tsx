@@ -41,92 +41,116 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const handleViralVideoSelect = (vid: any) => {
     const v = fieldValues;
     const prompt = isPT
-      ? `Modela este vídeo viral para eu recriar com as minhas ferramentas.
+      ? `Modela este vídeo viral para eu recriar com ${v.imageTool} + ${v.videoTool} + CapCut.
 
-VÍDEO ORIGINAL: "${vid.title}" | ${vid.channel} | ${formatNumber(vid.views)} views | ${vid.duration} | ${vid.url}
+VÍDEO: "${vid.title}" | ${vid.channel} | ${formatNumber(vid.views)} views | ${vid.duration} | ${vid.url}
+CONTEXTO: ${v.niche} | Público: ${v.audience} ${v.brand ? `| Marca: ${v.brand}` : ""} | Idioma: ${v.videoLang}
 
-MEU CONTEXTO: Nicho: ${v.niche} | Público: ${v.audience} | ${v.brand ? `Marca: ${v.brand} |` : ""} Idioma do vídeo: ${v.videoLang}
-Ferramentas: ${v.imageTool} (imagem) + ${v.videoTool} (vídeo) + CapCut (edição)
+ENTREGA EXACTAMENTE NESTA ORDEM E FORMATO:
 
-ENTREGA O SEGUINTE NESTA ORDEM EXATA:
+## 1. ANÁLISE
+Máximo 4 linhas. Porque viralizou, técnica, emoção.
 
-## 1. ANÁLISE (máximo 4 linhas)
-Porque viralizou, que técnica usa, que emoção provoca. Breve e direto.
+## 2. IDEIA DA MODELAGEM
+Máximo 4 linhas. Como vou adaptar este vídeo ao meu contexto, qual a mensagem, diferencial.
 
-## 2. IMAGEM DO PERSONAGEM (${v.imageTool})
-- Descrição visual breve (2 linhas): como deve ser o personagem adaptado ao meu nicho
-- **PROMPT ${v.imageTool}:** (pronto a colar, em inglês, bloco único)
-- **NEGATIVE PROMPT:** (pronto a colar)
-- **BLOCO DE CONSISTÊNCIA:** (para reutilizar nas próximas gerações)
+## 3. IMAGEM (${v.imageTool})
+Descrição do personagem em 2 linhas, depois:
 
-## 3. RESUMO DO VÍDEO ADAPTADO (máximo 5 linhas)
-O que o vídeo vai mostrar, qual a mensagem, qual o objetivo. Breve.
+Prompt ${v.imageTool} dentro de bloco de código (entre \`\`\`):
+\`\`\`
+[prompt completo em inglês aqui]
+\`\`\`
 
-## 4. CENAS PARA ${v.videoTool}
-Calcula quantas cenas de 8 segundos são necessárias para recriar o conceito do vídeo original.
-Para CADA cena entrega:
+Negative prompt dentro de bloco de código:
+\`\`\`
+[negative prompt aqui]
+\`\`\`
 
-**CENA [N] — [título curto]**
-- **PROMPT ${v.videoTool}:** (EM INGLÊS, pronto a colar na ferramenta. Inclui: ação, movimento de câmera, iluminação, expressão, cenário. Maximiza os 8 segundos. O prompt deve começar diretamente com a descrição visual sem prefixos.)
-- **FALA (${v.videoLang}):** texto exato que o personagem diz nesta cena (no idioma escolhido)
-- **TEXTO NA TELA:** overlay curto e impactante (máx 5 palavras)
+Bloco de consistência dentro de bloco de código:
+\`\`\`
+[consistência do personagem aqui]
+\`\`\`
 
-REGRAS DOS PROMPTS ${v.videoTool}:
-- Prompts SEMPRE em inglês (é a língua que dá melhores resultados em ${v.videoTool})
-- A fala/narração no idioma: ${v.videoLang}
-- Cada cena usa o MÁXIMO dos 8 segundos
-- Cena 1 = HOOK (captar atenção imediatamente)
-- Última cena = CTA
-- Manter consistência visual do personagem em todas as cenas
-- Não usar placeholders — tudo pronto a copiar e colar
+## 4. CENAS ${v.videoTool}
+Calcula quantas cenas de 8 segundos são necessárias.
+Para CADA cena:
 
-## 5. MONTAGEM (3 linhas)
-Como juntar as cenas no CapCut: ordem, transições, música sugerida.
+**CENA [N] — [título]**
 
-IMPORTANTE: Sê conciso. Sem explicações desnecessárias. O criador quer copiar e executar, não ler um relatório.`
-      : `Model this viral video for me to recreate with my tools.
+Prompt ${v.videoTool} dentro de bloco de código:
+\`\`\`
+[prompt completo em inglês, com ação, câmera, iluminação, expressão, cenário, diálogo entre aspas no idioma ${v.videoLang}. Maximizar 8 segundos. Sem prefixos.]
+\`\`\`
 
-ORIGINAL VIDEO: "${vid.title}" | ${vid.channel} | ${formatNumber(vid.views)} views | ${vid.duration} | ${vid.url}
+Texto na tela: [overlay curto, máx 5 palavras]
 
-MY CONTEXT: Niche: ${v.niche} | Audience: ${v.audience} | ${v.brand ? `Brand: ${v.brand} |` : ""} Video language: ${v.videoLang}
-Tools: ${v.imageTool} (image) + ${v.videoTool} (video) + CapCut (editing)
+## 5. MONTAGEM CAPCUT
+3 linhas máximo: ordem das cenas, transições, música.
 
-DELIVER THE FOLLOWING IN THIS EXACT ORDER:
+REGRAS ABSOLUTAS:
+- Cada prompt OBRIGATORIAMENTE dentro de bloco de código (\`\`\`) para o utilizador poder copiar com um clique
+- Prompts de imagem e vídeo SEMPRE em inglês
+- Diálogos/falas no idioma: ${v.videoLang}
+- ZERO explicações desnecessárias — só o que é preciso para executar
+- Cada cena ${v.videoTool} usa o MÁXIMO dos 8 segundos
+- Cena 1 = HOOK | Última cena = CTA
+- NÃO repetir a análise nem reexplicar o que já foi dito`
+      : `Model this viral video for me to recreate with ${v.imageTool} + ${v.videoTool} + CapCut.
 
-## 1. ANALYSIS (max 4 lines)
-Why it went viral, technique used, emotion triggered. Brief and direct.
+VIDEO: "${vid.title}" | ${vid.channel} | ${formatNumber(vid.views)} views | ${vid.duration} | ${vid.url}
+CONTEXT: ${v.niche} | Audience: ${v.audience} ${v.brand ? `| Brand: ${v.brand}` : ""} | Language: ${v.videoLang}
 
-## 2. CHARACTER IMAGE (${v.imageTool})
-- Brief visual description (2 lines): how the character should look adapted to my niche
-- **${v.imageTool} PROMPT:** (ready to paste, in English, single block)
-- **NEGATIVE PROMPT:** (ready to paste)
-- **CONSISTENCY BLOCK:** (to reuse in future generations)
+DELIVER EXACTLY IN THIS ORDER AND FORMAT:
 
-## 3. ADAPTED VIDEO SUMMARY (max 5 lines)
-What the video shows, message, objective. Brief.
+## 1. ANALYSIS
+Max 4 lines. Why it went viral, technique, emotion.
 
-## 4. SCENES FOR ${v.videoTool}
-Calculate how many 8-second scenes are needed to recreate the original video concept.
-For EACH scene deliver:
+## 2. MODELING IDEA
+Max 4 lines. How I'll adapt this video to my context, message, differentiator.
 
-**SCENE [N] — [short title]**
-- **${v.videoTool} PROMPT:** (IN ENGLISH, ready to paste. Include: action, camera movement, lighting, expression, setting. Maximize 8 seconds. Prompt starts directly with visual description, no prefixes.)
-- **SPEECH (${v.videoLang}):** exact text the character says in this scene (in chosen language)
-- **TEXT ON SCREEN:** short impactful overlay (max 5 words)
+## 3. IMAGE (${v.imageTool})
+Character description in 2 lines, then:
 
-${v.videoTool} PROMPT RULES:
-- Prompts ALWAYS in English (best results)
-- Speech/narration in: ${v.videoLang}
-- Each scene uses MAXIMUM 8 seconds
-- Scene 1 = HOOK (grab attention immediately)
-- Last scene = CTA
-- Maintain character visual consistency across all scenes
-- No placeholders — everything ready to copy and paste
+${v.imageTool} prompt inside code block:
+\`\`\`
+[complete prompt in English here]
+\`\`\`
 
-## 5. ASSEMBLY (3 lines)
-How to join scenes in CapCut: order, transitions, suggested music.
+Negative prompt inside code block:
+\`\`\`
+[negative prompt here]
+\`\`\`
 
-IMPORTANT: Be concise. No unnecessary explanations. The creator wants to copy and execute, not read a report.`;
+Consistency block inside code block:
+\`\`\`
+[character consistency here]
+\`\`\`
+
+## 4. SCENES ${v.videoTool}
+Calculate how many 8-second scenes needed.
+For EACH scene:
+
+**SCENE [N] — [title]**
+
+${v.videoTool} prompt inside code block:
+\`\`\`
+[complete prompt in English, with action, camera, lighting, expression, setting, dialogue in quotes in ${v.videoLang}. Maximize 8 seconds. No prefixes.]
+\`\`\`
+
+Text on screen: [short overlay, max 5 words]
+
+## 5. CAPCUT ASSEMBLY
+3 lines max: scene order, transitions, music.
+
+ABSOLUTE RULES:
+- Every prompt MUST be inside a code block (\`\`\`) so user can copy with one click
+- Image and video prompts ALWAYS in English
+- Dialogue/speech in: ${v.videoLang}
+- ZERO unnecessary explanations — only what's needed to execute
+- Each ${v.videoTool} scene uses MAXIMUM 8 seconds
+- Scene 1 = HOOK | Last scene = CTA
+- Do NOT repeat analysis or re-explain what was already said`;
 
     onSend(prompt);
     resetViralFlow();
