@@ -74,7 +74,7 @@ serve(async (req) => {
       console.log(`[NANO-BANANA] Free tier: ${usedImages}/${FREE_IMAGE_LIMIT} used for user ${user.id}`);
     }
 
-    const modelId = "gemini-2.0-flash-exp";
+    const modelId = "gemini-2.0-flash-exp-image-generation";
     console.log(`[NANO-BANANA] Generating with ${usingFreeCredits ? "SavvyOwl key (free)" : "user key"}`);
 
     // Call Gemini API
@@ -84,9 +84,9 @@ serve(async (req) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts: [{ text: "Generate an image: " + prompt }] }],
         generationConfig: {
-          responseModalities: ["TEXT", "IMAGE"],
+          responseModalities: ["IMAGE", "TEXT"],
         },
       }),
     });
