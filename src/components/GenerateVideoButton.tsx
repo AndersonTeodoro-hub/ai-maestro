@@ -15,6 +15,8 @@ export function GenerateVideoButton({ prompt }: Props) {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState("9:16");
 
   // Veo3 requires API key - no free tier for video
   if (!apiKey) return null;
@@ -43,7 +45,7 @@ export function GenerateVideoButton({ prompt }: Props) {
           body: JSON.stringify({
             prompt,
             apiKey,
-            aspectRatio: "9:16",
+            aspectRatio,
           }),
         }
       );
@@ -85,20 +87,59 @@ export function GenerateVideoButton({ prompt }: Props) {
 
   return (
     <div className="mt-1">
-      {!videoUrl && (
+      {!videoUrl && !loading && !showOptions && (
         <Button
-          onClick={handleGenerate}
-          disabled={loading}
+          onClick={() => setShowOptions(true)}
           size="sm"
           variant="outline"
           className="text-xs gap-1.5 border-purple-400/30 text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20"
         >
-          {loading ? (
-            <><Loader2 className="h-3 w-3 animate-spin" />{progress}</>
-          ) : (
-            <><Video className="h-3 w-3" />Gerar Video (Veo3)</>
-          )}
+          <Video className="h-3 w-3" />Gerar Video (Veo3)
         </Button>
+      )}
+
+      {showOptions && !loading && !videoUrl && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex gap-1">
+            {([
+              { value: "9:16", label: "9:16", desc: "Reels" },
+              { value: "16:9", label: "16:9", desc: "YouTube" },
+              { value: "1:1", label: "1:1", desc: "Feed" },
+            ] as const).map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setAspectRatio(opt.value)}
+                className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                  aspectRatio === opt.value
+                    ? "bg-purple-600 text-white"
+                    : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {opt.label} <span className="opacity-60">{opt.desc}</span>
+              </button>
+            ))}
+          </div>
+          <Button
+            onClick={() => { setShowOptions(false); handleGenerate(); }}
+            size="sm"
+            className="text-xs gap-1.5 bg-purple-600 text-white hover:bg-purple-700"
+          >
+            <Video className="h-3 w-3" />Gerar
+          </Button>
+          <button
+            onClick={() => setShowOptions(false)}
+            className="text-[10px] text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          <span>{progress}</span>
+        </div>
       )}
 
       {error && (
