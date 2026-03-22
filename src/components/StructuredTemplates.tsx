@@ -606,6 +606,131 @@ Deliver in blocks of 5. Each scene: Title, script excerpt, why it exists, VEO 3 
       },
     },
     {
+      id: "viral-pipeline",
+      emoji: "🚀",
+      label: isPT ? "Viral Pipeline Pro (Reels/TikTok)" : "Viral Pipeline Pro (Reels/TikTok)",
+      description: isPT ? "Pipeline: Conceito -> Roteiro -> Cenas VEO3" : "Pipeline: Concept -> Script -> VEO3 Scenes",
+      fields: [
+        { key: "step", label: isPT ? "Qual etapa?" : "Which step?", type: "select", options: isPT ? ["1 - Gerar Conceitos Virais", "2 - Criar Roteiro", "3 - Gerar Cenas VEO3"] : ["1 - Generate Viral Concepts", "2 - Create Script", "3 - Generate VEO3 Scenes"], placeholder: "" },
+        { key: "niche", label: isPT ? "Nicho" : "Niche", placeholder: isPT ? "ex: fitness, beleza, finanças, humor, motivacao" : "e.g., fitness, beauty, finance, humor, motivation" },
+        { key: "platform", label: isPT ? "Plataforma" : "Platform", type: "select", options: ["TikTok", "Instagram Reels", "YouTube Shorts"], placeholder: "" },
+        { key: "duration", label: isPT ? "Duracao (etapa 2)" : "Duration (step 2)", type: "select", options: ["15s", "30s", "45s", "60s"], placeholder: "" },
+        { key: "style", label: isPT ? "Estilo" : "Style", type: "select", options: isPT ? ["UGC / Talking head", "POV Storytelling", "Dark motivacional", "Tutorial rapido", "Antes e Depois", "Humor / Trend", "Review / Unboxing"] : ["UGC / Talking head", "POV Storytelling", "Dark motivational", "Quick tutorial", "Before & After", "Humor / Trend", "Review / Unboxing"], placeholder: "" },
+        { key: "videoLang", label: isPT ? "Idioma do video" : "Video language", type: "select", options: isPT ? ["Portugues (BR)", "Portugues (PT)", "Ingles", "Espanhol"] : ["Portuguese (BR)", "Portuguese (PT)", "English", "Spanish"], placeholder: "" },
+        { key: "scenes", label: isPT ? "Total de cenas (etapa 3)" : "Total scenes (step 3)", type: "select", options: ["2", "3", "4", "5", "6", "8"], placeholder: "" },
+      ],
+      buildPrompt: (v) => {
+        const step = v.step?.charAt(0) || "1";
+        if (step === "1") {
+          return isPT
+            ? `Voce e um estrategista de conteudo viral especializado em ${v.platform}. Sua expertise e criar conceitos que viralizam no nicho de ${v.niche}.
+
+Crie 10 conceitos de videos curtos (${v.platform}) no estilo ${v.style} para o nicho de ${v.niche}.
+
+Para cada conceito entregue exatamente:
+- TITULO (com emojis de ${v.platform})
+- HOOK (primeiros 1-3 segundos - a frase exata que para o scroll)
+- FORMATO VIRAL (nome do formato: POV, 3-part hook, silent review, etc.)
+- GATILHO PSICOLOGICO (curiosidade, medo, identificacao, polemica, etc.)
+- POTENCIAL (alto/medio e por que)
+
+Regras: Conceitos que funcionam com video gerado por IA (VEO3). Sem necessidade de rosto real. Otimizados para ${v.platform}. Cada conceito deve poder ser produzido em ${v.duration || "30s"}.
+
+Ao final escreva: Selecione um conceito e use na Etapa 2.`
+            : `You are a viral content strategist for ${v.platform}, niche: ${v.niche}, style: ${v.style}.
+
+Create 10 short video concepts. Each: TITLE (with emojis) / HOOK (first 1-3s, exact scroll-stopping phrase) / VIRAL FORMAT / PSYCHOLOGICAL TRIGGER / POTENTIAL. All producible with VEO3 AI, no real face needed, ${v.duration || "30s"} max. End with: Select a concept for Step 2.`;
+        }
+        if (step === "2") {
+          return isPT
+            ? `Plataforma: ${v.platform} | Duracao: ${v.duration || "30s"} | Estilo: ${v.style} | Nicho: ${v.niche} | Idioma: ${v.videoLang}
+Conceito escolhido: [COLE O CONCEITO DA ETAPA 1]
+
+Voce e um roteirista de videos virais para ${v.platform}, especialista em conteudo de alta retencao e engajamento. Crie o roteiro completo otimizado para ${v.duration || "30s"}.
+
+ESTRUTURA OBRIGATORIA:
+
+HOOK (0-3s): A frase ou acao exata que para o scroll. Deve criar curiosidade imediata ou choque. Escreva o texto exato da fala e o que aparece na tela.
+
+DESENVOLVIMENTO (3s ate penultima cena): Construcao de tensao progressiva. Cada momento revela algo novo. Manter a promessa do hook. Nunca perder ritmo.
+
+CTA (ultimos 3-5s): Chamada para acao que gera: seguir, comentar, compartilhar ou salvar. Nao pedir likes diretamente - criar motivo para interagir.
+
+FORMATO DO ROTEIRO - Para cada momento entregue:
+TEMPO: [ex: 0-3s]
+VISUAL: O que aparece na tela (descricao da cena)
+FALA/NARRACAO (${v.videoLang}): Texto exato
+TEXTO NA TELA: Overlay curto e impactante (max 5 palavras)
+MUSICA/SOM: Direcao sonora
+
+REGRAS:
+- Otimizado para ${v.platform} (formato vertical 9:16)
+- Todas as cenas devem ser produzidas com VEO3 (IA)
+- Fala/narracao em ${v.videoLang}
+- Texto na tela em ${v.videoLang}
+- Ritmo dinamico, sem momentos mortos
+- Hook nos primeiros 1-3 segundos e OBRIGATORIO
+- Incluir ao final: HASHTAGS (10) + MELHOR HORARIO para publicar + LEGENDA DO POST`
+            : `Platform: ${v.platform} | Duration: ${v.duration || "30s"} | Style: ${v.style} | Niche: ${v.niche} | Language: ${v.videoLang}
+Chosen concept: [PASTE STEP 1 CONCEPT]
+
+Viral video screenwriter for ${v.platform}. Create complete script optimized for ${v.duration || "30s"}.
+
+Structure: HOOK (0-3s, exact scroll-stopping phrase) -> DEVELOPMENT (progressive tension) -> CTA (last 3-5s, engagement driver).
+
+For each moment: TIME / VISUAL / SPEECH (${v.videoLang}) / TEXT ON SCREEN / MUSIC. Rules: 9:16 vertical, VEO3 producible, speech in ${v.videoLang}, dynamic pace. Include at end: 10 HASHTAGS + BEST TIME + POST CAPTION.`;
+        }
+        return isPT
+          ? `Total de cenas: ${v.scenes || "4"} | Idioma da fala: ${v.videoLang} | Plataforma: ${v.platform}
+Roteiro: [COLE O ROTEIRO DA ETAPA 2]
+
+Voce e um diretor de video viral e storyboarder especializado em conteudo curto de alta retencao, com dominio avancado do VEO 3.
+
+OBJETIVO: Transformar o roteiro em ${v.scenes || "4"} cenas de exatamente 8 segundos cada, prontas para gerar no VEO 3, otimizadas para ${v.platform}.
+
+PADRAO VISUAL (OBRIGATORIO):
+- Estilo ${v.style} - autenticidade acima de tudo
+- Iluminacao natural ou ambiente coerente
+- Formato vertical 9:16
+- Expressoes faciais e movimentos naturais
+- Sem elementos que parecam stock footage generico
+- Se o estilo for UGC: aparencia de gravacao com telemovel, luz natural, cenario caseiro
+
+REGRAS VEO 3 PARA VIDEO VIRAL:
+- Cada cena USA OS 8 SEGUNDOS COMPLETOS
+- Movimento natural e dinamico (diferente do canal dark que e sutil)
+- Camera pode ser mais expressiva: zoom rapido, pan, tracking
+- Incluir dialogo/fala entre aspas no prompt (VEO3 gera lip-sync)
+- Cena 1 = HOOK VISUAL (captar atencao imediatamente)
+- Ultima cena = CTA VISUAL
+
+FORMATO - Para cada cena:
+
+**CENA [N] - [Titulo curto]**
+Momento do roteiro: [qual parte representa]
+
+Prompt VEO 3 (em bloco de codigo, pronto para copiar):
+\`\`\`
+[Prompt EM INGLES. Incluir: personagem, acao completa dos 8 segundos, camera, iluminacao, cenario, expressao. Se tiver fala, incluir entre aspas no idioma ${v.videoLang}. Formato 9:16. Sem texto na imagem.]
+\`\`\`
+
+Texto na tela: [overlay em ${v.videoLang}, max 5 palavras]
+
+Da Cena 2 em diante incluir no prompt: "Maintain the same character appearance, lighting style, color palette and visual tone as Scene 1."
+
+APOS TODAS AS CENAS incluir:
+MONTAGEM CAPCUT (3 linhas): ordem, transicoes, musica sugerida.`
+          : `Scenes: ${v.scenes || "4"} | Speech language: ${v.videoLang} | Platform: ${v.platform}
+Script: [PASTE STEP 2 SCRIPT]
+
+Viral video director + storyboarder for VEO 3. Transform script into ${v.scenes || "4"} scenes of exactly 8 seconds each for ${v.platform}.
+
+Style: ${v.style}, authentic, 9:16 vertical. VEO3 rules: full 8 seconds, dynamic movement, lip-sync dialogue in quotes (${v.videoLang}). Scene 1 = HOOK, last = CTA.
+
+For each scene: Title, script moment, VEO 3 prompt in code block (ENGLISH, character, full 8s action, camera, lighting, dialogue in ${v.videoLang}), text on screen. From scene 2: add consistency line. After all scenes: CapCut assembly in 3 lines.`;
+      },
+    },
+    {
       id: "viral-modeling",
       emoji: "🔥",
       label: isPT ? "Modelar Vídeo Viral" : "Model Viral Video",
