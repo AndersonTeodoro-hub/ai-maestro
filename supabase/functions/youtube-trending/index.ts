@@ -38,80 +38,107 @@ serve(async (req) => {
       });
     }
 
-    // Build search query based on niche and platform
-    const platformQueries: Record<string, string> = {
-      "TikTok": `${niche} viral tiktok 2026`,
-      "Instagram Reels": `${niche} viral reels 2026`,
-      "YouTube Shorts": `${niche} viral shorts 2026`,
-      "YouTube": `${niche} viral 2026`,
-    };
+    // Build multiple search queries for better viral results
+    const baseNiche = niche.toLowerCase().trim();
+    const platformTag = platform === "TikTok" ? "tiktok" : platform === "Instagram Reels" ? "reels" : platform === "YouTube Shorts" ? "shorts" : "";
 
-    const searchQuery = platformQueries[platform] || `${niche} viral 2026`;
+    const searchQueries = [
+      `${baseNiche} viral ${platformTag} 2026`,
+      `${baseNiche} trending ${platformTag}`,
+      `${baseNiche} viral video`,
+    ];
 
-    // Search YouTube for viral videos (sorted by view count, published recently)
-    const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
-    searchUrl.searchParams.set("key", YOUTUBE_API_KEY);
-    searchUrl.searchParams.set("q", searchQuery);
-    searchUrl.searchParams.set("part", "snippet");
-    searchUrl.searchParams.set("type", "video");
-    searchUrl.searchParams.set("order", "viewCount");
-    searchUrl.searchParams.set("maxResults", String(Math.min(maxResults, 10)));
-    searchUrl.searchParams.set("publishedAfter", getDateDaysAgo(7));
-    searchUrl.searchParams.set("relevanceLanguage", "pt");
-    searchUrl.searchParams.set("videoDefinition", "high");
+    console.log("[YOUTUBE] Searching with queries:", searchQueries);
 
-    console.log("[YOUTUBE] Searching:", searchQuery);
+    let allVideoIds: string[] = [];
 
-    const searchResp = await fetch(searchUrl.toString());
-    if (!searchResp.ok) {
-      const errText = await searchResp.text();
-      console.error("[YOUTUBE] Search error:", errText);
-      return new Response(JSON.stringify({ error: "YouTube search failed", details: errText }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Run multiple searches to get better results
+    for (const query of searchQueries) {
+      const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+      searchUrl.searchParams.set("key", YOUTUBE_API_KEY);
+      searchUrl.searchParams.set("q", query);
+      searchUrl.searchParams.set("part", "snippet");
+      searchUrl.searchParams.set("type", "video");
+      searchUrl.searchParams.set("order", "viewCount");
+      searchUrl.searchParams.set("maxResults", "10");
+      searchUrl.searchParams.set("publishedAfter", getDateDaysAgo(30));
+      searchUrl.searchParams.set("videoDefinition", "high");
+
+      const searchResp = await fetch(searchUrl.toString());
+      if (!searchResp.ok) continue;
+
+      const searchData = await searchResp.json();
+      const ids = (searchData.items || []).map((item: any) => item.id.videoId).filter(Boolean);
+      allVideoIds.push(...ids);
     }
 
-    const searchData = await searchResp.json();
-    const videoIds = (searchData.items || []).map((item: any) => item.id.videoId).filter(Boolean);
+    // Remove duplicates
+    allVideoIds = [...new Set(allVideoIds)];
 
-    if (videoIds.length === 0) {
+    if (allVideoIds.length === 0) {
       return new Response(JSON.stringify({ videos: [], message: "No viral videos found for this niche" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Get video statistics (views, likes, comments)
-    const statsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
-    statsUrl.searchParams.set("key", YOUTUBE_API_KEY);
-    statsUrl.searchParams.set("id", videoIds.join(","));
-    statsUrl.searchParams.set("part", "snippet,statistics,contentDetails");
+    // Process in chunks of 50 (API limit)
+    const chunks = [];
+    for (let i = 0; i < allVideoIds.length; i += 50) {
+      chunks.push(allVideoIds.slice(i, i + 50));
+    }
 
-    const statsResp = await fetch(statsUrl.toString());
-    const statsData = await statsResp.json();
+    let allVideos: any[] = [];
 
-    // Build response with video details
-    const videos = (statsData.items || []).map((video: any) => ({
-      id: video.id,
-      title: video.snippet.title,
-      description: video.snippet.description?.slice(0, 200) || "",
-      channel: video.snippet.channelTitle,
-      publishedAt: video.snippet.publishedAt,
-      thumbnail: video.snippet.thumbnails?.high?.url || video.snippet.thumbnails?.medium?.url || "",
-      url: `https://www.youtube.com/watch?v=${video.id}`,
-      shortUrl: `https://youtu.be/${video.id}`,
-      views: parseInt(video.statistics.viewCount || "0"),
-      likes: parseInt(video.statistics.likeCount || "0"),
-      comments: parseInt(video.statistics.commentCount || "0"),
-      duration: parseDuration(video.contentDetails.duration),
-    }));
+    for (const chunk of chunks) {
+      const statsUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
+      statsUrl.searchParams.set("key", YOUTUBE_API_KEY);
+      statsUrl.searchParams.set("id", chunk.join(","));
+      statsUrl.searchParams.set("part", "snippet,statistics,contentDetails");
 
-    // Sort by views (highest first)
-    videos.sort((a: any, b: any) => b.views - a.views);
+      const statsResp = await fetch(statsUrl.toString());
+      if (!statsResp.ok) continue;
+      const statsData = await statsResp.json();
 
-    console.log(`[YOUTUBE] Found ${videos.length} videos for "${niche}"`);
+      const videos = (statsData.items || []).map((video: any) => ({
+        id: video.id,
+        title: video.snippet.title,
+        description: video.snippet.description?.slice(0, 200) || "",
+        channel: video.snippet.channelTitle,
+        publishedAt: video.snippet.publishedAt,
+        thumbnail: video.snippet.thumbnails?.high?.url || video.snippet.thumbnails?.medium?.url || "",
+        url: `https://www.youtube.com/watch?v=${video.id}`,
+        shortUrl: `https://youtu.be/${video.id}`,
+        views: parseInt(video.statistics.viewCount || "0"),
+        likes: parseInt(video.statistics.likeCount || "0"),
+        comments: parseInt(video.statistics.commentCount || "0"),
+        duration: parseDuration(video.contentDetails.duration),
+      }));
 
-    return new Response(JSON.stringify({ videos, query: searchQuery }), {
+      allVideos.push(...videos);
+    }
+
+    // Filter: minimum 10K views to ensure truly viral content
+    const MIN_VIEWS = 10000;
+    let filtered = allVideos.filter((v: any) => v.views >= MIN_VIEWS);
+
+    // If not enough results with 10K+, lower threshold to 1K
+    if (filtered.length < 3) {
+      filtered = allVideos.filter((v: any) => v.views >= 1000);
+    }
+
+    // If still not enough, use all results
+    if (filtered.length < 3) {
+      filtered = allVideos;
+    }
+
+    // Sort by views (highest first) and take top results
+    filtered.sort((a: any, b: any) => b.views - a.views);
+    filtered = filtered.slice(0, Math.min(maxResults, 10));
+
+    console.log(`[YOUTUBE] Found ${allVideos.length} total, ${filtered.length} after filtering for "${niche}"`);
+
+    return new Response(JSON.stringify({ videos: filtered, query: searchQueries.join(" | ") }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
