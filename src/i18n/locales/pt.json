@@ -309,7 +309,19 @@
     "deleteConfirm": "Tens a certeza?",
     "deleteWarning": "Isto irá eliminar permanentemente a tua conta e todos os teus dados. Esta ação não pode ser revertida.",
     "deleteRequested": "Conta eliminada com sucesso.",
-    "deleteFailed": "Falha ao eliminar a conta. Tenta novamente."
+    "deleteFailed": "Falha ao eliminar a conta. Tenta novamente.",
+    "apiKeys": "API Keys (Gerar imagens e videos)",
+    "apiKeysDesc": "Conecta a tua Google Cloud API Key para gerar imagens (Nano Banana) e videos (Veo3) diretamente na SavvyOwl. A tua key fica guardada apenas no teu browser.",
+    "apiKeyHint": "Usada para Nano Banana (imagens) e Veo3 (videos). Ativa a Gemini API no teu projeto Google Cloud.",
+    "saveApiKeys": "Guardar API Key",
+    "removeApiKey": "Remover",
+    "apiKeysSaved": "API Key guardada!",
+    "apiKeysRemoved": "API Key removida",
+    "howToGetKey": "Como obter a API Key:",
+    "step1": "Vai a console.cloud.google.com",
+    "step2": "Ativa as APIs: Gemini API",
+    "step3": "Vai a Credentials -> Create API Key",
+    "apiKeyConnected": "Podes agora gerar imagens e videos diretamente nos templates da SavvyOwl."
   },
   "onboarding": {
     "step1Title": "Qual é o teu nome?",
