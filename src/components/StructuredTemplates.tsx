@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight, X, Loader2, ExternalLink, Eye, ThumbsUp, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type TemplateField = {
   key: string;
@@ -29,7 +31,84 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const { t, i18n } = useTranslation();
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [viralVideos, setViralVideos] = useState<any[]>([]);
+  const [viralLoading, setViralLoading] = useState(false);
+  const [viralStep, setViralStep] = useState<"form" | "videos" | "selected">("form");
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const isPT = i18n.language?.startsWith("pt");
+
+  // When viral video is selected, build and send the prompt
+  const handleViralVideoSelect = (vid: any) => {
+    const v = fieldValues;
+    const prompt = isPT
+      ? `Quero modelar este vídeo viral para o meu contexto.
+
+VÍDEO ORIGINAL:
+- Título: "${vid.title}"
+- Canal: ${vid.channel}
+- Views: ${formatNumber(vid.views)}
+- Likes: ${formatNumber(vid.likes)}
+- Duração: ${vid.duration}
+- Link: ${vid.url}
+
+O MEU CONTEXTO:
+- Nicho: ${v.niche}
+- Plataforma: ${v.platform}
+- Público-alvo: ${v.audience}
+${v.brand ? `- Produto/Marca: ${v.brand}` : ""}
+- Ferramentas: ${v.tools}
+
+PRECISO DE:
+1. ANÁLISE do vídeo original: porque viralizou, que técnicas usa, que emoções provoca
+2. ROTEIRO COMPLETO modelado/adaptado ao meu contexto — cena a cena com:
+   - VISUAL: o que aparece
+   - ÁUDIO/NARRAÇÃO: texto exato da fala
+   - TEXTO NA TELA: overlays e legendas
+   - DURAÇÃO: timing de cada parte
+   - TRANSIÇÃO: como conectar as partes
+3. HOOK adaptado (primeiros 1-3 segundos)
+4. CTA adaptado ao meu objetivo
+5. HASHTAGS específicas para o meu nicho
+6. MELHOR HORÁRIO para publicar
+7. COMO PRODUZIR com ${v.tools}: passo a passo técnico
+8. FERRAMENTAS MAIS ECONÓMICAS para cada etapa
+9. O QUE MUDAR para não parecer cópia mas manter a essência que viralizou`
+      : `I want to model this viral video for my context.
+
+ORIGINAL VIDEO:
+- Title: "${vid.title}"
+- Channel: ${vid.channel}
+- Views: ${formatNumber(vid.views)}
+- Likes: ${formatNumber(vid.likes)}
+- Duration: ${vid.duration}
+- Link: ${vid.url}
+
+MY CONTEXT:
+- Niche: ${v.niche}
+- Platform: ${v.platform}
+- Target audience: ${v.audience}
+${v.brand ? `- Product/Brand: ${v.brand}` : ""}
+- Tools: ${v.tools}
+
+I NEED:
+1. ANALYSIS of original video: why it went viral, techniques used, emotions triggered
+2. COMPLETE SCRIPT modeled/adapted to my context — scene by scene with:
+   - VISUAL: what appears
+   - AUDIO/NARRATION: exact speech text
+   - TEXT ON SCREEN: overlays and captions
+   - DURATION: timing per section
+   - TRANSITION: how to connect parts
+3. Adapted HOOK (first 1-3 seconds)
+4. Adapted CTA for my goal
+5. Specific HASHTAGS for my niche
+6. BEST TIME to post
+7. HOW TO PRODUCE with ${v.tools}: technical step-by-step
+8. MOST AFFORDABLE TOOLS per step
+9. WHAT TO CHANGE so it doesn't look like a copy but keeps the viral essence`;
+
+    onSend(prompt);
+    resetViralFlow();
+  };
 
   const templates: Template[] = [
     {
@@ -542,12 +621,67 @@ STEP 3 — EXECUTION PLAN:
     },
   ];
 
-  const handleSubmitTemplate = () => {
+  const handleSubmitTemplate = async () => {
     if (!activeTemplate) return;
+
+    // Special flow for viral modeling — search YouTube first
+    if (activeTemplate.id === "viral-modeling" && viralStep === "form") {
+      setViralLoading(true);
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+
+        const resp = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/youtube-trending`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({
+              niche: fieldValues.niche,
+              platform: fieldValues.platform,
+              maxResults: 10,
+            }),
+          }
+        );
+
+        const data = await resp.json();
+        if (data.videos && data.videos.length > 0) {
+          setViralVideos(data.videos);
+          setViralStep("videos");
+        } else {
+          toast.error(isPT ? "Nenhum vídeo viral encontrado. Tenta outro nicho." : "No viral videos found. Try another niche.");
+        }
+      } catch (e) {
+        toast.error(isPT ? "Erro ao buscar vídeos. Tenta novamente." : "Error fetching videos. Try again.");
+      } finally {
+        setViralLoading(false);
+      }
+      return;
+    }
+
+    // Normal flow for other templates
     const prompt = activeTemplate.buildPrompt(fieldValues);
     onSend(prompt);
     setActiveTemplate(null);
     setFieldValues({});
+  };
+
+  const resetViralFlow = () => {
+    setActiveTemplate(null);
+    setFieldValues({});
+    setViralVideos([]);
+    setViralStep("form");
+    setSelectedVideo(null);
+  };
+
+  const formatNumber = (n: number): string => {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+    if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+    return String(n);
   };
 
   // Template selection view
@@ -577,6 +711,58 @@ STEP 3 — EXECUTION PLAN:
   }
 
   // Template form view
+  // Special view: viral video selection
+  if (activeTemplate?.id === "viral-modeling" && viralStep === "videos" && viralVideos.length > 0) {
+    return (
+      <div className="w-full max-w-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔥</span>
+            <h3 className="text-sm font-semibold text-foreground">
+              {isPT ? `${viralVideos.length} vídeos virais encontrados` : `${viralVideos.length} viral videos found`}
+            </h3>
+          </div>
+          <button
+            onClick={resetViralFlow}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          {isPT ? "Escolhe um vídeo para a SavvyOwl modelar e adaptar ao teu contexto:" : "Pick a video for SavvyOwl to model and adapt to your context:"}
+        </p>
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+          {viralVideos.map((vid: any) => (
+            <button
+              key={vid.id}
+              onClick={() => handleViralVideoSelect(vid)}
+              className="w-full flex gap-3 p-3 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 hover:border-primary/30 transition-all text-left group"
+            >
+              <img
+                src={vid.thumbnail}
+                alt={vid.title}
+                className="w-24 h-16 object-cover rounded-lg shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground group-hover:text-primary line-clamp-2 leading-snug mb-1">
+                  {vid.title}
+                </p>
+                <p className="text-[10px] text-muted-foreground mb-1">{vid.channel}</p>
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground/60">
+                  <span className="flex items-center gap-1"><Eye className="h-2.5 w-2.5" />{formatNumber(vid.views)}</span>
+                  <span className="flex items-center gap-1"><ThumbsUp className="h-2.5 w-2.5" />{formatNumber(vid.likes)}</span>
+                  <span className="flex items-center gap-1"><Play className="h-2.5 w-2.5" />{vid.duration}</span>
+                </div>
+              </div>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground/30 group-hover:text-primary mt-1" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-2xl">
       <div className="flex items-center justify-between mb-4">
@@ -585,7 +771,7 @@ STEP 3 — EXECUTION PLAN:
           <h3 className="text-sm font-semibold text-foreground">{activeTemplate.label}</h3>
         </div>
         <button
-          onClick={() => { setActiveTemplate(null); setFieldValues({}); }}
+          onClick={() => { resetViralFlow(); }}
           className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
         >
           <X className="h-4 w-4" />
@@ -629,12 +815,17 @@ STEP 3 — EXECUTION PLAN:
 
       <Button
         onClick={handleSubmitTemplate}
-        disabled={disabled}
+        disabled={disabled || viralLoading}
         className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
         size="sm"
       >
-        <ChevronRight className="h-4 w-4 mr-1.5" />
-        {isPT ? "Gerar conteúdo" : "Generate content"}
+        {viralLoading ? (
+          <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" />{isPT ? "A buscar vídeos virais..." : "Searching viral videos..."}</>
+        ) : activeTemplate?.id === "viral-modeling" ? (
+          <><ChevronRight className="h-4 w-4 mr-1.5" />{isPT ? "Buscar vídeos virais" : "Search viral videos"}</>
+        ) : (
+          <><ChevronRight className="h-4 w-4 mr-1.5" />{isPT ? "Gerar conteúdo" : "Generate content"}</>
+        )}
       </Button>
     </div>
   );
