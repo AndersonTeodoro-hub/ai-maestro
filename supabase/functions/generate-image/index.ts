@@ -77,36 +77,35 @@ serve(async (req) => {
     console.log(`[NANO-BANANA] Generating with ${usingFreeCredits ? "SavvyOwl key (free)" : "user key"}`);
 
     // Models from official Google docs (March 2026)
-    // https://ai.google.dev/gemini-api/docs/image-generation
     const models = [
-      "gemini-2.0-flash-exp-image-generation",
-      "gemini-2.5-flash-preview-native-audio",
-      "gemini-2.0-flash",
+      { id: "gemini-2.0-flash-exp", modalities: ["TEXT", "IMAGE"] },
+      { id: "gemini-2.0-flash", modalities: ["TEXT", "IMAGE"] },
     ];
 
     let response = null;
-    let usedModel = models[0];
+    let usedModel = models[0].id;
 
     for (const model of models) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model.id}:generateContent?key=${activeKey}`;
 
       response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts: [{ text: "Generate an image: " + prompt }] }],
           generationConfig: {
-            responseModalities: ["TEXT", "IMAGE"],
+            responseModalities: model.modalities,
           },
         }),
       });
 
       if (response.ok) {
-        usedModel = model;
-        console.log(`[NANO-BANANA] Success with model: ${model}`);
+        usedModel = model.id;
+        console.log(`[NANO-BANANA] Success with model: ${model.id}`);
         break;
       }
-      console.log(`[NANO-BANANA] Model ${model} failed, trying next...`);
+      const errText = await response.text();
+      console.log(`[NANO-BANANA] Model ${model.id} failed: ${errText.substring(0, 200)}`);
     }
 
     if (!response || !response.ok) {
