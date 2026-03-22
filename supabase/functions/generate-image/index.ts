@@ -76,10 +76,11 @@ serve(async (req) => {
 
     console.log(`[NANO-BANANA] Generating with ${usingFreeCredits ? "SavvyOwl key (free)" : "user key"}`);
 
-    // Models from official Google docs (March 2026)
+    // Verified working models for image generation (March 2026)
+    // Source: https://ai.google.dev/gemini-api/docs/image-generation
     const models = [
-      { id: "gemini-2.0-flash-exp", modalities: ["TEXT", "IMAGE"] },
-      { id: "gemini-2.0-flash", modalities: ["TEXT", "IMAGE"] },
+      { id: "gemini-2.5-flash-image", modalities: ["TEXT", "IMAGE"] },
+      { id: "gemini-3.1-flash-image-preview", modalities: ["IMAGE", "TEXT"] },
     ];
 
     let response = null;
