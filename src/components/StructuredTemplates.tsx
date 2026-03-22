@@ -458,6 +458,88 @@ RULES:
 6. Suggest specific music/sound for each moment
 7. Include prompts to generate background visuals with AI`,
     },
+    {
+      id: "viral-modeling",
+      emoji: "🔥",
+      label: isPT ? "Modelar Vídeo Viral" : "Model Viral Video",
+      description: isPT ? "Encontra vídeos virais e adapta para ti" : "Find viral videos and adapt for you",
+      fields: [
+        { key: "niche", label: isPT ? "Nicho" : "Niche", placeholder: isPT ? "ex: fitness, marketing digital, beleza, finanças, culinária" : "e.g., fitness, digital marketing, beauty, finance, cooking" },
+        { key: "platform", label: isPT ? "Plataforma" : "Platform", type: "select", options: ["TikTok", "Instagram Reels", "YouTube Shorts", "YouTube"], placeholder: "" },
+        { key: "audience", label: isPT ? "Teu público-alvo" : "Your target audience", placeholder: isPT ? "ex: mulheres 25-40 interessadas em skincare" : "e.g., women 25-40 interested in skincare" },
+        { key: "brand", label: isPT ? "Teu produto/marca (opcional)" : "Your product/brand (optional)", placeholder: isPT ? "ex: curso online de marketing, loja de roupa, app de meditação" : "e.g., online marketing course, clothing store, meditation app" },
+        { key: "tools", label: isPT ? "Ferramentas que usas" : "Tools you use", type: "select", options: isPT ? ["CapCut + Canva", "CapCut + IA (Veo3, Nano Banana)", "Só telemóvel", "Suite Adobe", "Tenho todas"] : ["CapCut + Canva", "CapCut + AI (Veo3, Nano Banana)", "Phone only", "Adobe Suite", "I have everything"], placeholder: "" },
+      ],
+      buildPrompt: (v) => isPT
+        ? `Quero modelar vídeos virais do nicho de ${v.niche} no ${v.platform}.
+
+O MEU CONTEXTO:
+- Público-alvo: ${v.audience}
+${v.brand ? `- Produto/Marca: ${v.brand}` : ""}
+- Ferramentas disponíveis: ${v.tools}
+
+PASSO 1 — TENDÊNCIAS VIRAIS:
+Identifica os 10 formatos/padrões de vídeo que estão a viralizar AGORA no nicho de ${v.niche} no ${v.platform}. Para cada um:
+- NOME DO FORMATO (ex: "POV storytelling", "Before/After reveal", "3 things nobody told you")
+- DESCRIÇÃO: como funciona este formato (estrutura, duração, estilo)
+- POR QUE VIRALIZA: qual mecanismo psicológico usa (curiosidade, polêmica, identificação, etc.)
+- EXEMPLO: descreve um vídeo concreto neste formato que estaria a viralizar
+- LINK DE REFERÊNCIA: se possível, indica como encontrar exemplos reais (termos de pesquisa exatos para encontrar no ${v.platform})
+- ESTIMATIVA DE VIEWS: potencial de visualizações para este formato
+
+PASSO 2 — ADAPTAÇÃO:
+Para os 3 formatos com maior potencial, cria a MODELAGEM COMPLETA adaptada ao meu contexto:
+
+Para cada formato:
+- ROTEIRO COMPLETO cena a cena adaptado ao meu nicho/produto
+- HOOK dos primeiros 1-3 segundos
+- SCRIPT/NARRAÇÃO completo
+- TEXTO NA TELA frame a frame
+- DIREÇÃO DE MÚSICA/SOM
+- HASHTAGS específicas para este formato
+- MELHOR HORÁRIO para publicar
+- COMO PRODUZIR com as minhas ferramentas (${v.tools}): passo a passo técnico
+- FERRAMENTAS MAIS ECONÓMICAS para cada etapa da produção
+
+PASSO 3 — PLANO DE EXECUÇÃO:
+- Qual dos 3 formatos fazer PRIMEIRO (e porquê)
+- Calendário de publicação para a próxima semana usando estes formatos
+- Como testar e iterar baseado nos resultados`
+        : `I want to model viral videos from the ${v.niche} niche on ${v.platform}.
+
+MY CONTEXT:
+- Target audience: ${v.audience}
+${v.brand ? `- Product/Brand: ${v.brand}` : ""}
+- Available tools: ${v.tools}
+
+STEP 1 — VIRAL TRENDS:
+Identify the 10 video formats/patterns going viral RIGHT NOW in the ${v.niche} niche on ${v.platform}. For each:
+- FORMAT NAME (e.g., "POV storytelling", "Before/After reveal", "3 things nobody told you")
+- DESCRIPTION: how this format works (structure, duration, style)
+- WHY IT GOES VIRAL: psychological mechanism (curiosity, controversy, relatability, etc.)
+- EXAMPLE: describe a concrete viral video in this format
+- REFERENCE LINK: if possible, indicate exact search terms to find examples on ${v.platform}
+- ESTIMATED VIEWS: potential for this format
+
+STEP 2 — ADAPTATION:
+For the 3 formats with highest potential, create COMPLETE MODELING adapted to my context:
+
+For each format:
+- COMPLETE SCRIPT scene by scene adapted to my niche/product
+- HOOK for first 1-3 seconds
+- Full SCRIPT/NARRATION
+- TEXT ON SCREEN frame by frame
+- MUSIC/SOUND direction
+- Specific HASHTAGS for this format
+- BEST TIME to post
+- HOW TO PRODUCE with my tools (${v.tools}): technical step-by-step
+- MOST AFFORDABLE TOOLS for each production step
+
+STEP 3 — EXECUTION PLAN:
+- Which of the 3 formats to do FIRST (and why)
+- Publishing calendar for next week using these formats
+- How to test and iterate based on results`,
+    },
   ];
 
   const handleSubmitTemplate = () => {
