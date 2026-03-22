@@ -85,11 +85,12 @@ serve(async (req) => {
 
     let response = null;
     let usedModel = models[0].id;
+    let lastError = "";
 
     for (const model of models) {
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model.id}:generateContent?key=${activeKey}`;
 
-      response = await fetch(apiUrl, {
+      const resp = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -100,25 +101,25 @@ serve(async (req) => {
         }),
       });
 
-      if (response.ok) {
+      if (resp.ok) {
+        response = resp;
         usedModel = model.id;
         console.log(`[NANO-BANANA] Success with model: ${model.id}`);
         break;
       }
-      const errText = await response.text();
-      console.log(`[NANO-BANANA] Model ${model.id} failed: ${errText.substring(0, 200)}`);
+      lastError = await resp.text();
+      console.log(`[NANO-BANANA] Model ${model.id} failed: ${lastError.substring(0, 200)}`);
     }
 
-    if (!response || !response.ok) {
-      const errText = await response.text();
-      console.error("[NANO-BANANA] API error:", errText);
-      let userMessage = "Image generation failed";
+    if (!response) {
+      console.error("[NANO-BANANA] All models failed:", lastError);
+      let userMessage = "Image generation failed with all models";
       try {
-        const errJson = JSON.parse(errText);
+        const errJson = JSON.parse(lastError);
         if (errJson.error?.message) userMessage = errJson.error.message;
       } catch {}
       return new Response(JSON.stringify({ error: userMessage }), {
-        status: response.status,
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
