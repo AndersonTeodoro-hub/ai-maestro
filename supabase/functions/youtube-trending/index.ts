@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const YOUTUBE_API_KEY = Deno.env.get("GOOGLE_API_KEY") || "";
+const YOUTUBE_API_KEY = Deno.env.get("YOUTUBE_API_KEY") || Deno.env.get("GOOGLE_API_KEY") || "";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
