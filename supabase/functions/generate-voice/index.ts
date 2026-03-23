@@ -3,136 +3,95 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const GEMINI_VOICES = [
+  { id: "Charon", name: "Charon", gender: "Male", style: "Informative" },
+  { id: "Kore", name: "Kore", gender: "Female", style: "Firm" },
+  { id: "Puck", name: "Puck", gender: "Male", style: "Upbeat" },
+  { id: "Zephyr", name: "Zephyr", gender: "Female", style: "Bright" },
+  { id: "Fenrir", name: "Fenrir", gender: "Male", style: "Excitable" },
+  { id: "Leda", name: "Leda", gender: "Female", style: "Youthful" },
+  { id: "Orus", name: "Orus", gender: "Male", style: "Firm" },
+  { id: "Aoede", name: "Aoede", gender: "Female", style: "Breezy" },
+  { id: "Algieba", name: "Algieba", gender: "Male", style: "Smooth" },
+  { id: "Despina", name: "Despina", gender: "Female", style: "Smooth" },
+  { id: "Gacrux", name: "Gacrux", gender: "Male", style: "Mature" },
+  { id: "Umbriel", name: "Umbriel", gender: "Male", style: "Easy-going" },
+  { id: "Vindemiatrix", name: "Vindemiatrix", gender: "Female", style: "Gentle" },
+  { id: "Sadachbia", name: "Sadachbia", gender: "Male", style: "Lively" },
+  { id: "Pulcherrima", name: "Pulcherrima", gender: "Female", style: "Forward" },
+];
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Auth check
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", { global: { headers: { Authorization: authHeader } } });
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (authError || !user) return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json();
-    const { text, voiceId, apiKey, action } = body;
+    const { text, voiceId, action, provider, elevenLabsKey, googleApiKey } = body;
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "ElevenLabs API key required. Add it in Settings." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ACTION: List voices
+    // List voices
     if (action === "list-voices") {
-      const resp = await fetch("https://api.elevenlabs.io/v1/voices", {
-        headers: { "xi-api-key": apiKey },
-      });
-      if (!resp.ok) {
-        const err = await resp.text();
-        return new Response(JSON.stringify({ error: "Failed to list voices: " + err.substring(0, 200) }), {
-          status: resp.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (provider === "elevenlabs" && elevenLabsKey) {
+        const resp = await fetch("https://api.elevenlabs.io/v1/voices", { headers: { "xi-api-key": elevenLabsKey } });
+        if (!resp.ok) return new Response(JSON.stringify({ error: "ElevenLabs error" }), { status: resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const data = await resp.json();
+        return new Response(JSON.stringify({ voices: (data.voices || []).map((v: any) => ({ voice_id: v.voice_id, name: v.name, category: v.category || "elevenlabs", provider: "elevenlabs" })) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const data = await resp.json();
-      const voices = (data.voices || []).map((v: any) => ({
-        voice_id: v.voice_id,
-        name: v.name,
-        category: v.category,
-        labels: v.labels,
-        preview_url: v.preview_url,
-      }));
-      return new Response(JSON.stringify({ voices }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ voices: GEMINI_VOICES.map(v => ({ voice_id: v.id, name: `${v.name} (${v.gender}, ${v.style})`, category: `${v.gender} - ${v.style}`, provider: "gemini" })) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ACTION: Generate speech
-    if (!text || !voiceId) {
-      return new Response(JSON.stringify({ error: "text and voiceId are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (!text || !voiceId) return new Response(JSON.stringify({ error: "text and voiceId required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    // ElevenLabs (BYOK)
+    if (provider === "elevenlabs" && elevenLabsKey) {
+      console.log(`[VOICE] ElevenLabs for user ${user.id}`);
+      const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        headers: { "xi-api-key": elevenLabsKey, "Content-Type": "application/json", "Accept": "audio/mpeg" },
+        body: JSON.stringify({ text: text.substring(0, 5000), model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
       });
+      if (!resp.ok) { const e = await resp.text(); return new Response(JSON.stringify({ error: "ElevenLabs failed: " + e.substring(0, 200) }), { status: resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
+      const buf = await resp.arrayBuffer();
+      return new Response(JSON.stringify({ audio: btoa(String.fromCharCode(...new Uint8Array(buf))), mimeType: "audio/mpeg", provider: "elevenlabs" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log(`[ELEVENLABS] Generating speech for user ${user.id}, voice ${voiceId}, text length ${text.length}`);
+    // Gemini TTS (free)
+    const gKey = googleApiKey || Deno.env.get("GOOGLE_API_KEY") || "";
+    if (!gKey) return new Response(JSON.stringify({ error: "No API key available" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    console.log(`[VOICE] Gemini TTS for user ${user.id}, voice ${voiceId}`);
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${gKey}`;
+    const resp = await fetch(apiUrl, {
       method: "POST",
-      headers: {
-        "xi-api-key": apiKey,
-        "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: text.substring(0, 5000), // ElevenLabs limit
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true,
+        contents: [{ role: "user", parts: [{ text: `Read the following narration naturally: ${text.substring(0, 5000)}` }] }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceId } } },
         },
       }),
     });
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      console.error("[ELEVENLABS] API error:", errText.substring(0, 300));
-      let userMessage = "Voice generation failed";
-      try {
-        const errJson = JSON.parse(errText);
-        if (errJson.detail?.message) userMessage = errJson.detail.message;
-      } catch {}
-      return new Response(JSON.stringify({ error: userMessage }), {
-        status: resp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!resp.ok) { const e = await resp.text(); console.error("[VOICE] Gemini error:", e.substring(0, 300)); let msg = "Voice generation failed"; try { msg = JSON.parse(e).error?.message || msg; } catch {} return new Response(JSON.stringify({ error: msg }), { status: resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
 
-    // Convert audio to base64
-    const audioBuffer = await resp.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+    const data = await resp.json();
+    const audio = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+    if (!audio?.data) return new Response(JSON.stringify({ error: "No audio generated" }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    console.log(`[ELEVENLABS] Success! Audio size: ${audioBuffer.byteLength} bytes`);
-
-    return new Response(JSON.stringify({
-      audio: base64Audio,
-      mimeType: "audio/mpeg",
-      voiceId,
-      textLength: text.length,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ audio: audio.data, mimeType: audio.mimeType || "audio/L16;rate=24000", provider: "gemini" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err) {
-    console.error("[ELEVENLABS] Unexpected error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("[VOICE] Error:", err);
+    return new Response(JSON.stringify({ error: err.message || "Internal error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
