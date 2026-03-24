@@ -34,22 +34,18 @@ const FLASH_COST_INPUT = 0.0001;
 const FLASH_COST_OUTPUT = 0.0004;
 const PRO_COST_INPUT = 0.007;
 const PRO_COST_OUTPUT = 0.021;
-const CLASSIFICATION_MODEL = "google/gemini-3-flash-preview";
+const GEMINI_MODEL = "gemini-2.5-flash";
 
-async function callAI(apiKey: string, systemPrompt: string, userContent: string): Promise<string> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+async function callGemini(apiKey: string, systemPrompt: string, userContent: string): Promise<string> {
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const response = await fetch(apiUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: CLASSIFICATION_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-      stream: false,
+      contents: [{ role: "user", parts: [{ text: userContent }] }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.3 },
     }),
   });
 
@@ -57,11 +53,13 @@ async function callAI(apiKey: string, systemPrompt: string, userContent: string)
     const status = response.status;
     if (status === 429) throw new Error("RATE_LIMIT");
     if (status === 402) throw new Error("CREDITS_EXHAUSTED");
+    const errText = await response.text();
+    console.error("Gemini API error:", status, errText);
     throw new Error(`AI_ERROR_${status}`);
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || "";
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 serve(async (req) => {
@@ -70,8 +68,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY is not configured");
 
     const { user_message, conversation_context, user_plan } = await req.json();
 
@@ -84,7 +82,6 @@ serve(async (req) => {
 
     const plan = user_plan || "free";
 
-    // Build context string for classification
     let classifierInput = user_message;
     if (conversation_context?.length) {
       const ctx = conversation_context
@@ -95,7 +92,7 @@ serve(async (req) => {
     }
 
     // STEP 1: Classification
-    const classificationRaw = await callAI(LOVABLE_API_KEY, CLASSIFIER_SYSTEM_PROMPT, classifierInput);
+    const classificationRaw = await callGemini(GOOGLE_API_KEY, CLASSIFIER_SYSTEM_PROMPT, classifierInput);
 
     let classification;
     try {
@@ -110,15 +107,13 @@ serve(async (req) => {
       };
     }
 
-    // Force flash for free plan
     if (plan === "free") {
       classification.recommended_model = "gemini-flash";
     }
 
     // STEP 2: Prompt Optimization
-    const optimizedPrompt = await callAI(LOVABLE_API_KEY, OPTIMIZER_SYSTEM_PROMPT, user_message);
+    const optimizedPrompt = await callGemini(GOOGLE_API_KEY, OPTIMIZER_SYSTEM_PROMPT, user_message);
 
-    // Calculate estimated savings
     const inputTokensOriginal = Math.ceil(user_message.length / 4);
     const inputTokensOptimized = Math.ceil(optimizedPrompt.length / 4);
     const outputTokens = classification.estimated_output_tokens || 500;
