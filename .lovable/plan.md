@@ -1,17 +1,14 @@
 
 
-## Plan: Deploy All 5 Edge Functions
+## Plan: Deploy chat and optimize Edge Functions
 
-Deploy these edge functions to production as-is, no code changes:
+Deploy these 2 functions to production as-is, no code changes:
 
 1. **chat**
-2. **youtube-trending**
-3. **generate-image**
-4. **generate-video**
-5. **generate-voice**
+2. **optimize**
 
 ### Technical Notes
-- No code modifications per the source-code-control memory directive.
-- The `stripe-checkout` build error is unrelated and won't affect these deployments.
-- Each function will be deployed and then verified with a test invocation.
+- Per the source-code-control memory directive, no code will be modified.
+- Both functions will be deployed using `supabase--deploy_edge_functions` and verified with test invocations.
+- The `GOOGLE_API_KEY` secret is already configured for these functions.
 
