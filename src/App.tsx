@@ -16,6 +16,7 @@ import Chat from "./pages/Chat";
 import Prompts from "./pages/Prompts";
 import Analytics from "./pages/Analytics";
 import SettingsPage from "./pages/SettingsPage";
+import CharactersPage from "./pages/CharactersPage";
 import NotFound from "./pages/NotFound";
 import { Navigate } from "react-router-dom";
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="chat" element={<Chat />} />
               <Route path="prompts" element={<Prompts />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="characters" element={<CharactersPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
