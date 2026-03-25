@@ -46,6 +46,7 @@ import {
   Share2,
   MoreHorizontal,
   PanelLeftClose,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -97,6 +98,7 @@ export function ChatSidebar({
     { title: t("nav.chat"), url: "/dashboard/chat", icon: MessageSquare },
     { title: t("nav.promptLibrary"), url: "/dashboard/prompts", icon: BookOpen },
     { title: t("nav.analytics"), url: "/dashboard/analytics", icon: BarChart3 },
+    { title: "Characters", url: "/dashboard/characters", icon: Users },
     { title: t("nav.settings"), url: "/dashboard/settings", icon: Settings },
   ];
 
