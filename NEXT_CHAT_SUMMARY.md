@@ -1,52 +1,69 @@
-# RESUMO PARA PRÓXIMO CHAT - SavvyOwl (25/03/2026)
+# RESUMO PARA PRÓXIMO CHAT - SavvyOwl (26/03/2026)
 
-## ESTADO ATUAL — TUDO MIGRADO E FUNCIONAL
+## PROBLEMA PRIORITÁRIO — PIPELINE DE CONSISTÊNCIA
 
-### Supabase Novo (próprio, sem Lovable)
+O Character Engine existe mas NÃO está integrado nos templates de geração.
+Resultado: cada cena gera uma pessoa completamente diferente. O negative prompt
+aparece separado do prompt principal com botão "Gerar Imagem" próprio (errado).
+
+### O QUE PRECISA SER FEITO (URGENTE):
+1. Templates de cenas (Scene Generator, Viral Pipeline, Dark Channel) devem 
+   OBRIGAR seleção de personagem locked ANTES de gerar
+2. O identity block do personagem deve ser INJETADO automaticamente em cada 
+   prompt VEO3/Nano Banana gerado pela IA
+3. Negative prompt deve vir JUNTO do prompt principal (não como bloco separado 
+   com botão de gerar imagem próprio)
+4. Os botões "Gerar Imagem" e "Gerar Vídeo" nos code blocks devem incluir 
+   automaticamente o identity block do personagem ativo
+5. A imagem de referência gerada na CharactersPage deve poder ser usada como 
+   reference frame no Veo3
+
+### FLUXO CORRETO (a implementar):
+1. Utilizador cria personagem → expande → aprova → LOCK
+2. Ao usar qualquer template de geração, o personagem locked é selecionado
+3. A IA recebe o identity block no system prompt 
+4. TODOS os prompts gerados incluem o identity block automaticamente
+5. O botão "Gerar Imagem" injeta identity block + negative prompt juntos
+6. O botão "Gerar Vídeo" injeta identity block + referência de imagem
+
+### FICHEIROS A MODIFICAR:
+- src/components/StructuredTemplates.tsx — templates precisam de seletor de personagem
+- src/components/GenerateImageButton.tsx — precisa receber identity block + negative
+- src/components/GenerateVideoButton.tsx — precisa receber identity block + ref image
+- src/pages/Chat.tsx — o characterBlock já é passado ao chat, mas não aos botões
+- supabase/functions/chat/index.ts — system prompt já injeta character, mas os 
+  prompts dos templates ainda pedem negative separado
+
+## ESTADO ATUAL — O QUE FUNCIONA
+- ✅ Chat (4 modos: Quick/Deep/Creator/Opus)
+- ✅ Gemini Flash (via fallback Anthropic quando Google 403)
+- ✅ Nano Banana (geração de imagem)
+- ✅ Gemini TTS (geração de voz)
+- ✅ 10 templates estruturados
+- ✅ Viral video modeling (YouTube search)
+- ✅ Character Engine backend (expand, refine, lock, unlock)
+- ✅ Character Engine UI (CharactersPage)
+- ✅ CharacterSelector no Chat (injeta identity no system prompt)
+- ✅ Error boundaries + Sentry infrastructure
+- ✅ Login email + Google OAuth
+- ✅ Sidebar com Characters
+
+## O QUE NÃO FUNCIONA BEM
+- ❌ Consistência visual entre cenas (Character Engine não integrado nos templates)
+- ❌ Negative prompt separado do prompt principal nos code blocks
+- ❌ Google API Key dá 403 do servidor (funciona do PC do Anderson)
+  - Key: AIzaSyDODIsozzGbDhMRqeFx4MwaTfe0IrcNUV0
+  - Fallback para Anthropic está ativo
+- ⚠️ Stripe não testado end-to-end
+- ⚠️ Onboarding flow não existe
+
+## SUPABASE
 - Project ID: kumnrldlzttsrgjlsspa
 - URL: https://kumnrldlzttsrgjlsspa.supabase.co
-- Região: EU West (Irlanda)
-- Billing: Google Cloud migrado para org cris7981x-org
-- Tabelas: profiles, conversations, messages, prompts, usage_logs, projects, model_registry, characters
-- Storage: bucket chat-images
-- Auth: Email + Google OAuth configurado
-
-### Edge Functions (11 deployed)
-chat, character-engine, delete-account, generate-image, generate-video, generate-voice, google-auth, optimize, stripe-checkout, stripe-webhook, youtube-trending
-
-### Secrets Configurados
-GOOGLE_API_KEY, YOUTUBE_API_KEY, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-
-### System Prompts — Enterprise Level
-- XML tags estruturados para máxima compreensão do modelo
-- Tool mastery: Nano Banana, Veo3, Midjourney, HeyGen, Runway, etc.
-- Pipeline intelligence proativa
-- Quality gate interno
-- max_tokens: 8192
-
-## O QUE FUNCIONA
-- Landing page, Login/Registo (email + Google OAuth)
-- Chat 4 modos (Quick/Deep/Creator/Opus)
-- 10 templates estruturados, botão copiar visível
-- Viral video modeling (YouTube search + adaptação)
-- Nano Banana, Veo3, Gemini TTS, ElevenLabs (BYOK)
-- Character Engine backend (expand, refine, lock, unlock, list, delete)
-- Sidebar, Analytics, Referral program
-
-## PRÓXIMOS PASSOS
-1. Character Engine — Componente React UI (edge function pronta, falta UI)
-2. Deploy Vercel com env vars do novo Supabase
-3. Testes end-to-end de todas as funcionalidades
-4. Error boundaries globais
-
-## FICHEIROS-CHAVE
-- supabase/functions/chat/index.ts — System prompts + streaming
-- supabase/functions/character-engine/index.ts — Character Engine backend
-- src/components/StructuredTemplates.tsx — 10 templates
-- src/pages/Chat.tsx — UI do chat
-- src/lib/character-engine/ — Core engine, prompts, generation
-- src/types/character.ts — Tipos do Character Engine
+- 11 edge functions deployed
+- Tabelas: profiles, conversations, messages, prompts, usage_logs, projects, 
+  model_registry, characters
 
 ## GIT
-Repo: https://github.com/AndersonTeodoro-hub/SavvyOwl
-Branch: main
+- Repo: https://github.com/AndersonTeodoro-hub/SavvyOwl
+- Branch: main
