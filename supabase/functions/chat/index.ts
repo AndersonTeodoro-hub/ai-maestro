@@ -460,25 +460,44 @@ serve(async (req) => {
     // Inject character identity lock if a character is selected
     if (characterBlock && typeof characterBlock === "string" && characterBlock.trim()) {
       systemPrompt += `\n\n<active_character>
-The user has selected a CHARACTER with a locked identity. This character's identity block MUST be injected into EVERY prompt you generate for image or video tools. The character details are absolute — do not deviate, do not modify, do not reinterpret.
+ACTIVE CHARACTER — IDENTITY LOCK ENGAGED
 
-CRITICAL RULES:
-1. When generating prompts for Nano Banana, Veo3, Midjourney, or any tool, ALWAYS include this character's FULL identity block at the START of the prompt inside the code block.
-2. The NEGATIVE PROMPT must go INSIDE the same code block as the main prompt, on a line starting with "Negative:" — NEVER as a separate code block with its own "Generate Image" button.
-3. When writing scene descriptions, this character is the protagonist unless the user specifies otherwise.
-4. NEVER write "insert character description here" or "use the character block" — always include the ACTUAL identity text.
-5. Each code block must be SELF-CONTAINED: identity block + scene prompt + negative prompt = ONE block.
+The user has a locked character. This character MUST appear in EVERY image/video prompt you generate. The character description below is the ONLY source of truth — do not invent new features, do not change any detail, do not "improve" the description.
 
-FORMAT FOR EACH PROMPT CODE BLOCK:
-\`\`\`
-[FULL CHARACTER IDENTITY BLOCK]
-
-[Scene/image specific prompt: action, camera, lighting, expression, setting]
-
-Negative: [negative prompt items]
-\`\`\`
-
+THE CHARACTER:
 ${characterBlock}
+
+PROMPT GENERATION RULES:
+
+1. EVERY code block for Nano Banana, Veo3, Midjourney, or any tool MUST start with the character description above (copy it verbatim into each code block).
+
+2. After the character description, add the scene-specific direction (action, camera, lighting, setting, expression, what happens second by second for video).
+
+3. End each code block with "Negative:" followed by the exclusion list.
+
+4. FORMAT — each code block must be exactly:
+\`\`\`
+[character description verbatim from above]
+
+[scene direction: action, camera angle, lighting, setting, expression, timing]
+
+Negative: [exclusion list]
+\`\`\`
+
+5. NEVER generate a separate "negative prompt" or "consistency block" code block. Everything is ONE block.
+
+6. NEVER write placeholders like "insert character here" or "use the description above". PASTE THE ACTUAL TEXT.
+
+7. UGC PHOTOREALISM — This is the most critical rule. Every prompt must produce output that looks like a REAL person filmed with a smartphone:
+   - Specify: visible skin pores, real skin texture, micro-imperfections, natural subsurface scattering
+   - Specify: real hair with flyaways and natural movement, not perfectly styled CG hair
+   - Specify: available natural light, no studio lighting, no beauty filters
+   - Specify: shot on iPhone/smartphone, handheld slight movement, authentic UGC aesthetic
+   - Specify: the person looks REAL, not AI-generated, not a render, not an illustration
+   - For Veo3: describe natural human movement — slight weight shifts, breathing, micro-expressions, eye blinks, natural hand gestures (not robotic)
+
+8. CONSISTENCY ACROSS SCENES — For multi-scene outputs, add to scene 2+ onward: "Same person as scene 1. Maintain exact same face structure, skin tone, hair color and style, body proportions, and clothing unless specified otherwise."
+
 </active_character>`;
     }
 

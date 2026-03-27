@@ -4,92 +4,91 @@
 import type { ExpandedCharacter, CharacterWardrobe } from "@/types/character";
 
 /**
- * Gera o bloco de identidade textual — o "DNA" que vai em todo prompt.
- * Este bloco é IDÊNTICO em todas as cenas do mesmo personagem.
+ * Gera o bloco de identidade como PROSA NATURAL optimizada para ferramentas de IA.
+ * Este texto é desenhado para ser colado diretamente no Veo3, Nano Banana, etc.
+ * e produzir uma pessoa fotorealista e consistente.
  */
 export function buildCharacterIdentityBlock(char: ExpandedCharacter): string {
   const d = char;
-  const lines: string[] = [];
+  const parts: string[] = [];
 
-  lines.push("╔══════════════════════════════════════════════════════════╗");
-  lines.push("║  CHARACTER IDENTITY LOCK — ABSOLUTE FIXED REFERENCE     ║");
-  lines.push("║  DO NOT DEVIATE FROM ANY ATTRIBUTE BELOW                ║");
-  lines.push("╚══════════════════════════════════════════════════════════╝");
-  lines.push("");
+  // Header — instrução clara para a IA geradora
+  parts.push("FIXED CHARACTER — same person in every frame, every scene, every generation.");
+  parts.push("");
 
-  // Identity
-  if (d.identity) {
-    lines.push("── IDENTITY ──");
-    if (d.identity.gender) lines.push(`  GENDER: ${d.identity.gender}`);
-    if (d.identity.age) lines.push(`  AGE: ${d.identity.age}`);
-    if (d.identity.ethnicity_skin) lines.push(`  SKIN: ${d.identity.ethnicity_skin}`);
-    if (d.identity.reference) lines.push(`  VISUAL REFERENCE: ${d.identity.reference}`);
-    lines.push("");
+  // Identidade base em prosa natural
+  const identity: string[] = [];
+  if (d.identity?.gender) identity.push(d.identity.gender);
+  if (d.identity?.age) identity.push(`${d.identity.age}`);
+  if (d.identity?.ethnicity_skin) identity.push(`${d.identity.ethnicity_skin}`);
+  if (identity.length > 0) {
+    parts.push(`Subject: ${identity.join(", ")}.`);
+  }
+  if (d.identity?.reference) {
+    parts.push(`Visual archetype: ${d.identity.reference}.`);
   }
 
-  // Face
+  // Rosto — detalhes específicos que garantem consistência
   if (d.face) {
-    lines.push("── FACE GEOMETRY (FIXED) ──");
-    if (d.face.shape) lines.push(`  FACE SHAPE: ${d.face.shape}`);
-    if (d.face.forehead) lines.push(`  FOREHEAD: ${d.face.forehead}`);
-    if (d.face.eyes) lines.push(`  EYES: ${d.face.eyes}`);
-    if (d.face.eyebrows) lines.push(`  EYEBROWS: ${d.face.eyebrows}`);
-    if (d.face.nose) lines.push(`  NOSE: ${d.face.nose}`);
-    if (d.face.mouth) lines.push(`  MOUTH: ${d.face.mouth}`);
-    if (d.face.jaw_chin) lines.push(`  JAW/CHIN: ${d.face.jaw_chin}`);
-    if (d.face.ears) lines.push(`  EARS: ${d.face.ears}`);
-    if (d.face.skin_marks) lines.push(`  SKIN MARKS: ${d.face.skin_marks}`);
-    lines.push("");
+    const face: string[] = [];
+    if (d.face.shape) face.push(`${d.face.shape} face`);
+    if (d.face.eyes) face.push(`${d.face.eyes}`);
+    if (d.face.eyebrows) face.push(`${d.face.eyebrows}`);
+    if (d.face.nose) face.push(`${d.face.nose}`);
+    if (d.face.mouth) face.push(`${d.face.mouth}`);
+    if (d.face.jaw_chin) face.push(`${d.face.jaw_chin}`);
+    if (d.face.forehead) face.push(`${d.face.forehead}`);
+    if (d.face.skin_marks) face.push(`${d.face.skin_marks}`);
+    if (face.length > 0) {
+      parts.push(`Face: ${face.join(", ")}.`);
+    }
   }
 
-  // Hair
+  // Cabelo
   if (d.hair) {
-    lines.push("── HAIR (FIXED STATE) ──");
-    if (d.hair.color) lines.push(`  COLOR: ${d.hair.color}`);
-    if (d.hair.type_texture) lines.push(`  TYPE/TEXTURE: ${d.hair.type_texture}`);
-    if (d.hair.length) lines.push(`  LENGTH: ${d.hair.length}`);
-    if (d.hair.style) lines.push(`  STYLE: ${d.hair.style}`);
-    if (d.hair.facial_hair) lines.push(`  FACIAL HAIR: ${d.hair.facial_hair}`);
-    lines.push("");
+    const hair: string[] = [];
+    if (d.hair.color) hair.push(d.hair.color);
+    if (d.hair.type_texture) hair.push(d.hair.type_texture);
+    if (d.hair.length) hair.push(d.hair.length);
+    if (d.hair.style) hair.push(`styled ${d.hair.style}`);
+    if (hair.length > 0) {
+      parts.push(`Hair: ${hair.join(", ")}.`);
+    }
+    if (d.hair.facial_hair && d.hair.facial_hair.toLowerCase() !== "none") {
+      parts.push(`Facial hair: ${d.hair.facial_hair}.`);
+    }
   }
 
-  // Body
+  // Corpo
   if (d.body) {
-    lines.push("── BODY & MOVEMENT ──");
-    if (d.body.height_build) lines.push(`  BUILD: ${d.body.height_build}`);
-    if (d.body.posture) lines.push(`  POSTURE: ${d.body.posture}`);
-    if (d.body.hands) lines.push(`  HANDS: ${d.body.hands}`);
-    if (d.body.movement_style) lines.push(`  MOVEMENT: ${d.body.movement_style}`);
-    if (d.body.physical_asymmetries) lines.push(`  ASYMMETRIES: ${d.body.physical_asymmetries}`);
-    lines.push("");
+    const body: string[] = [];
+    if (d.body.height_build) body.push(d.body.height_build);
+    if (d.body.posture) body.push(d.body.posture);
+    if (d.body.physical_asymmetries && d.body.physical_asymmetries.toLowerCase() !== "none") {
+      body.push(d.body.physical_asymmetries);
+    }
+    if (body.length > 0) {
+      parts.push(`Body: ${body.join(", ")}.`);
+    }
   }
 
-  // Wardrobe
+  // Guarda-roupa
   if (d.default_wardrobe) {
-    lines.push("── WARDROBE ──");
-    if (d.default_wardrobe.typical_top) lines.push(`  TOP: ${d.default_wardrobe.typical_top}`);
-    if (d.default_wardrobe.typical_bottom) lines.push(`  BOTTOM: ${d.default_wardrobe.typical_bottom}`);
-    if (d.default_wardrobe.footwear) lines.push(`  FEET: ${d.default_wardrobe.footwear}`);
-    if (d.default_wardrobe.accessories) lines.push(`  ACCESSORIES: ${d.default_wardrobe.accessories}`);
-    if (d.default_wardrobe.wardrobe_state) lines.push(`  STATE: ${d.default_wardrobe.wardrobe_state}`);
-    lines.push("");
+    const wardrobe: string[] = [];
+    if (d.default_wardrobe.typical_top) wardrobe.push(d.default_wardrobe.typical_top);
+    if (d.default_wardrobe.typical_bottom) wardrobe.push(d.default_wardrobe.typical_bottom);
+    if (d.default_wardrobe.footwear) wardrobe.push(d.default_wardrobe.footwear);
+    if (d.default_wardrobe.accessories) wardrobe.push(d.default_wardrobe.accessories);
+    if (wardrobe.length > 0) {
+      parts.push(`Wearing: ${wardrobe.join(", ")}.`);
+    }
   }
 
-  // Voice & Behavior
-  if (d.voice_behavior) {
-    lines.push("── VOICE & BEHAVIOR ──");
-    if (d.voice_behavior.voice_quality) lines.push(`  VOICE: ${d.voice_behavior.voice_quality}`);
-    if (d.voice_behavior.emotional_baseline) lines.push(`  EMOTIONAL BASELINE: ${d.voice_behavior.emotional_baseline}`);
-    if (d.voice_behavior.micro_expressions) lines.push(`  MICRO-EXPRESSIONS: ${d.voice_behavior.micro_expressions}`);
-    if (d.voice_behavior.mannerisms) lines.push(`  MANNERISMS: ${d.voice_behavior.mannerisms}`);
-    lines.push("");
-  }
+  // Mandato de realismo UGC
+  parts.push("");
+  parts.push("PHOTOREALISM MANDATE: This is a REAL person filmed with a smartphone. Visible skin pores, real skin texture with micro-imperfections, natural subsurface scattering, real hair strands with flyaways, authentic natural lighting, no airbrushing, no beauty filter, no CGI smoothness, no illustration. Shot on iPhone 15 Pro, handheld, available light. UGC authentic aesthetic.");
 
-  lines.push("╔══════════════════════════════════════════════════════════╗");
-  lines.push("║  SAME PERSON IN EVERY FRAME. NO VARIATION. NO DEVIATION ║");
-  lines.push("╚══════════════════════════════════════════════════════════╝");
-
-  return lines.join("\n");
+  return parts.join("\n");
 }
 
 /**
@@ -99,38 +98,27 @@ export function buildCharacterIdentityBlock(char: ExpandedCharacter): string {
 export function buildNanoBananaPrompt(
   char: ExpandedCharacter,
   options?: {
-    framing?: string; // override do enquadramento (ex: "full body", "close-up")
-    pose?: string; // pose específica
-    lighting?: string; // override de iluminação
-    background?: string; // background específico
-    style_override?: string; // override de estilo fotográfico
+    framing?: string;
+    pose?: string;
+    lighting?: string;
+    background?: string;
+    style_override?: string;
   }
 ): string {
   const lines: string[] = [];
 
-  lines.push("=== IMAGE GENERATION — CHARACTER REFERENCE ===");
-  lines.push("");
-
-  // Se tem opções custom, compõe prompt híbrido
   if (options && Object.values(options).some((v) => v?.trim())) {
     lines.push(buildCharacterIdentityBlock(char));
     lines.push("");
-    lines.push("── IMAGE DIRECTION ──");
-    if (options.framing) lines.push(`  FRAMING: ${options.framing}`);
-    if (options.pose) lines.push(`  POSE: ${options.pose}`);
-    if (options.lighting) lines.push(`  LIGHTING: ${options.lighting}`);
-    if (options.background) lines.push(`  BACKGROUND: ${options.background}`);
-    if (options.style_override) lines.push(`  STYLE: ${options.style_override}`);
-    lines.push("");
-    lines.push("PHOTOGRAPHIC MANDATE: Must look like a real photograph. Real skin texture,");
-    lines.push("real imperfections, real lighting physics. NOT a render, NOT illustration.");
+    if (options.framing) lines.push(`Framing: ${options.framing}`);
+    if (options.pose) lines.push(`Pose: ${options.pose}`);
+    if (options.lighting) lines.push(`Lighting: ${options.lighting}`);
+    if (options.background) lines.push(`Background: ${options.background}`);
+    if (options.style_override) lines.push(`Style: ${options.style_override}`);
   } else {
     // Usa o nano_banana_prompt self-contained gerado na expansão
     lines.push(char.nano_banana_prompt);
   }
-
-  lines.push("");
-  lines.push("=== END IMAGE PROMPT ===");
 
   return lines.join("\n");
 }
@@ -154,56 +142,45 @@ export function buildVeo3Prompt(
   const flow = options?.flow || "txt2vid";
   const lines: string[] = [];
 
-  // Image-to-video header
   if (flow === "img2vid") {
-    lines.push("╔══════════════════════════════════════════════════════════╗");
-    lines.push("║  IMAGE-TO-VIDEO MODE — REFERENCE FRAME PROVIDED         ║");
-    lines.push("║  The attached image IS the character. Match it exactly.  ║");
-    lines.push("║  Do not alter face, hair, skin, clothing, or body.      ║");
-    lines.push("║  The text below is REDUNDANT VERIFICATION.              ║");
-    lines.push("╚══════════════════════════════════════════════════════════╝");
+    lines.push("IMAGE-TO-VIDEO: The attached image IS the character. Match it exactly. Do not alter face, hair, skin, clothing, or body.");
     lines.push("");
   }
 
-  // Character identity block
+  // Character identity block em prosa natural
   lines.push(buildCharacterIdentityBlock(char));
   lines.push("");
 
-  // Wardrobe override (for scenes with different clothes)
+  // Wardrobe override
   if (options?.wardrobe_override) {
-    lines.push("── WARDROBE OVERRIDE (THIS SCENE ONLY) ──");
     const wo = options.wardrobe_override;
-    if (wo.typical_top) lines.push(`  TOP: ${wo.typical_top}`);
-    if (wo.typical_bottom) lines.push(`  BOTTOM: ${wo.typical_bottom}`);
-    if (wo.footwear) lines.push(`  FEET: ${wo.footwear}`);
-    if (wo.accessories) lines.push(`  ACCESSORIES: ${wo.accessories}`);
-    lines.push("");
+    const overrides: string[] = [];
+    if (wo.typical_top) overrides.push(`top: ${wo.typical_top}`);
+    if (wo.typical_bottom) overrides.push(`bottom: ${wo.typical_bottom}`);
+    if (wo.footwear) overrides.push(`shoes: ${wo.footwear}`);
+    if (wo.accessories) overrides.push(`accessories: ${wo.accessories}`);
+    if (overrides.length > 0) {
+      lines.push(`WARDROBE THIS SCENE: ${overrides.join(", ")}.`);
+      lines.push("");
+    }
   }
 
   // Scene direction
-  lines.push("── SCENE DIRECTION ──");
-  if (options?.temporal_block) lines.push(`  TEMPORAL BLOCK: ${options.temporal_block}`);
-  lines.push(`  ${sceneDescription}`);
-  lines.push("");
-
-  if (options?.camera) lines.push(`  CAMERA: ${options.camera}`);
-  if (options?.sound_design) lines.push(`  SOUND: ${options.sound_design}`);
+  lines.push(`SCENE: ${sceneDescription}`);
+  if (options?.temporal_block) lines.push(`Temporal: ${options.temporal_block}`);
+  if (options?.camera) lines.push(`Camera: ${options.camera}`);
+  if (options?.sound_design) lines.push(`Sound: ${options.sound_design}`);
   lines.push("");
 
   // Technical mandates
-  lines.push("── TECHNICAL MANDATE ──");
-  lines.push("  CAMERA: Handheld, available light only, no stylization, no beauty filter");
-  lines.push("  REALISM: Raw UGC aesthetic, imperfect movement, real human behavior");
-  lines.push("  CONSISTENCY: Character above is a PHOTOGRAPHIC CONSTANT");
+  lines.push("TECHNICAL: Handheld smartphone footage, available light only, no stylization, no beauty filter. Raw UGC aesthetic, imperfect movement, real human behavior. Same person in every frame.");
 
   if (flow === "img2vid") {
-    lines.push("  REFERENCE LOCK: Provided image is GROUND TRUTH for appearance");
-    lines.push("  Any deviation from reference image is a FAILURE");
+    lines.push("REFERENCE LOCK: The provided image is ground truth. Any deviation = failure.");
   }
 
   if (options?.strict_donts) {
-    lines.push("");
-    lines.push(`  FORBIDDEN: ${options.strict_donts}`);
+    lines.push(`FORBIDDEN: ${options.strict_donts}`);
   }
 
   return lines.join("\n");
@@ -211,10 +188,10 @@ export function buildVeo3Prompt(
 
 /**
  * Gera o negative prompt.
- * Combina o negative genérico com o específico do personagem.
+ * Combina o negative genérico UGC com o específico do personagem.
  */
 export function buildNegativePrompt(char: ExpandedCharacter): string {
-  const base = "no perfect symmetry, no airbrushed skin, no CGI look, no illustration, no anime, no cartoon, no glamour lighting, no studio backdrop, no stock photo pose, no generic beauty, no filtered look, no oversaturated colors";
+  const base = "perfect symmetry, airbrushed skin, CGI render, illustration, anime, cartoon, glamour lighting, studio backdrop, stock photo pose, generic beauty, filtered look, oversaturated colors, plastic skin, beauty filter, smooth poreless skin, perfect teeth, magazine retouching";
   return char.negative_prompt
     ? `${char.negative_prompt}, ${base}`
     : base;
