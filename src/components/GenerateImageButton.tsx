@@ -3,19 +3,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useGoogleApiKey } from "@/hooks/useGoogleApiKey";
 import { useCharacter } from "@/contexts/CharacterContext";
-import { Loader2, ImageIcon, Download, X, Key, Users } from "lucide-react";
+import { Loader2, ImageIcon, Download, X, Coins, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-type Props = {
-  prompt: string;
-};
+type Props = { prompt: string };
 
-/**
- * GenerateImageButton — agora injeta automaticamente o identity block
- * e o negative prompt do personagem ativo via CharacterContext.
- * O prompt final enviado ao Nano Banana = identity block + prompt + negative prompt.
- */
 export function GenerateImageButton({ prompt }: Props) {
   const apiKey = useGoogleApiKey();
   const navigate = useNavigate();
@@ -23,28 +16,14 @@ export function GenerateImageButton({ prompt }: Props) {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [freeCredits, setFreeCredits] = useState<{ remaining: number; limit: number } | null>(null);
-  const [limitReached, setLimitReached] = useState(false);
+  const [credits, setCredits] = useState<{ balance: number; cost: number } | null>(null);
+  const [noCredits, setNoCredits] = useState(false);
 
-  /**
-   * Constrói o prompt final com identity block + negative prompt injetados.
-   * Se não há personagem ativo, envia o prompt original tal como está.
-   */
   const buildFinalPrompt = (): string => {
     const parts: string[] = [];
-
-    if (identityBlock) {
-      parts.push(identityBlock);
-      parts.push("");
-    }
-
+    if (identityBlock) { parts.push(identityBlock); parts.push(""); }
     parts.push(prompt);
-
-    if (negativePrompt) {
-      parts.push("");
-      parts.push(`NEGATIVE PROMPT: ${negativePrompt}`);
-    }
-
+    if (negativePrompt) { parts.push(""); parts.push(`NEGATIVE PROMPT: ${negativePrompt}`); }
     return parts.join("\n");
   };
 
@@ -52,12 +31,11 @@ export function GenerateImageButton({ prompt }: Props) {
     setLoading(true);
     setError(null);
     setImageUrl(null);
-    setLimitReached(false);
+    setNoCredits(false);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
-
       const finalPrompt = buildFinalPrompt();
 
       const resp = await fetch(
@@ -69,37 +47,31 @@ export function GenerateImageButton({ prompt }: Props) {
             Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({
-            prompt: finalPrompt,
-            apiKey: apiKey || undefined,
-          }),
+          body: JSON.stringify({ prompt: finalPrompt, apiKey: apiKey || undefined }),
         }
       );
 
       const data = await resp.json();
 
-      if (data.error === "free_limit_reached") {
-        setLimitReached(true);
+      if (data.error === "insufficient_credits") {
+        setNoCredits(true);
         setError(data.message);
         return;
       }
-
       if (data.error) {
         setError(data.error);
         toast.error(data.error);
         return;
       }
-
       if (data.image) {
         const url = `data:${data.image.mimeType};base64,${data.image.data}`;
         setImageUrl(url);
-        if (data.freeCredits) {
-          setFreeCredits(data.freeCredits);
-        }
+        if (data.credits) setCredits(data.credits);
         toast.success("Imagem gerada!");
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to generate image");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      setError(msg);
       toast.error("Erro ao gerar imagem");
     } finally {
       setLoading(false);
@@ -116,7 +88,7 @@ export function GenerateImageButton({ prompt }: Props) {
 
   return (
     <div className="mt-2">
-      {!imageUrl && !limitReached && (
+      {!imageUrl && !noCredits && (
         <div className="flex items-center gap-1.5 flex-wrap">
           <Button
             onClick={handleGenerate}
@@ -128,19 +100,18 @@ export function GenerateImageButton({ prompt }: Props) {
             {loading ? (
               <><Loader2 className="h-3 w-3 animate-spin" />A gerar imagem...</>
             ) : (
-              <><ImageIcon className="h-3 w-3" />Gerar Imagem (Nano Banana){!apiKey && " - Gratis"}</>
+              <><ImageIcon className="h-3 w-3" />Gerar Imagem{!apiKey && " · 1 crédito"}</>
             )}
           </Button>
           {activeCharacterName && (
             <span className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-1">
-              <Users className="h-2.5 w-2.5" />
-              {activeCharacterName}
+              <Users className="h-2.5 w-2.5" />{activeCharacterName}
             </span>
           )}
         </div>
       )}
 
-      {limitReached && (
+      {noCredits && (
         <div className="bg-secondary/30 rounded-lg p-3 text-xs space-y-2 mt-1">
           <p className="text-muted-foreground">{error}</p>
           <Button
@@ -148,12 +119,12 @@ export function GenerateImageButton({ prompt }: Props) {
             size="sm"
             className="text-xs gap-1.5 bg-primary text-primary-foreground"
           >
-            <Key className="h-3 w-3" />Adicionar API Key nas Definicoes
+            <Coins className="h-3 w-3" />Carregar créditos nas Definições
           </Button>
         </div>
       )}
 
-      {error && !limitReached && (
+      {error && !noCredits && (
         <p className="text-xs text-destructive mt-1">{error}</p>
       )}
 
@@ -168,7 +139,10 @@ export function GenerateImageButton({ prompt }: Props) {
             <Button onClick={handleDownload} size="sm" variant="outline" className="text-xs gap-1">
               <Download className="h-3 w-3" />Download
             </Button>
-            <Button onClick={() => { setImageUrl(null); setError(null); }} size="sm" variant="ghost" className="text-xs gap-1 text-muted-foreground">
+            <Button
+              onClick={() => { setImageUrl(null); setError(null); }}
+              size="sm" variant="ghost" className="text-xs gap-1 text-muted-foreground"
+            >
               <X className="h-3 w-3" />Fechar
             </Button>
             <Button onClick={handleGenerate} disabled={loading} size="sm" variant="outline" className="text-xs gap-1">
@@ -181,11 +155,10 @@ export function GenerateImageButton({ prompt }: Props) {
               Identity lock: {activeCharacterName}
             </p>
           )}
-          {freeCredits && (
-            <p className="text-[10px] text-muted-foreground/60 mt-1.5">
-              {freeCredits.remaining > 0
-                ? `${freeCredits.remaining} imagens gratuitas restantes`
-                : "Ultima imagem gratuita. Adiciona a tua API Key para continuar."}
+          {credits && !apiKey && (
+            <p className="text-[10px] text-muted-foreground/60 mt-1.5 flex items-center gap-1">
+              <Coins className="h-2.5 w-2.5" />
+              {credits.balance} créditos restantes
             </p>
           )}
         </div>

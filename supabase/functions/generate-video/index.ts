@@ -7,196 +7,295 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const MAX_POLL_TIME = 300; // 5 minutes max wait
-const POLL_INTERVAL = 10; // 10 seconds between checks
+const CREDITS = { video: 10 };
+const MAX_POLL_TIME = 300;
+const POLL_INTERVAL = 10;
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+// ── Vertex AI JWT helper ───────────────────────────────────────────────────────
+
+async function getVertexAccessToken(saJson: string): Promise<string> {
+  const sa = JSON.parse(saJson);
+  const now = Math.floor(Date.now() / 1000);
+  const enc = (obj: unknown) =>
+    btoa(JSON.stringify(obj)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+
+  const header = enc({ alg: "RS256", typ: "JWT" });
+  const payload = enc({
+    iss: sa.client_email,
+    scope: "https://www.googleapis.com/auth/cloud-platform",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now,
+  });
+
+  const pemKey = sa.private_key
+    .replace(/-----BEGIN PRIVATE KEY-----\n?/, "")
+    .replace(/\n?-----END PRIVATE KEY-----\n?/, "")
+    .replace(/\n/g, "");
+  const keyData = Uint8Array.from(atob(pemKey), (c) => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey(
+    "pkcs8", keyData,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false, ["sign"]
+  );
+  const signingInput = `${header}.${payload}`;
+  const sigBuf = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, new TextEncoder().encode(signingInput));
+  const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf)))
+    .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const jwt = `${signingInput}.${sig}`;
+
+  const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  });
+  const tokenData = await tokenResp.json();
+  if (!tokenData.access_token) throw new Error(`Vertex token failed: ${JSON.stringify(tokenData)}`);
+  return tokenData.access_token;
+}
+
+// ── Vertex AI Veo3 ─────────────────────────────────────────────────────────────
+
+async function generateWithVertexVeo3(
+  prompt: string,
+  negativePrompt: string | undefined,
+  aspectRatio: string,
+  duration: number,
+  saJson: string,
+  projectId: string
+): Promise<{ uri?: string; data?: string; mimeType: string; elapsed: number }> {
+  const accessToken = await getVertexAccessToken(saJson);
+  const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/veo-3.0-generate-preview:predictLongRunning`;
+
+  const reqBody: Record<string, unknown> = {
+    instances: [{
+      prompt,
+      ...(negativePrompt && { negativePrompt }),
+    }],
+    parameters: {
+      aspectRatio,
+      sampleCount: 1,
+      durationSeconds: duration,
+      personGeneration: "allow_all",
+      safetyFilterLevel: "block_few",
+    },
+  };
+
+  const startResp = await fetch(endpoint, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(reqBody),
+  });
+
+  if (!startResp.ok) {
+    const err = await startResp.text();
+    throw new Error(`Vertex Veo3 start error ${startResp.status}: ${err.substring(0, 400)}`);
   }
 
+  const operationData = await startResp.json();
+  const operationName = operationData.name;
+  if (!operationName) throw new Error("No operation name from Vertex Veo3");
+
+  console.log(`[VEO3-VERTEX] Operation: ${operationName}`);
+
+  // Poll
+  let elapsed = 0;
+  while (elapsed < MAX_POLL_TIME) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL * 1000));
+    elapsed += POLL_INTERVAL;
+
+    const pollUrl = `https://us-central1-aiplatform.googleapis.com/v1/${operationName}`;
+    const pollResp = await fetch(pollUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!pollResp.ok) {
+      console.log(`[VEO3-VERTEX] Poll error at ${elapsed}s`);
+      continue;
+    }
+
+    const pollData = await pollResp.json();
+    console.log(`[VEO3-VERTEX] Poll ${elapsed}s: done=${pollData.done}`);
+
+    if (pollData.done) {
+      if (pollData.error) throw new Error(`Veo3 failed: ${pollData.error.message}`);
+      const videos = pollData.response?.predictions || pollData.response?.generateVideoResponse?.generatedSamples || [];
+      const video = videos[0];
+      if (!video) throw new Error("No video in Vertex response");
+      return {
+        uri: video.gcsUri || video.uri || undefined,
+        data: video.bytesBase64Encoded || undefined,
+        mimeType: "video/mp4",
+        elapsed,
+      };
+    }
+  }
+  throw new Error("Vertex Veo3 timed out (5 min)");
+}
+
+// ── Gemini Veo3 fallback (user-supplied key) ───────────────────────────────────
+
+async function generateWithGeminiVeo3(
+  prompt: string,
+  negativePrompt: string | undefined,
+  aspectRatio: string,
+  duration: number,
+  apiKey: string
+): Promise<{ uri?: string; data?: string; mimeType: string; elapsed: number }> {
+  const modelId = "veo-3.0-generate-preview";
+  const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateVideos`;
+
+  const requestBody: Record<string, unknown> = {
+    prompt,
+    config: {
+      aspectRatio,
+      numberOfVideos: 1,
+      durationSeconds: duration,
+      ...(negativePrompt && { negativePrompt }),
+    },
+  };
+
+  const startResp = await fetch(generateUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!startResp.ok) {
+    const err = await startResp.text();
+    throw new Error(`Gemini Veo3 start error: ${err.substring(0, 300)}`);
+  }
+
+  const operationData = await startResp.json();
+  const operationName = operationData.name;
+  if (!operationName) throw new Error("No operation name from Gemini Veo3");
+
+  let elapsed = 0;
+  while (elapsed < MAX_POLL_TIME) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL * 1000));
+    elapsed += POLL_INTERVAL;
+
+    const pollUrl = `https://generativelanguage.googleapis.com/v1beta/${operationName}`;
+    const pollResp = await fetch(pollUrl, { headers: { "x-goog-api-key": apiKey } });
+    if (!pollResp.ok) continue;
+
+    const pollData = await pollResp.json();
+    console.log(`[VEO3-GEMINI] Poll ${elapsed}s: done=${pollData.done}`);
+
+    if (pollData.done) {
+      if (pollData.error) throw new Error(`Veo3 failed: ${pollData.error.message}`);
+      const videos = pollData.response?.generateVideoResponse?.generatedSamples || pollData.result?.generatedVideos || [];
+      const video = videos[0]?.video || videos[0];
+      return { uri: video?.uri, data: video?.bytesBase64Encoded, mimeType: "video/mp4", elapsed };
+    }
+  }
+  throw new Error("Gemini Veo3 timed out (5 min)");
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   try {
-    // Auth check
     const authHeader = req.headers.get("authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader || "" } },
     });
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const adminClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: { user } } = await anonClient.auth.getUser();
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!user) return json({ error: "Unauthorized" }, 401);
 
     const { prompt, apiKey, negativePrompt, aspectRatio, duration } = await req.json();
+    if (!prompt) return json({ error: "Prompt is required" }, 400);
 
-    if (!prompt) {
-      return new Response(JSON.stringify({ error: "Prompt is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const usingOwnKey = !!apiKey;
+    const saJson = Deno.env.get("VERTEX_SERVICE_ACCOUNT_JSON");
+    const vertexProject = Deno.env.get("VERTEX_PROJECT_ID") || "gen-lang-client-0464073001";
+
+    // If no server SA and no user key → error
+    if (!usingOwnKey && !saJson) {
+      return json({
+        error: "no_video_backend",
+        message: "A geração de vídeo via servidor está a ser configurada. Adiciona a tua Google API Key nas Definições para gerar vídeos agora.",
+      }, 503);
+    }
+
+    // Credit check
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("credits_balance, plan")
+      .eq("id", user.id)
+      .single();
+
+    const balance = profile?.credits_balance ?? 0;
+    const cost = CREDITS.video;
+
+    if (!usingOwnKey && balance < cost) {
+      return json({
+        error: "insufficient_credits",
+        message: `Sem créditos suficientes para vídeo (tens ${balance}, precisas de ${cost}). Carrega créditos nas Definições.`,
+        balance,
+        cost,
+      }, 402);
+    }
+
+    const ar = aspectRatio || "9:16";
+    const dur = parseInt(duration) || 8;
+
+    let result: { uri?: string; data?: string; mimeType: string; elapsed: number };
+    let usedBackend = "unknown";
+
+    if (usingOwnKey) {
+      console.log(`[VEO3] User-supplied key`);
+      result = await generateWithGeminiVeo3(prompt, negativePrompt, ar, dur, apiKey);
+      usedBackend = "veo3-gemini-user";
+    } else {
+      console.log(`[VEO3] Vertex AI`);
+      result = await generateWithVertexVeo3(prompt, negativePrompt, ar, dur, saJson!, vertexProject);
+      usedBackend = "veo3-vertex";
+    }
+
+    // Deduct credits
+    if (!usingOwnKey) {
+      await adminClient
+        .from("profiles")
+        .update({ credits_balance: balance - cost })
+        .eq("id", user.id);
+      await adminClient.from("credit_transactions").insert({
+        user_id: user.id,
+        amount: -cost,
+        type: "spend",
+        description: `Vídeo ${dur}s (${usedBackend})`,
       });
     }
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({
-        error: "Google API Key is required for video generation. Add it in Settings.",
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const modelId = "veo-3.0-generate-preview";
-    console.log(`[VEO3] Starting video generation for user ${user.id}`);
-    console.log(`[VEO3] Prompt: ${prompt.substring(0, 100)}...`);
-
-    // Step 1: Start video generation (async operation)
-    const generateUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateVideos`;
-
-    const requestBody: any = {
-      prompt: prompt,
-      config: {
-        aspectRatio: aspectRatio || "9:16",
-        numberOfVideos: 1,
-      },
-    };
-
-    if (negativePrompt) {
-      requestBody.config.negativePrompt = negativePrompt;
-    }
-
-    if (duration) {
-      requestBody.config.durationSeconds = parseInt(duration) || 8;
-    }
-
-    const startResp = await fetch(generateUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!startResp.ok) {
-      const errText = await startResp.text();
-      console.error("[VEO3] Start error:", errText);
-      let userMessage = "Video generation failed to start";
-      try {
-        const errJson = JSON.parse(errText);
-        if (errJson.error?.message) userMessage = errJson.error.message;
-      } catch {}
-      return new Response(JSON.stringify({ error: userMessage }), {
-        status: startResp.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const operationData = await startResp.json();
-    const operationName = operationData.name;
-
-    if (!operationName) {
-      return new Response(JSON.stringify({ error: "Failed to start video generation - no operation returned" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`[VEO3] Operation started: ${operationName}`);
-
-    // Step 2: Poll for completion
-    let elapsed = 0;
-    let result = null;
-
-    while (elapsed < MAX_POLL_TIME) {
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL * 1000));
-      elapsed += POLL_INTERVAL;
-
-      const pollUrl = `https://generativelanguage.googleapis.com/v1beta/${operationName}`;
-      const pollResp = await fetch(pollUrl, {
-        headers: { "x-goog-api-key": apiKey },
-      });
-
-      if (!pollResp.ok) {
-        console.error(`[VEO3] Poll error at ${elapsed}s`);
-        continue;
-      }
-
-      const pollData = await pollResp.json();
-      console.log(`[VEO3] Poll at ${elapsed}s: done=${pollData.done}`);
-
-      if (pollData.done) {
-        if (pollData.error) {
-          return new Response(JSON.stringify({
-            error: `Video generation failed: ${pollData.error.message || "Unknown error"}`,
-          }), {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        result = pollData;
-        break;
-      }
-    }
-
-    if (!result) {
-      return new Response(JSON.stringify({
-        error: "Video generation timed out (5 min). Try a simpler prompt or try again later.",
-      }), {
-        status: 504,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Step 3: Extract video data
-    const generatedVideos = result.response?.generateVideoResponse?.generatedSamples
-      || result.result?.generatedVideos
-      || result.response?.generatedVideos
-      || [];
-
-    if (generatedVideos.length === 0) {
-      return new Response(JSON.stringify({ error: "No video was generated. Try a different prompt." }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const video = generatedVideos[0];
-    const videoData = video.video || video;
-
-    // Log usage
     await adminClient.from("usage_logs").insert({
       user_id: user.id,
       mode: "video_generation",
-      model: modelId,
-      cost_eur: 1.20, // approximate cost for 8s Veo3 Fast
+      model: usedBackend,
+      cost_eur: usingOwnKey ? 0 : 1.20,
     });
 
-    console.log(`[VEO3] Video generated successfully in ${elapsed}s`);
+    const newBalance = usingOwnKey ? balance : balance - cost;
+    console.log(`[VEO3] ✅ ${usedBackend} in ${result.elapsed}s | balance: ${balance} → ${newBalance}`);
 
-    // Return video URI or base64
-    return new Response(JSON.stringify({
-      video: {
-        uri: videoData.uri || null,
-        mimeType: videoData.mimeType || "video/mp4",
-        data: videoData.bytesBase64Encoded || null,
-      },
-      generationTime: elapsed,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return json({
+      video: { uri: result.uri, data: result.data, mimeType: result.mimeType },
+      generationTime: result.elapsed,
+      credits: { balance: newBalance, cost: usingOwnKey ? 0 : cost },
+      backend: usedBackend,
     });
-
   } catch (e) {
     console.error("[VEO3] Error:", e);
-    return new Response(JSON.stringify({ error: "Internal error: " + (e as Error).message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "Internal error: " + (e as Error).message }, 500);
   }
 });
