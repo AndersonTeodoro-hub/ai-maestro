@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Key, ExternalLink, Mic, Loader2, Coins, Zap } from "lucide-react";
+import { Eye, EyeOff, Key, ExternalLink, Mic, Loader2, Coins, Zap, Image, Video, Package } from "lucide-react";
 import { useElevenLabsKey } from "@/hooks/useElevenLabsKey";
 
 export default function SettingsPage() {
@@ -100,6 +100,21 @@ export default function SettingsPage() {
       if (data?.url) window.open(data.url, "_blank");
     } catch (e: any) {
       toast.error(e.message || "Failed to start checkout");
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handleBuyPack = async (pack: string) => {
+    setCheckoutLoading(pack);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { action: "buy-credits", pack },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao iniciar checkout");
     } finally {
       setCheckoutLoading(null);
     }
@@ -244,6 +259,76 @@ export default function SettingsPage() {
           >
             Atualizar saldo
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Credit Packs — buy extra credits */}
+      <Card className="bg-[hsl(var(--surface-2))] border-border">
+        <CardHeader>
+          <CardTitle className="text-tracking-tight flex items-center gap-2">
+            <Package className="h-4 w-4 text-primary" />
+            Comprar Créditos Extra
+          </CardTitle>
+          <CardDescription>
+            Packs avulso — os créditos nunca expiram e acumulam com os do teu plano.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Pack S */}
+            <div className="bg-[hsl(var(--surface-1))] border border-border rounded-lg p-4 flex flex-col items-center text-center">
+              <Image className="h-5 w-5 text-primary mb-2" />
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Pack S</p>
+              <p className="text-2xl font-bold text-foreground">€4,99</p>
+              <p className="text-sm text-primary font-medium mt-1">50 créditos</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 mb-4">50 imagens ou 5 vídeos</p>
+              <Button
+                size="sm"
+                className="w-full glow-primary text-xs"
+                onClick={() => handleBuyPack("pack_s")}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading === "pack_s" ? <Loader2 className="h-3 w-3 animate-spin" /> : "Comprar"}
+              </Button>
+            </div>
+
+            {/* Pack M */}
+            <div className="bg-[hsl(var(--surface-1))] border border-primary/30 rounded-lg p-4 flex flex-col items-center text-center relative">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                Popular
+              </span>
+              <Zap className="h-5 w-5 text-primary mb-2" />
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Pack M</p>
+              <p className="text-2xl font-bold text-foreground">€12,99</p>
+              <p className="text-sm text-primary font-medium mt-1">150 créditos</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 mb-4">150 imagens ou 15 vídeos</p>
+              <Button
+                size="sm"
+                className="w-full glow-primary text-xs"
+                onClick={() => handleBuyPack("pack_m")}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading === "pack_m" ? <Loader2 className="h-3 w-3 animate-spin" /> : "Comprar"}
+              </Button>
+            </div>
+
+            {/* Pack L */}
+            <div className="bg-[hsl(var(--surface-1))] border border-border rounded-lg p-4 flex flex-col items-center text-center">
+              <Video className="h-5 w-5 text-primary mb-2" />
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Pack L</p>
+              <p className="text-2xl font-bold text-foreground">€29,99</p>
+              <p className="text-sm text-primary font-medium mt-1">400 créditos</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 mb-4">400 imagens ou 40 vídeos</p>
+              <Button
+                size="sm"
+                className="w-full glow-primary text-xs"
+                onClick={() => handleBuyPack("pack_l")}
+                disabled={!!checkoutLoading}
+              >
+                {checkoutLoading === "pack_l" ? <Loader2 className="h-3 w-3 animate-spin" /> : "Comprar"}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
