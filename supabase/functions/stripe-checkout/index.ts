@@ -8,12 +8,34 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PRICES: Record<string, string> = {
-  starter: "price_1T9oNWKg016ceaDVTLnC3PD7",
-  pro: "price_1T9oNrKg016ceaDVfoGdfk6W",
+// Subscription plans
+const SUBSCRIPTION_PRICES: Record<string, string> = {
+  starter: "price_1TG1KaKg016ceaDVbTqFq1CW",
+  pro: "price_1TG1NMKg016ceaDVQFtsygnH",
 };
 
-const logStep = (step: string, details?: any) => {
+// One-time credit packs
+const CREDIT_PACK_PRICES: Record<string, string> = {
+  pack_s: "price_1TG1OiKg016ceaDVYWhCa8st",
+  pack_m: "price_1TG1QCKg016ceaDVLsAC6Za1",
+  pack_l: "price_1TG1RUKg016ceaDVKYrWhI6V",
+};
+
+// Credits granted per pack
+const PACK_CREDITS: Record<string, number> = {
+  pack_s: 50,
+  pack_m: 150,
+  pack_l: 400,
+};
+
+// Credits granted per subscription plan (monthly)
+const PLAN_CREDITS: Record<string, number> = {
+  free: 10,
+  starter: 150,
+  pro: 500,
+};
+
+const logStep = (step: string, details?: unknown) => {
   const d = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[STRIPE-CHECKOUT] ${step}${d}`);
 };
@@ -44,20 +66,21 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const body = await req.json();
-    const { action, plan } = body;
+    const { action, plan, pack } = body;
 
+    // Look up or create Stripe customer
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId: string | undefined;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+    }
+
+    const origin = req.headers.get("origin") || "https://savvyowl.vercel.app";
+
+    // ── Subscription checkout ──────────────────────────────────────────────────
     if (action === "create-checkout") {
-      const priceId = PRICES[plan];
+      const priceId = SUBSCRIPTION_PRICES[plan];
       if (!priceId) throw new Error(`Invalid plan: ${plan}`);
-
-      // Look up or create Stripe customer
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      let customerId: string | undefined;
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-      }
-
-      const origin = req.headers.get("origin") || "https://id-preview--c61db60d-9395-47a5-a12f-fab9aa279a04.lovable.app";
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -69,14 +92,36 @@ serve(async (req) => {
         metadata: { user_id: user.id, plan },
       });
 
-      logStep("Checkout session created", { sessionId: session.id });
+      logStep("Subscription checkout created", { sessionId: session.id, plan });
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // ── Credit pack checkout ───────────────────────────────────────────────────
+    if (action === "buy-credits") {
+      const priceId = CREDIT_PACK_PRICES[pack];
+      if (!priceId) throw new Error(`Invalid pack: ${pack}`);
+
+      const credits = PACK_CREDITS[pack];
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: "payment",
+        success_url: `${origin}/dashboard/settings?checkout=success&credits=${credits}`,
+        cancel_url: `${origin}/dashboard/settings?checkout=cancel`,
+        metadata: { user_id: user.id, pack, credits: String(credits) },
+      });
+
+      logStep("Credit pack checkout created", { sessionId: session.id, pack, credits });
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Customer portal ────────────────────────────────────────────────────────
     if (action === "create-portal") {
-      // Get stripe_customer_id from profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("stripe_customer_id")
@@ -85,7 +130,6 @@ serve(async (req) => {
 
       if (!profile?.stripe_customer_id) throw new Error("No Stripe customer found");
 
-      const origin = req.headers.get("origin") || "https://id-preview--c61db60d-9395-47a5-a12f-fab9aa279a04.lovable.app";
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: profile.stripe_customer_id,
         return_url: `${origin}/dashboard/settings`,
