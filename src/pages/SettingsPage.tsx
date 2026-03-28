@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff, Key, ExternalLink, Mic, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Key, ExternalLink, Mic, Loader2, Coins, Zap } from "lucide-react";
 import { useElevenLabsKey } from "@/hooks/useElevenLabsKey";
 
 export default function SettingsPage() {
@@ -179,6 +179,66 @@ export default function SettingsPage() {
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[hsl(var(--surface-2))] border-border">
+        <CardHeader>
+          <CardTitle className="text-tracking-tight flex items-center gap-2">
+            <Coins className="h-4 w-4 text-primary" />
+            Créditos SavvyOwl
+          </CardTitle>
+          <CardDescription>
+            Usados para gerar imagens (1 crédito) e vídeos (10 créditos). Renovam com a tua subscrição.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Balance display */}
+          <div className="flex items-center justify-between bg-[hsl(var(--surface-1))] rounded-lg p-4 border border-border">
+            <div>
+              <p className="text-2xl font-bold text-primary">{profile?.credits_balance ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">créditos disponíveis</p>
+            </div>
+            <div className="text-right text-xs text-muted-foreground space-y-1">
+              <div className="flex items-center gap-1.5 justify-end">
+                <Zap className="h-3 w-3" />
+                <span>1 crédito = 1 imagem</span>
+              </div>
+              <div className="flex items-center gap-1.5 justify-end">
+                <Zap className="h-3 w-3" />
+                <span>10 créditos = 1 vídeo</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Plan credits info */}
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Créditos por plano (renova mensalmente):</p>
+            <div className="flex gap-4">
+              <span className={profile?.plan === "free" ? "text-primary font-medium" : ""}>Free: 10</span>
+              <span className={profile?.plan === "starter" ? "text-primary font-medium" : ""}>Starter: 200</span>
+              <span className={profile?.plan === "pro" ? "text-primary font-medium" : ""}>Pro: 1000</span>
+            </div>
+          </div>
+
+          {/* Upgrade CTA if low credits */}
+          {(profile?.credits_balance ?? 0) < 10 && profile?.plan === "free" && (
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs">
+              <p className="text-foreground font-medium mb-2">Créditos a acabar!</p>
+              <Button size="sm" className="glow-primary text-xs" onClick={() => handleUpgrade("starter")}>
+                Upgrade para Starter — 200 créditos/mês
+              </Button>
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={refreshProfile}
+          >
+            Atualizar saldo
+          </Button>
         </CardContent>
       </Card>
 

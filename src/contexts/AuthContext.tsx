@@ -12,6 +12,8 @@ type Profile = {
   content_preference: string | null;
   onboarding_completed: boolean;
   language: string;
+  credits_balance: number;
+  credits_total_purchased: number;
 };
 
 type AuthContextType = {
