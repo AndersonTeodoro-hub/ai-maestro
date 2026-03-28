@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGoogleApiKey } from "@/hooks/useGoogleApiKey";
 import { useNavigate } from "react-router-dom";
 import {
@@ -138,6 +138,7 @@ export default function CharactersPage() {
   const engine = useCharacterEngine();
   const navigate = useNavigate();
   const googleApiKey = useGoogleApiKey();
+  const { user } = useAuth();
   const [view, setView] = useState<View>("library");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
@@ -198,21 +199,12 @@ export default function CharactersPage() {
   };
 
   useEffect(() => {
-    // Espera pela sessão antes de listar
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
-        engine.list();
-      }
-    };
-    init();
-
-    // Também escuta mudanças de auth (login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) engine.list();
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    // Only call engine.list() when we have a confirmed valid user from AuthContext
+    // AuthContext already handles token refresh — no need for getSession() or onAuthStateChange here
+    if (user) {
+      engine.list();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (engine.loading) {
