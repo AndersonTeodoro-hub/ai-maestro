@@ -39,6 +39,7 @@ export function buildCharacterIdentityBlock(char: ExpandedCharacter): string {
     if (d.face.jaw_chin) face.push(`${d.face.jaw_chin}`);
     if (d.face.forehead) face.push(`${d.face.forehead}`);
     if (d.face.skin_marks) face.push(`${d.face.skin_marks}`);
+    if (d.face.skin_texture) face.push(`skin texture: ${d.face.skin_texture}`);
     if (face.length > 0) {
       parts.push(`Face: ${face.join(", ")}.`);
     }
@@ -193,7 +194,7 @@ export function buildVeo3Prompt(
 export function buildNegativePrompt(char: ExpandedCharacter): string {
   const base = [
     // Anti-AI look
-    "perfect symmetry, airbrushed skin, CGI render, illustration, anime, cartoon, glamour lighting, studio backdrop, stock photo pose, generic beauty, filtered look, oversaturated colors, plastic skin, beauty filter, smooth poreless skin, perfect teeth, magazine retouching",
+    "perfect symmetry, airbrushed skin, CGI render, illustration, anime, cartoon, glamour lighting, studio backdrop, stock photo pose, generic beauty, filtered look, oversaturated colors, plastic skin, beauty filter, smooth poreless skin, perfect teeth, magazine retouching, dermabrasion, facetune, skin smoothing, wax skin, porcelain doll skin, uniform skin tone across entire face, age-inconsistent skin",
     // Veo3 common failures
     "screen on wrong side of device, screen on back of phone, screen on back of laptop, reversed phone screen, backwards tablet, text appearing mirrored, text on wrong surface, phone held backwards, laptop screen facing away from user",
     // Other common AI failures

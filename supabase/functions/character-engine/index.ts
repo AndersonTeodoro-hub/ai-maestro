@@ -18,18 +18,25 @@ CRITICAL RULES:
 8. The "reference" field should cross-reference 2 known people to triangulate appearance.
 9. The "nano_banana_prompt" must be a COMPLETE self-contained image generation prompt (150-250 words).
 10. Wardrobe should feel real — brand-level detail, wear patterns, fabric textures.
+11. The "skin_texture" field is CRITICAL for photorealism. It must be AGE-COHERENT and describe the skin as a dermatologist would photograph it. Follow these age brackets strictly:
+    - 18-24: Smooth with visible pores on nose/cheeks (T-zone), minimal texture, slight oiliness, possible acne scars or active blemishes, plump collagen, no wrinkles, even elasticity.
+    - 25-34: Visible pores on cheeks and nose, early nasolabial hints when smiling, first expression lines on forehead, slight under-eye texture, good elasticity but early collagen thinning, possible sun freckles.
+    - 35-44: Defined nasolabial folds, forehead lines at rest, crow's feet starting, visible pore texture across cheeks, uneven skin tone patches, early jowl softening, neck lines beginning, possible melasma or sun spots.
+    - 45-54: Deep nasolabial folds, prominent forehead furrows, crow's feet at rest, upper lip lines, skin thinning visible on hands and neck, age spots on temples/cheekbones, reduced elasticity, visible capillaries on nose/cheeks.
+    - 55+: Pronounced wrinkles across all expression zones, thin translucent skin on temples, heavy sun damage patterns, prominent age spots, sagging skin texture, visible veins on hands, deep neck folds, jowl definition.
+    EVERY skin_texture description must include: pore visibility zones, texture variations by face region, specific imperfection types with locations, elasticity level, and any sun/environmental damage markers appropriate to the age AND ethnicity/lifestyle.
 
 OUTPUT FORMAT (strict JSON):
 {
   "name": "internal reference name",
   "summary": "one-line visual description in USER'S ORIGINAL LANGUAGE for UI display",
   "identity": { "gender": "...", "age": "...", "ethnicity_skin": "...", "reference": "..." },
-  "face": { "shape": "...", "forehead": "...", "eyes": "...", "eyebrows": "...", "nose": "...", "mouth": "...", "jaw_chin": "...", "ears": "...", "skin_marks": "..." },
+  "face": { "shape": "...", "forehead": "...", "eyes": "...", "eyebrows": "...", "nose": "...", "mouth": "...", "jaw_chin": "...", "ears": "...", "skin_marks": "...", "skin_texture": "..." },
   "hair": { "color": "...", "type_texture": "...", "length": "...", "style": "...", "facial_hair": "..." },
   "body": { "height_build": "...", "posture": "...", "hands": "...", "movement_style": "...", "physical_asymmetries": "..." },
   "default_wardrobe": { "style_archetype": "...", "typical_top": "...", "typical_bottom": "...", "footwear": "...", "accessories": "...", "wardrobe_state": "..." },
   "voice_behavior": { "voice_quality": "...", "emotional_baseline": "...", "micro_expressions": "...", "mannerisms": "..." },
-  "nano_banana_prompt": "Complete self-contained portrait photography prompt with ALL physical details, camera, lighting, style.",
+  "nano_banana_prompt": "Complete self-contained portrait photography prompt with ALL physical details including skin_texture details, camera, lighting, style.",
   "negative_prompt": "Comprehensive exclusion list."
 }`;
 

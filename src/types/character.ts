@@ -18,6 +18,7 @@ export interface CharacterFace {
   jaw_chin: string;
   ears: string;
   skin_marks: string; // moles, scars, pores, specific locations
+  skin_texture: string; // age-coherent skin detail: pore density, texture zones, fine lines, sun damage, elasticity
 }
 
 export interface CharacterHair {
