@@ -1,179 +1,152 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// generate-image — plan-based Gemini model routing + credits system
+// Uses Deno.serve() + native fetch only (no external imports)
+
+// Plan-based model routing for visual consistency
+// Pro gets best Gemini 3 Pro Image for maximum character consistency
+const PLAN_MODELS: Record<string, string[]> = {
+  free:    ["gemini-2.5-flash-image", "gemini-3.1-flash-image-preview"],
+  starter: ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image"],
+  pro:     ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image"],
 };
 
-const FREE_IMAGE_LIMIT = 10;
+const CREDIT_COST = 1;
 
 Deno.serve(async (req) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const anonKey    = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    // SAVVYOWL_GOOGLE_KEY é a chave própria do SavvyOwl para o free tier
-    // Guarda-la como secret: supabase secrets set SAVVYOWL_GOOGLE_KEY=<key>
-    const savvyOwlKey = Deno.env.get("SAVVYOWL_GOOGLE_KEY") || Deno.env.get("GOOGLE_API_KEY") || "";
+    const googleKey  = Deno.env.get("GOOGLE_API_KEY") || "";
 
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
 
-    // Verify user via Supabase REST
+    // Verify user
     const userResp = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: { Authorization: `Bearer ${token}`, apikey: anonKey },
     });
-    if (!userResp.ok) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    const userData = await userResp.json();
-    const userId = userData?.id;
-    if (!userId) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!userResp.ok) return json({ error: "Unauthorized" }, 401);
+    const user = await userResp.json();
+    if (!user?.id) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { prompt, apiKey } = body;
-    if (!prompt) return new Response(JSON.stringify({ error: "Prompt is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { prompt, apiKey: userApiKey } = body;
+    if (!prompt) return json({ error: "Prompt is required" }, 400);
 
-    // Determine which API key to use
-    let activeKey = apiKey || null;
-    let usingFreeCredits = false;
+    // Get profile: plan + credits
+    const profileResp = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=credits_balance,plan`,
+      { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } }
+    );
+    const profiles = await profileResp.json();
+    const profile = profiles?.[0];
+    const plan = profile?.plan ?? "free";
+    const balance = profile?.credits_balance ?? 0;
+    const usingOwnKey = !!userApiKey;
 
-    if (!activeKey) {
-      // Check free tier usage
-      const usageResp = await fetch(
-        `${supabaseUrl}/rest/v1/usage_logs?user_id=eq.${userId}&mode=eq.image_generation&select=id`,
-        { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, Prefer: "count=exact" } }
-      );
-      const countHeader = usageResp.headers.get("content-range") || "";
-      const usedImages = parseInt(countHeader.split("/")[1] || "0") || 0;
-
-      if (usedImages >= FREE_IMAGE_LIMIT) {
-        return new Response(JSON.stringify({
-          error: "free_limit_reached",
-          message: `Usaste as tuas ${FREE_IMAGE_LIMIT} imagens gratuitas. Adiciona a tua Google API Key nas Definições para continuar a gerar imagens sem limite.`,
-          used: usedImages,
-          limit: FREE_IMAGE_LIMIT,
-        }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-
-      activeKey = savvyOwlKey;
-      usingFreeCredits = true;
-      console.log(`[NANO-BANANA] Free tier: ${usedImages}/${FREE_IMAGE_LIMIT} used for user ${userId}`);
+    // Credit check (server-side generation only)
+    if (!usingOwnKey && balance < CREDIT_COST) {
+      return json({
+        error: "insufficient_credits",
+        message: `Sem créditos suficientes (tens ${balance}, precisas de ${CREDIT_COST}). Carrega créditos nas Definições.`,
+        balance,
+        cost: CREDIT_COST,
+      }, 402);
     }
 
-    console.log(`[NANO-BANANA] Generating with ${usingFreeCredits ? "SavvyOwl key (free)" : "user key"}`);
+    const activeKey = usingOwnKey ? userApiKey : googleKey;
+    const models = PLAN_MODELS[plan] ?? PLAN_MODELS.free;
+    console.log(`[IMG] plan=${plan} model=${models[0]} ownKey=${usingOwnKey}`);
 
-    // Nano Banana models — dedicated image generation models, ordered by preference
-    const models = [
-      "gemini-2.5-flash-image",
-      "gemini-3.1-flash-image-preview",
-      "gemini-3-pro-image-preview",
-    ];
-
-    let response: Response | null = null;
-    let usedModel = models[0];
-
-    for (const model of models) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
-      response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-        }),
-      });
-
-      if (response.ok) {
-        usedModel = model;
-        console.log(`[NANO-BANANA] Success with model: ${model}`);
-        break;
-      }
-      console.log(`[NANO-BANANA] Model ${model} failed (${response.status}), trying next...`);
-    }
-
-    // Fallback: Claude Sonnet (text description if all Nano Banana models fail)
-    if (!response || !response.ok) {
-      const errText = await response!.text();
-      console.error("[NANO-BANANA] All models failed, trying Claude fallback:", errText.substring(0, 200));
-
-      const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || "";
-      if (anthropicKey) {
-        try {
-          const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: { "x-api-key": anthropicKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-            body: JSON.stringify({
-              model: "claude-sonnet-4-5",
-              max_tokens: 1024,
-              messages: [{ role: "user", content: `The user requested an image with this prompt: "${prompt}"\n\nNano Banana image generation is temporarily unavailable. Please respond with a detailed description of what the image would look like, formatted as a message to the user explaining the situation and describing the intended image in detail.` }],
-            }),
-          });
-          if (claudeResp.ok) {
-            const claudeData = await claudeResp.json();
-            const text = claudeData.content?.[0]?.text || "";
-            return new Response(JSON.stringify({ image: null, text, freeCredits: null, backend: "claude-fallback" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-          }
-        } catch (claudeErr) {
-          console.error("[NANO-BANANA] Claude fallback error:", claudeErr);
-        }
-      }
-
-      let userMessage = "Image generation failed";
-      try { const errJson = JSON.parse(errText); if (errJson.error?.message) userMessage = errJson.error.message; } catch {}
-      return new Response(JSON.stringify({ error: userMessage }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const data = await response.json();
-    const candidate = data.candidates?.[0];
-
-    if (!candidate?.content?.parts) {
-      return new Response(JSON.stringify({ error: "No image generated. Try a different prompt." }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
+    // Try models in order (plan-appropriate → fallbacks)
     let imageData: { data: string; mimeType: string } | null = null;
     let textResponse = "";
+    let usedModel = models[0];
+    let lastError = "";
 
-    for (const part of candidate.content.parts) {
-      if (part.inlineData) imageData = { data: part.inlineData.data, mimeType: part.inlineData.mimeType || "image/png" };
-      if (part.text) textResponse += part.text;
+    for (const model of models) {
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+          }),
+        }
+      );
+
+      if (!resp.ok) {
+        lastError = await resp.text();
+        console.log(`[IMG] ${model} → ${resp.status}`);
+        continue;
+      }
+
+      const data = await resp.json();
+      for (const part of data.candidates?.[0]?.content?.parts ?? []) {
+        if (part.inlineData) {
+          imageData = { data: part.inlineData.data, mimeType: part.inlineData.mimeType || "image/png" };
+          usedModel = model;
+        }
+        if (part.text) textResponse += part.text;
+      }
+
+      if (imageData) { console.log(`[IMG] ✅ ${model}`); break; }
     }
 
     if (!imageData) {
-      return new Response(JSON.stringify({
-        error: "The model returned text but no image. Try adding 'Generate an image of' at the start.",
-        text: textResponse,
-      }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ error: `Geração falhou: ${lastError.substring(0, 200)}` }, 500);
+    }
+
+    // Deduct credits for server-side generation
+    let newBalance = balance;
+    if (!usingOwnKey) {
+      newBalance = balance - CREDIT_COST;
+      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ credits_balance: newBalance }),
+      });
+      await fetch(`${supabaseUrl}/rest/v1/credit_transactions`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ user_id: user.id, amount: -CREDIT_COST, type: "spend", description: `Imagem (${usedModel})` }),
+      });
     }
 
     // Log usage
     await fetch(`${supabaseUrl}/rest/v1/usage_logs`, {
       method: "POST",
       headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ user_id: userId, mode: "image_generation", model: usedModel, cost_eur: usingFreeCredits ? 0 : 0.04 }),
+      body: JSON.stringify({ user_id: user.id, mode: "image_generation", model: usedModel, cost_eur: usingOwnKey ? 0 : 0.02 }),
     });
 
-    // Get remaining free credits
-    let remaining = null;
-    if (usingFreeCredits) {
-      const usageResp2 = await fetch(
-        `${supabaseUrl}/rest/v1/usage_logs?user_id=eq.${userId}&mode=eq.image_generation&select=id`,
-        { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, Prefer: "count=exact" } }
-      );
-      const countHeader2 = usageResp2.headers.get("content-range") || "";
-      const newCount = parseInt(countHeader2.split("/")[1] || "0") || 0;
-      remaining = FREE_IMAGE_LIMIT - newCount;
-    }
+    console.log(`[IMG] ✅ ${usedModel} plan=${plan} bal:${balance}→${newBalance}`);
 
-    console.log(`[NANO-BANANA] Image generated successfully with ${usedModel}${usingFreeCredits ? ` (${remaining} free remaining)` : ""}`);
-
-    return new Response(JSON.stringify({
+    return json({
       image: imageData,
       text: textResponse,
-      freeCredits: usingFreeCredits ? { remaining, limit: FREE_IMAGE_LIMIT } : null,
+      credits: usingOwnKey ? null : { balance: newBalance, cost: CREDIT_COST },
       backend: usedModel,
-    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      plan,
+    });
 
   } catch (e) {
-    console.error("[NANO-BANANA] Error:", e);
-    return new Response(JSON.stringify({ error: "Internal error: " + (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("[IMG] Error:", e);
+    return json({ error: "Erro interno: " + (e as Error).message }, 500);
   }
 });
