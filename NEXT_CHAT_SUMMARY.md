@@ -1,137 +1,151 @@
-# RESUMO PARA PRÓXIMO CHAT — SavvyOwl (28/03/2026)
+# RESUMO PARA PRÓXIMO CHAT — SavvyOwl (29/03/2026)
 
 ## REGRA OBRIGATÓRIA ANTES DE QUALQUER COISA
 ```bash
 git clone https://GH_TOKEN_SEE_ANDERSON@github.com/AndersonTeodoro-hub/SavvyOwl.git
 cd SavvyOwl
 git log --oneline -5
+cat NEXT_CHAT_SUMMARY.md
 ```
 Não escreves código sem ter o repo clonado. Não usas PATCH na Management API com imports externos — dá BOOT_ERROR.
 
 ---
 
-## ESTADO REAL (confirmado ao vivo hoje)
+## ESTADO REAL (confirmado ao vivo 29/03/2026)
 
-### Edge Functions — todas a funcionar ✅
+### Edge Functions — todas a funcionar ✅ (todas com verify_jwt=false)
 | Função | Status | Notas |
 |--------|--------|-------|
 | chat | ✅ 200 | não tocar — deployada via CLI original |
-| character-engine | ✅ 200 | não tocar — deployada via CLI original |
-| generate-image | ✅ 200 | Deno.serve() + fetch nativo, plan-based models |
-| generate-video | ✅ 200 | fal.ai Veo3 Fast, precisa créditos fal.ai |
+| character-engine | ✅ 200 | RE-DEPLOYED via Management API (skin_texture + ref image pipeline) |
+| generate-image | ✅ 200 | Aceita referenceImageUrl para img2img consistency |
+| generate-video | ✅ 200 | Wan 2.6 + Veo3, modelo auto-selecionado por duração |
 | generate-voice | ✅ 200 | |
-| stripe-checkout | ✅ 200 | fetch nativo — sem SDK Stripe |
-| stripe-webhook | ✅ (400 OPTIONS = correcto) | Stripe chama directamente, sem CORS |
+| stripe-checkout | ✅ 200 | |
+| stripe-webhook | ✅ (400 OPTIONS = correcto) | |
 | youtube-trending | ✅ 200 | |
 | optimize | ✅ 200 | |
+| delete-account | ✅ 200 | |
+| google-auth | ✅ 200 | |
+
+### CRÍTICO: verify_jwt
+- **TODAS as 11 funções têm verify_jwt=false** — desativado via Management API PATCH
+- Razão: Supabase Auth gera JWTs ES256 (novo formato), mas o gateway edge functions com verify_jwt=true só aceita HS256 → causa 401 "Invalid JWT"
+- Cada função que precisa de auth faz validação interna via `/auth/v1/user`
+- Se alguma função nova for deployada, SEMPRE fazer PATCH para verify_jwt=false
 
 ### Regra crítica de deploy
-- Funções com `serve()` do std + `esm.sh` → funcionam (chat, character-engine)
-- Funções com `Deno.serve()` + `fetch` nativo → funcionam (todas as outras)
-- Funções com `npm:` ou `esm.sh` em PATCH via Management API → BOOT_ERROR
-- **Nunca usar PATCH repetido** — corrompe a função. Se falhar, DELETE + POST fresh.
+- Funções com `Deno.serve()` + `fetch` nativo → funcionam (todas)
+- `chat` e `character-engine` foram originalmente deployadas via CLI mas character-engine foi RE-DEPLOYED via Management API (DELETE+POST) nesta sessão
+- **Nunca usar PATCH com body** — corrompe a função. Se falhar, DELETE + POST fresh
+- **PATCH só para verify_jwt**: `PATCH /functions/{slug}` com `{"verify_jwt": false}`
 
 ---
 
-## O QUE FOI FEITO NESTA SESSÃO
+## O QUE FOI FEITO NESTA SESSÃO (29/03/2026)
 
-### ✅ Vertex AI Imagen 3
-- Service Account `savvyowl-vertex` criada no GCP
-- Role "Vertex AI User" atribuído
-- `VERTEX_SERVICE_ACCOUNT_JSON` nos secrets do Supabase
-- `VERTEX_PROJECT_ID` = `gen-lang-client-0464073001`
-- Testado e confirmado: imagem gerada com sucesso via Vertex
+### ✅ Fix 401 Loop — Causa Raiz Real
+- **Problema**: Supabase Auth gera JWTs com algoritmo ES256, edge function gateway com verify_jwt=true rejeita com "Invalid JWT"
+- **Solução**: Desativado verify_jwt em TODAS as 11 functions via Management API PATCH
+- **Confirmado**: character-engine responde HTTP 200 com token real
 
-### ✅ fal.ai (substitui Vertex Veo3 directo — 87% mais barato)
-- Conta criada em fal.ai para empresa SavvyOwl
-- `FAL_API_KEY` nos secrets do Supabase
-- Veo3 Fast: ~€0,80/vídeo (vs €6,00 via Vertex directo)
-- **FALTA: carregar $20 em fal.ai/dashboard/billing** (conta com saldo $0)
+### ✅ Credit Packs na SettingsPage
+- 3 packs (S/M/L) com botões de compra directa no dashboard
+- Pack S: €4.99 / 50 créditos | Pack M: €12.99 / 150 créditos | Pack L: €29.99 / 400 créditos
+- Usa stripe-checkout com action "buy-credits"
 
-### ✅ Sistema de Créditos
-- DB: `credits_balance` e `credits_total_purchased` na tabela `profiles`
-- Tabela `credit_transactions` (audit trail)
-- Default: 10 créditos para novos utilizadores (trigger + coluna DEFAULT 10)
-- Custos: 1 crédito = imagem, 10 créditos = vídeo
-- Plan credits: Free=10, Starter=150, Pro=500
+### ✅ Skin Texture System (Age-Coherent)
+- Novo campo `skin_texture` no `CharacterFace` type
+- Character Engine expansion prompt com 5 age brackets (18-24, 25-34, 35-44, 45-54, 55+)
+- Cada bracket define: pore density, texture zones, fine lines, sun damage, elasticity
+- Injetado no identity block para todas as gerações
+- Negative prompt reforçado com anti-smooth-skin terms
+- Testado: personagem 28 anos gera "T-zone pores, early nasolabial hints, under-eye texture"
 
-### ✅ Stripe — completo
-- Webhook secret: `STRIPE_WEBHOOK_SECRET` nos secrets do Supabase
-- Produtos criados:
-  - Starter €14,99/mês → `price_1TG1KaKg016ceaDVbTqFq1CW`
-  - Pro €34,99/mês → `price_1TG1NMKg016ceaDVQFtsygnH`
-  - Pack S €4,99 (50 créditos) → `price_1TG1OiKg016ceaDVYWhCa8st`
-  - Pack M €12,99 (150 créditos) → `price_1TG1QCKg016ceaDVLsAC6Za1`
-  - Pack L €29,99 (400 créditos) → `price_1TG1RUKg016ceaDVKYrWhI6V`
-- Webhook trata: checkout.session.completed, subscription.updated, subscription.deleted, invoice.paid
-- stripe-checkout usa fetch nativo (sem SDK) — funciona
+### ✅ Reference Frame Pipeline (Fase 1)
+- **Character Engine LOCK** agora auto-gera imagem de referência canónica via Gemini
+- Imagem armazenada em Supabase Storage bucket `character-references` (público)
+- URL salvo em `characters.reference_image_url` (nova coluna)
+- **generate-image**: aceita `referenceImageUrl`, envia ao Gemini como visual anchor (img2img)
+- **generate-video**: aceita `referenceImageUrl`, passa ao fal.ai como image_url
+- **CharacterContext**: carrega e propaga `referenceImageUrl` para todos os componentes
+- **Testado end-to-end**: expand → lock → imagem gerada → stored → HTTP 200 acessível
 
-### ✅ Geração de Imagens — Plan-Based Model Routing
-- Free → `gemini-2.5-flash-image`
-- Starter → `gemini-3.1-flash-image-preview`
-- Pro → `gemini-3-pro-image-preview` (máxima consistência visual)
-- Fallback automático se modelo falhar
+### ✅ Wan 2.6 Video Models
+- 7 modelos no backend: Veo3 (fast/standard), Wan 2.6 (T2V/I2V/R2V, standard/flash), Kling
+- Créditos dinâmicos por modelo (5-15)
+- Frontend simplificado: utilizador escolhe apenas **8s** ou **15s**
+  - 8s → Veo3 Fast (10 créditos)
+  - 15s sem ref → Wan 2.6 T2V Flash (5 créditos)
+  - 15s com ref → Wan 2.6 R2V Flash (7 créditos)
 
-### ✅ Landing Page — Redesign Completo
-- Novo design editorial de luxo (fundo preto, ouro, tipografia Cormorant)
-- Hero com parallax, stats bar, pain section, features, how it works, pricing, FAQ
-- Página `/pricing` dedicada com 3 planos + 3 packs de créditos + FAQ
-- Preços reais: €0 / €14,99 / €34,99
+### ✅ Branding Cleanup
+- Removidas TODAS as referências a AI backends do frontend: Veo3, Wan, Gemini, fal.ai, Midjourney, DALL-E, Leonardo AI, Flux, Runway, HeyGen, Sora, Nano Banana, Kling, NanoBanana
+- Tudo é "SavvyOwl" para o utilizador
+- Nomes internos mantidos no código (não visíveis ao user)
 
-### ✅ Character Engine Pipeline — Integrado em Todo o Lado
-- `GenerateImageButton`: identity block + negative prompt automático
-- `GenerateVideoButton`: identity block antes da direcção de cena
-- `StructuredTemplates`: 6 templates com injeção automática
-- `Chat.tsx → chat edge function`: envia characterBlock, backend tem 6 regras rígidas
+### ✅ Vercel Duplicate Project
+- Identificado `ai-maestro-4jnd` como duplicado (consome build minutes em dobro)
+- Anderson instruído a eliminar via Settings → Delete Project
+- Manter apenas `ai-maestro` (domínio savvyowl.app)
 
-### ✅ Bug Fixes
-- CharactersPage: loop de 401 → 429 → logout resolvido
-  - Causa: getSession() + onAuthStateChange duplicava chamadas com token expirado
-  - Fix: usa `user` do AuthContext (já validado), chama engine.list() uma vez
-- useCharacterEngine: retry agressivo (3x) removido — agora 1 tentativa + 1 refresh
-- SettingsPage: botão Pro adicionado, preços €14,99/€34,99 correctos
-- CharacterSelector: z-index [200] + overflow-y visible no toolbar
+### ✅ fal.ai Créditos
+- Anderson carregou $20 em fal.ai/dashboard/billing
+- Saldo confirmado: $20.00
 
 ---
 
 ## O QUE FALTA (por ordem de prioridade)
 
-### 🔴 URGENTE — fal.ai créditos
-Carregar $20 em https://fal.ai/dashboard/billing
-Sem isto, todos os vídeos falham com "Exhausted balance"
-
-### 🟡 SettingsPage — packs de créditos
-Existe `/pricing` com os packs mas dentro do dashboard não há botão directo para comprar Pack S/M/L.
-Adicionar card com 3 packs + botão checkout na SettingsPage.
+### 🔴 Canal Dark Pipeline Pro
+- Pipeline wizard passo-a-passo: Tema → Títulos → Roteiro → Personagem → Cenário → Cenas → Gerar/Exportar
+- Em discussão: formato (página dedicada vs template no chat)
+- Precisa de decisão do Anderson antes de implementar
 
 ### 🟡 Testar fluxo completo em produção
-Registo → 10 créditos → gerar imagem → crédito descontado → confirmado.
-Nunca foi testado end-to-end em produção.
+- Registo → 10 créditos → gerar imagem → crédito descontado → confirmado
+- Character: expand → lock (ref image auto-generated) → gerar imagem com ref → consistência visual
+- Vídeo: gerar 8s e 15s, confirmar que ambos funcionam
+
+### 🟡 Fase 2 — Multi-angle Reference Pack
+- Gerar 3-4 ângulos canónicos do personagem (frontal, perfil, três-quartos, corpo)
+- Sistema escolhe ângulo adequado por tipo de cena
+
+### 🟡 Fase 3 — Consistency Scoring
+- Comparar imagem gerada com referência via Gemini Vision
+- Auto-regenerar se semelhança for baixa
 
 ### 🟠 Onboarding flow
-Utilizador regista-se → vai directamente para chat. Falta guia de primeiros passos.
-
-### 🟠 img2vid com referência do Character
-A imagem de referência criada no CharactersPage ainda não é usada como ref frame no Veo3.
+- Guia de primeiros passos após registo
 
 ---
 
-## SUPABASE
+## INFRA
+
+### Supabase
 - Project ID: `kumnrldlzttsrgjlsspa`
 - URL: `https://kumnrldlzttsrgjlsspa.supabase.co`
-- Região: EU West
+- Região: EU West (Ireland)
+- Storage: buckets `chat-images` (private), `character-references` (public)
+- DB: `characters.reference_image_url` column adicionada
 
-## GIT
+### Git
 - Repo: `https://github.com/AndersonTeodoro-hub/SavvyOwl`
 - Branch: main
-- Último commit: `ba40fab` — fix: CharactersPage auth loop
+- Último commit: `04a710f` — brand: remove all AI backend names
 
-## LIVE APP
+### Live App
 - URL: `https://savvyowl.app`
 - Deploy: Vercel auto-deploy no push para main
+- Projeto Vercel: `ai-maestro` (eliminar `ai-maestro-4jnd`)
 
-## NEGÓCIO
-- Produto: plataforma UGC com IA, diferenciador = Character Engine (consistência visual)
-- Público: social media managers, UGC creators, agências
-- Fundador: Anderson Teodoro (Lisbon, PT)
-- Língua principal: Português (PT/BR)
+### Tokens (Anderson fornece no início de cada sessão)
+- GitHub, Supabase Management API token
+- APIs (Google, Anthropic, Stripe, fal.ai) nos secrets do Supabase
+
+### Key Management API patterns
+- Function deploy: DELETE then POST to `https://api.supabase.com/v1/projects/{project}/functions`
+- verify_jwt patch: PATCH same endpoint with `{"verify_jwt": false}`
+- Schema changes: POST to `https://api.supabase.com/v1/projects/{project}/database/query`
+- Storage: bucket `character-references` (public)
+- JWT for OAuth users: POST `/auth/v1/admin/generate_link` → curl action_link → extract access_token
