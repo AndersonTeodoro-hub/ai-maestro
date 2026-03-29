@@ -92,7 +92,7 @@ export function GenerateVideoButton({ prompt }: Props) {
         return;
       }
 
-      const { requestId, modelEndpoint } = data;
+      const { requestId, statusUrl, responseUrl } = data;
       if (data.credits) setCredits(data.credits);
       setProgress(`A gerar vídeo de ${duration}s (pode demorar 1-3 min)...`);
 
@@ -106,7 +106,7 @@ export function GenerateVideoButton({ prompt }: Props) {
         const pollResp = await fetch(baseUrl, {
           method: "POST",
           headers,
-          body: JSON.stringify({ action: "poll", requestId, modelEndpoint }),
+          body: JSON.stringify({ action: "poll", requestId, statusUrl, responseUrl }),
         });
         const pollData = await pollResp.json();
 

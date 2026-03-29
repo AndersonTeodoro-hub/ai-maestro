@@ -35,19 +35,25 @@ Deno.serve(async (req) => {
     const { prompt, aspectRatio, duration, model, referenceImageUrl, narrationUrl, action, requestId: pollRequestId, modelEndpoint: pollEndpoint } = body;
 
     // ── POLL ACTION — frontend polls for result ──
-    if (action === "poll" && pollRequestId && pollEndpoint) {
-      const statusResp = await fetch(
-        `https://queue.fal.run/${pollEndpoint}/requests/${pollRequestId}/status`,
-        { headers: { Authorization: `Key ${falApiKey}` } }
-      );
+    if (action === "poll" && pollRequestId) {
+      // Use the stored URLs from submit, or construct from base path
+      const statusUrl = body.statusUrl;
+      const responseUrl = body.responseUrl;
+      
+      if (!statusUrl || !responseUrl) {
+        return json({ status: "FAILED", error: "Missing statusUrl/responseUrl" });
+      }
+
+      const statusResp = await fetch(statusUrl, {
+        headers: { Authorization: `Key ${falApiKey}` },
+      });
       if (!statusResp.ok) return json({ status: "PENDING" });
       const status = await statusResp.json();
 
       if (status.status === "COMPLETED") {
-        const resultResp = await fetch(
-          `https://queue.fal.run/${pollEndpoint}/requests/${pollRequestId}`,
-          { headers: { Authorization: `Key ${falApiKey}` } }
-        );
+        const resultResp = await fetch(responseUrl, {
+          headers: { Authorization: `Key ${falApiKey}` },
+        });
         const result = await resultResp.json();
         const videoUrl = result.video?.url || result.video_url || result.output?.video?.url;
         return json({ status: "COMPLETED", videoUrl });
@@ -152,11 +158,13 @@ Deno.serve(async (req) => {
 
     console.log(`[FAL] Submitted ${requestId} | ${balance} → ${newBalance}`);
 
-    // Return immediately with request_id — frontend will poll
+    // Return immediately with request_id + fal URLs — frontend will poll
     return json({
       status: "SUBMITTED",
       requestId,
       modelEndpoint,
+      statusUrl: submitData.status_url,
+      responseUrl: submitData.response_url,
       credits: { balance: newBalance, cost: CREDIT_COST },
     });
 

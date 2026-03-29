@@ -531,7 +531,7 @@ Sem texto adicional fora deste formato.`,
       if (submitData.error) throw new Error(submitData.error);
       if (submitData.status !== "SUBMITTED") throw new Error("Falha ao submeter");
 
-      const { requestId, modelEndpoint } = submitData;
+      const { requestId, statusUrl, responseUrl } = submitData;
 
       // Step 2: Poll for result (from frontend — no timeout issue)
       const maxWait = 600000; // 10 min max
@@ -545,7 +545,7 @@ Sem texto adicional fora deste formato.`,
         const pollResp = await fetch(baseUrl, {
           method: "POST",
           headers,
-          body: JSON.stringify({ action: "poll", requestId, modelEndpoint }),
+          body: JSON.stringify({ action: "poll", requestId, statusUrl, responseUrl }),
         });
 
         const pollData = await pollResp.json();
