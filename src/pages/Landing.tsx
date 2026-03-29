@@ -335,7 +335,7 @@ export default function Landing() {
               {[
                 { n: "01", title: "Personagem inconsistente", desc: "Cada geração cria um rosto diferente. Os seguidores não se identificam com ninguém." },
                 { n: "02", title: "Vídeos com estética IA", desc: "Perfeito demais para parecer real. Plataformas e utilizadores detetam e ignoram." },
-                { n: "03", title: "Workflow fragmentado", desc: "ChatGPT + MidJourney + CapCut + Runway. Horas gastas, resultado medíocre." },
+                { n: "03", title: "Workflow fragmentado", desc: "Saltas entre 4-5 ferramentas diferentes. Horas gastas, resultado medíocre." },
               ].map(item => (
                 <div key={item.n} style={{ backgroundColor: C.surface, padding: "28px 32px", borderLeft: `2px solid ${C.border}` }}>
                   <span style={{ fontSize: 10, color: C.gold, letterSpacing: "2px" }}>{item.n}</span>

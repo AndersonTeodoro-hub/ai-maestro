@@ -193,10 +193,10 @@ ${hasChar ? "- EVERY prompt (image and video) MUST start with the FULL character
         { key: "style", label: isPT ? "Estilo visual" : "Visual style", placeholder: isPT ? "ex: elegante minimalista, casual urbano" : "e.g., minimalist elegant, urban casual" },
         { key: "setting", label: isPT ? "Cenário" : "Setting", placeholder: isPT ? "ex: escritório em casa, estúdio, café" : "e.g., home office, studio, café" },
         { key: "platform", label: isPT ? "Plataforma" : "Platform", type: "select", options: ["Instagram Reels", "TikTok", "YouTube Shorts", "LinkedIn"], placeholder: "" },
-        { key: "tool", label: isPT ? "Ferramenta" : "Tool", type: "select", options: ["Nano Banana", "Midjourney", "DALL-E", "Leonardo AI", "Flux"], placeholder: "" },
+        { key: "tool", label: isPT ? "Ferramenta" : "Tool", type: "select", options: ["SavvyOwl"], placeholder: "" },
       ],
       buildPrompt: (v) => isPT
-        ? `Cria um prompt profissional ultra-detalhado para gerar a imagem de um influencer UGC no ${v.tool || "Nano Banana"}.
+        ? `Cria um prompt profissional ultra-detalhado para gerar a imagem de um influencer UGC no ${v.tool || "SavvyOwl Image"}.
 
 Detalhes do personagem:
 - Nicho: ${v.niche}
@@ -211,12 +211,12 @@ Preciso de:
 2. VERSÃO CURTA para ferramentas com limite de caracteres
 3. PARÂMETROS TÉCNICOS (proporção, ângulo, iluminação)
 4. 2 VARIAÇÕES com cenários ou moods diferentes (cada uma completa e autónoma, com negative dentro do mesmo bloco)
-5. PRÓXIMOS PASSOS: como usar esta imagem como referência para criar vídeo (Veo3, HeyGen, etc.)
+5. PRÓXIMOS PASSOS: como usar esta imagem como referência para criar vídeo na SavvyOwl
 
 REGRA: O negative prompt vai SEMPRE como última linha dentro do bloco de código do prompt principal. NUNCA como bloco de código separado.
 
 O prompt deve ser para estilo UGC — parecer autêntico, gravado com telemóvel, natural e não comercial.`
-        : `Create an ultra-detailed professional prompt to generate a UGC influencer image in ${v.tool || "Nano Banana"}.
+        : `Create an ultra-detailed professional prompt to generate a UGC influencer image in ${v.tool || "SavvyOwl Image"}.
 
 Character details:
 - Niche: ${v.niche}
@@ -231,7 +231,7 @@ I need:
 2. SHORT VERSION for character-limited tools
 3. TECHNICAL PARAMETERS (ratio, angle, lighting)
 4. 2 VARIATIONS with different settings/moods (each complete and standalone, with negative inside same block)
-5. NEXT STEPS: how to use this image as reference for video (Veo3, HeyGen, etc.)
+5. NEXT STEPS: how to use this image as reference for video in SavvyOwl
 
 RULE: The negative prompt ALWAYS goes as the last line inside the main prompt code block. NEVER as a separate code block.
 
@@ -420,12 +420,12 @@ I need:
 9. 3-EMAIL SEQUENCE to deliver and nurture the lead`,
     },
     {
-      id: "veo3-video",
+      id: "ai-video",
       emoji: "🎥",
-      label: isPT ? "Prompt Vídeo IA (Veo3/Sora)" : "AI Video Prompt (Veo3/Sora)",
+      label: isPT ? "Prompt Vídeo IA" : "AI Video Prompt",
       description: isPT ? "Prompt para gerar vídeo com IA" : "Prompt to generate AI video",
       fields: [
-        { key: "tool", label: isPT ? "Ferramenta" : "Tool", type: "select", options: ["Veo3", "Sora", "Runway", "Kling", "HeyGen"], placeholder: "" },
+        { key: "tool", label: isPT ? "Ferramenta" : "Tool", type: "select", options: ["SavvyOwl Video 8s", "SavvyOwl Video 15s"], placeholder: "" },
         { key: "concept", label: isPT ? "Conceito do vídeo" : "Video concept", placeholder: isPT ? "ex: influencer apresentando produto de skincare" : "e.g., influencer presenting skincare product" },
         { key: "duration", label: isPT ? "Duração" : "Duration", type: "select", options: ["5s", "10s", "15s", "30s"], placeholder: "" },
         { key: "style", label: isPT ? "Estilo" : "Style", type: "select", options: isPT ? ["UGC realista", "Cinematográfico", "Animação", "Produto em destaque", "Lifestyle"] : ["Realistic UGC", "Cinematic", "Animation", "Product showcase", "Lifestyle"], placeholder: "" },
@@ -465,11 +465,11 @@ RULE: The negative prompt ALWAYS goes inside the main prompt code block (line "N
       id: "scene-generator",
       emoji: "🎞️",
       label: isPT ? "Gerador de Cenas (Vídeo Longo)" : "Scene Generator (Long Video)",
-      description: isPT ? "Cenas prontas para Veo3, CapCut, vídeos dark, etc." : "Ready scenes for Veo3, CapCut, dark videos, etc.",
+      description: isPT ? "Cenas prontas para vídeo IA, CapCut, etc." : "Ready scenes for AI video, CapCut, etc.",
       fields: [
-        { key: "tool", label: isPT ? "Ferramenta de vídeo" : "Video tool", type: "select", options: ["Veo3", "Sora", "Runway", "Kling", "CapCut AI", "HeyGen"], placeholder: "" },
+        { key: "tool", label: isPT ? "Ferramenta de vídeo" : "Video tool", type: "select", options: ["SavvyOwl Video 8s", "SavvyOwl Video 15s", "CapCut AI"], placeholder: "" },
         { key: "scenes", label: isPT ? "Nº de cenas" : "Number of scenes", type: "select", options: ["3", "4", "5", "6", "8", "10", "12", "15"], placeholder: "" },
-        { key: "maxDuration", label: isPT ? "Duração máx. por cena" : "Max duration per scene", type: "select", options: ["5s", "8s (Veo3 max)", "10s", "15s", "30s"], placeholder: "" },
+        { key: "maxDuration", label: isPT ? "Duração máx. por cena" : "Max duration per scene", type: "select", options: ["5s", "8s", "10s", "15s", "30s"], placeholder: "" },
         { key: "videoType", label: isPT ? "Tipo de vídeo" : "Video type", type: "select", options: isPT ? ["Influencer UGC", "Vídeo Dark / Narração", "Review de produto", "Tutorial passo a passo", "Storytelling emocional", "Antes e Depois", "Vlog / Day in my life"] : ["UGC Influencer", "Dark Video / Narration", "Product Review", "Step-by-step Tutorial", "Emotional Storytelling", "Before & After", "Vlog / Day in my life"], placeholder: "" },
         { key: "objective", label: isPT ? "Objetivo do vídeo" : "Video objective", placeholder: isPT ? "ex: vender um curso de marketing, apresentar produto de skincare, motivar audiência" : "e.g., sell a marketing course, present skincare product, motivate audience" },
         { key: "voiceover", label: isPT ? "Narração / Voz" : "Narration / Voice", type: "select", options: isPT ? ["Com voz off (narração)", "Personagem a falar", "Sem voz (só música + texto)", "Voz off + texto na tela"] : ["Voiceover (narration)", "Character speaking", "No voice (music + text only)", "Voiceover + text on screen"], placeholder: "" },
@@ -768,8 +768,8 @@ Transform the pasted script into ${v.scenes || "4"} VEO3 scenes (8s each). Each:
         { key: "platform", label: isPT ? "Plataforma" : "Platform", type: "select", options: ["TikTok", "Instagram Reels", "YouTube Shorts", "YouTube"], placeholder: "" },
         { key: "audience", label: isPT ? "Teu público-alvo" : "Your target audience", placeholder: isPT ? "ex: mulheres 25-40 interessadas em skincare" : "e.g., women 25-40 interested in skincare" },
         { key: "brand", label: isPT ? "Teu produto/marca (opcional)" : "Your product/brand (optional)", placeholder: isPT ? "ex: curso online de marketing, loja de roupa, app de meditação" : "e.g., online marketing course, clothing store, meditation app" },
-        { key: "imageTool", label: isPT ? "Ferramenta de imagem" : "Image tool", type: "select", options: ["Nano Banana", "Midjourney", "Leonardo AI", "DALL-E", "Flux"], placeholder: "" },
-        { key: "videoTool", label: isPT ? "Ferramenta de vídeo" : "Video tool", type: "select", options: ["Veo3", "Sora", "Runway", "Kling", "HeyGen"], placeholder: "" },
+        { key: "imageTool", label: isPT ? "Ferramenta de imagem" : "Image tool", type: "select", options: ["SavvyOwl"], placeholder: "" },
+        { key: "videoTool", label: isPT ? "Ferramenta de vídeo" : "Video tool", type: "select", options: ["SavvyOwl Video 8s", "SavvyOwl Video 15s"], placeholder: "" },
         { key: "videoLang", label: isPT ? "Idioma do vídeo" : "Video language", type: "select", options: isPT ? ["Português (BR)", "Português (PT)", "Inglês", "Espanhol"] : ["Portuguese (BR)", "Portuguese (PT)", "English", "Spanish"], placeholder: "" },
       ],
       buildPrompt: (v) => isPT
@@ -847,7 +847,7 @@ STEP 3 — EXECUTION PLAN:
   // Templates que geram cenas/prompts de imagem/vídeo e precisam de identity lock
   const isSceneTemplate = (id: string) => [
     "scene-generator", "dark-channel", "viral-pipeline", "viral-modeling",
-    "veo3-video", "ugc-influencer"
+    "ai-video", "ugc-influencer"
   ].includes(id);
 
   const handleSubmitTemplate = async () => {

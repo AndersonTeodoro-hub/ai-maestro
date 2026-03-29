@@ -552,8 +552,8 @@ export default function CharactersPage() {
                   </div>
                   <p className="text-[10px] text-muted-foreground">
                     {isPT
-                      ? "Use esta imagem como reference frame no Veo3 ou HeyGen para manter consistência visual no vídeo."
-                      : "Use this image as a reference frame in Veo3 or HeyGen to maintain visual consistency in video."}
+                      ? "Esta imagem é a referência canónica do teu personagem. Todas as gerações futuras na SavvyOwl usam-na para manter consistência visual."
+                      : "This is the canonical reference for your character. All future SavvyOwl generations use it for visual consistency."}
                   </p>
                 </div>
               )}
@@ -570,7 +570,7 @@ export default function CharactersPage() {
 
               {d?.nano_banana_prompt && (
                 <PromptBlock
-                  label="Nano Banana — Imagem"
+                  label="SavvyOwl — Imagem"
                   icon={Image}
                   color="#eab308"
                   text={d.negative_prompt

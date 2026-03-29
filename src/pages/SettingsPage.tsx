@@ -392,7 +392,7 @@ export default function SettingsPage() {
             <CardTitle className="text-tracking-tight">{t("settings.apiKeys") || "API Keys (Gerar imagens e videos)"}</CardTitle>
           </div>
           <CardDescription>
-            {t("settings.apiKeysDesc") || "Conecta a tua Google Cloud API Key para gerar imagens (Nano Banana) e videos (Veo3) diretamente na SavvyOwl. A tua key fica guardada apenas no teu browser."}
+            {t("settings.apiKeysDesc") || "Conecta a tua Google Cloud API Key para funcionalidades avançadas de geração na SavvyOwl. A tua key fica guardada apenas no teu browser."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -417,7 +417,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground mt-1.5">
-              {t("settings.apiKeyHint") || "Usada para Nano Banana (imagens) e Veo3 (videos). Ativa a YouTube Data API, Gemini API e Vertex AI no teu projeto Google Cloud."}
+              {t("settings.apiKeyHint") || "Chave opcional para funcionalidades avançadas de geração."}
             </p>
           </div>
           
@@ -436,7 +436,7 @@ export default function SettingsPage() {
             <div className="bg-secondary/30 rounded-lg p-3 text-xs text-muted-foreground space-y-1.5">
               <p className="font-medium text-foreground/70">{t("settings.howToGetKey") || "Como obter a API Key:"}</p>
               <p>1. {t("settings.step1") || "Vai a console.cloud.google.com"}</p>
-              <p>2. {t("settings.step2") || "Ativa as APIs: YouTube Data, Gemini API, Vertex AI"}</p>
+              <p>2. {t("settings.step2") || "Ativa as APIs necessárias no teu projeto"}</p>
               <p>3. {t("settings.step3") || "Vai a Credentials -> Create API Key"}</p>
               <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline mt-1">
                 Google Cloud Console <ExternalLink className="h-3 w-3" />
