@@ -57,10 +57,47 @@ async function callChat(message: string, token: string): Promise<string> {
         Authorization: `Bearer ${token}`,
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
-      body: JSON.stringify({ message, mode: "quick" }),
+      body: JSON.stringify({
+        messages: [{ role: "user", content: message }],
+        mode: "quick",
+      }),
     }
   );
+
+  // The chat function returns SSE stream, not JSON
+  const contentType = resp.headers.get("content-type") || "";
+
+  if (contentType.includes("text/event-stream")) {
+    // Read SSE stream and collect all text chunks
+    const reader = resp.body?.getReader();
+    if (!reader) throw new Error("No response stream");
+    const decoder = new TextDecoder();
+    let fullText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      // Parse SSE lines: data: {"choices":[{"delta":{"content":"text"}}]}
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const text = parsed.choices?.[0]?.delta?.content || "";
+          fullText += text;
+        } catch {
+          // skip non-JSON lines
+        }
+      }
+    }
+    return fullText.trim();
+  }
+
+  // Fallback: regular JSON response (error cases)
   const data = await resp.json();
+  if (data.error) throw new Error(data.error);
   return data.reply || data.message || data.content || JSON.stringify(data);
 }
 
