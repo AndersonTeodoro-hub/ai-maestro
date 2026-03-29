@@ -32,6 +32,7 @@ interface PipelineState {
   script: string;
   characterId: string | null;
   characterName: string | null;
+  characterVoiceId: string | null;
   referenceImageUrl: string | null;
   sceneDuration: 8 | 15;
   sceneCount: number;
@@ -142,6 +143,7 @@ export default function DarkPipelinePage() {
     script: "",
     characterId: null,
     characterName: null,
+    characterVoiceId: null,
     referenceImageUrl: null,
     sceneDuration: 8,
     sceneCount: 5,
@@ -251,7 +253,15 @@ ESTRUTURA OBRIGATÓRIA DO ROTEIRO:
 4. CONCLUSÃO (últimos ~50 palavras):
    Encerramento emocional forte que conecta com o início.
    Inclui o último CTA mais poderoso — o pedido de compartilhamento como missão.
-   Termina com uma frase de impacto que fica na mente do espectador.`,
+   Termina com uma frase de impacto que fica na mente do espectador.
+
+REGRA ABSOLUTA DE OUTPUT:
+- Retorna APENAS o texto de narração. NADA MAIS.
+- SEM título, SEM cabeçalho, SEM "## Roteiro", SEM "---"
+- SEM "Próximos Passos", SEM dicas de produção, SEM sugestões de ferramentas
+- SEM menções a Veo3, Sora, ElevenLabs, Gemini, CapCut ou qualquer ferramenta
+- SEM prompts de vídeo, SEM exemplos de cena, SEM markdown
+- O output deve ser EXCLUSIVAMENTE o texto que será narrado em voz alta, do início ao fim, sem mais nada.`,
         token
       );
       setPipeline((p) => ({ ...p, script: reply }));
@@ -272,12 +282,16 @@ ESTRUTURA OBRIGATÓRIA DO ROTEIRO:
     setNarrationStorageUrl(null);
 
     try {
+      // Priority: 1) Character voice ID → 2) Global ElevenLabs → 3) TTS
+      const hasCharVoice = !!pipeline.characterVoiceId && elevenLabs.hasKey;
+      const useEL = hasCharVoice || useElevenLabsVoice;
+
       const voiceBody: any = {
         text: pipeline.script,
-        voiceId: useElevenLabsVoice ? elevenLabs.voiceId : selectedTtsVoice.id,
-        provider: useElevenLabsVoice ? "elevenlabs" : "gemini",
+        voiceId: hasCharVoice ? pipeline.characterVoiceId : (useElevenLabsVoice ? elevenLabs.voiceId : selectedTtsVoice.id),
+        provider: useEL ? "elevenlabs" : "gemini",
       };
-      if (useElevenLabsVoice) voiceBody.elevenLabsKey = elevenLabs.apiKey;
+      if (useEL) voiceBody.elevenLabsKey = elevenLabs.apiKey;
 
       const { data, error: fnError } = await supabase.functions.invoke("generate-voice", { body: voiceBody });
       if (fnError) throw new Error(fnError.message);
@@ -495,13 +509,26 @@ Sem texto adicional fora deste formato.`,
   };
 
   // ── Character selection ──
-  const handleSelectCharacter = (charId: string, charName: string) => {
+  const handleSelectCharacter = async (charId: string, charName: string) => {
     selectCharacter(charId);
     const char = characters.find((c) => c.id === charId);
+
+    // Fetch voice ID from DB (not in context yet)
+    let voiceId: string | null = null;
+    try {
+      const { data } = await supabase
+        .from("characters")
+        .select("elevenlabs_voice_id")
+        .eq("id", charId)
+        .single();
+      voiceId = data?.elevenlabs_voice_id || null;
+    } catch { /* ignore */ }
+
     setPipeline((p) => ({
       ...p,
       characterId: charId,
       characterName: charName,
+      characterVoiceId: voiceId,
       referenceImageUrl: char?.referenceImageUrl || null,
     }));
   };
@@ -655,95 +682,11 @@ Sem texto adicional fora deste formato.`,
                 </Button>
               </div>
 
-              {/* ── VOICE GENERATION ── */}
-              <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Mic className="h-4 w-4 text-orange-400" />
-                  <p className="text-sm font-semibold text-foreground">Gerar Narração</p>
-                  {useElevenLabsVoice && (
-                    <span className="text-[9px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full font-medium">
-                      {elevenLabs.voiceName} · ElevenLabs
-                    </span>
-                  )}
-                </div>
-
-                {/* Voice selector (TTS only, ElevenLabs uses saved voice) */}
-                {!useElevenLabsVoice && (
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-1">Voz da narração</p>
-                    <div className="flex gap-1 flex-wrap">
-                      {TTS_VOICES.map((v) => (
-                        <button
-                          key={v.id}
-                          onClick={() => {
-                            setSelectedTtsVoice(v);
-                            localStorage.setItem("savvyowl_tts_voice", JSON.stringify(v));
-                          }}
-                          className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
-                            selectedTtsVoice.id === v.id
-                              ? "bg-orange-500 text-white"
-                              : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-                          }`}
-                        >
-                          {v.name.split(" (")[0]}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[9px] text-muted-foreground mt-1.5">
-                      Para voz personalizada consistente, configura o ElevenLabs nas <button onClick={() => navigate("/dashboard/settings")} className="text-orange-400 underline">Definições</button>
-                    </p>
-                  </div>
-                )}
-
-                {/* Generate button */}
-                {!voiceUrl && (
-                  <Button
-                    onClick={handleGenerateVoice}
-                    disabled={voiceLoading || !pipeline.script.trim()}
-                    size="sm"
-                    className="gap-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white"
-                  >
-                    {voiceLoading ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" />A gerar narração...</>
-                    ) : (
-                      <><Mic className="h-3 w-3" />Gerar Narração{useElevenLabsVoice ? ` (${elevenLabs.voiceName})` : ` (${selectedTtsVoice.name.split(" (")[0]})`}</>
-                    )}
-                  </Button>
-                )}
-
-                {voiceError && <p className="text-[10px] text-destructive">{voiceError}</p>}
-
-                {/* Audio player */}
-                {voiceUrl && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-orange-500/10 border border-orange-400/20">
-                      <Volume2 className="h-4 w-4 text-orange-400 shrink-0" />
-                      <audio controls src={voiceUrl} className="flex-1 h-8" />
-                    </div>
-                    <div className="flex gap-2">
-                      <a href={voiceUrl} download={`${pipeline.selectedTitle || "narracao"}-savvyowl.mp3`}>
-                        <Button variant="outline" size="sm" className="gap-1 text-xs text-orange-400 border-orange-400/30">
-                          <Download className="h-3 w-3" />Download MP3
-                        </Button>
-                      </a>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setVoiceUrl(null); setVoiceError(null); }}
-                        className="text-xs text-muted-foreground"
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />Gerar nova
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <Button
                 onClick={() => setStep("character")}
                 className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
               >
-                <ArrowRight className="h-4 w-4" />Escolher Personagem
+                <ArrowRight className="h-4 w-4" />Escolher Personagem & Configurar
               </Button>
             </div>
           )}
@@ -872,6 +815,99 @@ Sem texto adicional fora deste formato.`,
                     {pipeline.sceneCount} cenas × {(pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + (narrationStorageUrl ? 2 : 0)} créd{narrationStorageUrl ? " (inclui lip-sync)" : ""} = vídeo total de ~{pipeline.sceneCount * pipeline.sceneDuration}s
                   </p>
                 </div>
+              </div>
+
+              {/* ── NARRAÇÃO ── */}
+              <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mic className="h-4 w-4 text-orange-400" />
+                  <p className="text-sm font-semibold text-foreground">Gerar Narração</p>
+                  {pipeline.characterVoiceId && (
+                    <span className="text-[9px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded-full font-medium">
+                      Voz do personagem ✓
+                    </span>
+                  )}
+                </div>
+
+                {/* Priority 1: Character has voice ID */}
+                {pipeline.characterVoiceId ? (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2.5 text-xs">
+                    <p className="text-green-700 dark:text-green-400">
+                      <strong>{pipeline.characterName}</strong> tem voz configurada no ElevenLabs. A narração será gerada com a voz do personagem.
+                    </p>
+                  </div>
+                ) : useElevenLabsVoice ? (
+                  /* Priority 2: Global ElevenLabs configured */
+                  <div className="bg-orange-500/10 border border-orange-400/20 rounded-lg p-2.5 text-xs">
+                    <p className="text-orange-700 dark:text-orange-400">
+                      Voz ElevenLabs: <strong>{elevenLabs.voiceName}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  /* Priority 3: TTS voices */
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1">Voz da narração</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {TTS_VOICES.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => {
+                            setSelectedTtsVoice(v);
+                            localStorage.setItem("savvyowl_tts_voice", JSON.stringify(v));
+                          }}
+                          className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                            selectedTtsVoice.id === v.id
+                              ? "bg-orange-500 text-white"
+                              : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                          }`}
+                        >
+                          {v.name.split(" (")[0]}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-muted-foreground mt-1.5">
+                      Para voz personalizada, configura o ElevenLabs nas <button onClick={() => navigate("/dashboard/settings")} className="text-orange-400 underline">Definições</button> ou associa uma voz ao personagem nos <button onClick={() => navigate("/dashboard/characters")} className="text-orange-400 underline">Personagens</button>
+                    </p>
+                  </div>
+                )}
+
+                {/* Generate button */}
+                {!voiceUrl && (
+                  <Button
+                    onClick={handleGenerateVoice}
+                    disabled={voiceLoading || !pipeline.script.trim()}
+                    size="sm"
+                    className="gap-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    {voiceLoading ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" />A gerar narração...</>
+                    ) : (
+                      <><Mic className="h-3 w-3" />Gerar Narração{pipeline.characterVoiceId ? ` (Voz do ${pipeline.characterName})` : useElevenLabsVoice ? ` (${elevenLabs.voiceName})` : ` (${selectedTtsVoice.name.split(" (")[0]})`}</>
+                    )}
+                  </Button>
+                )}
+
+                {voiceError && <p className="text-[10px] text-destructive">{voiceError}</p>}
+
+                {/* Audio player */}
+                {voiceUrl && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-orange-500/10 border border-orange-400/20">
+                      <Volume2 className="h-4 w-4 text-orange-400 shrink-0" />
+                      <audio controls src={voiceUrl} className="flex-1 h-8" />
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={voiceUrl} download={`${pipeline.selectedTitle || "narracao"}-savvyowl.mp3`}>
+                        <Button variant="outline" size="sm" className="gap-1 text-xs text-orange-400 border-orange-400/30">
+                          <Download className="h-3 w-3" />Download MP3
+                        </Button>
+                      </a>
+                      <Button variant="ghost" size="sm" onClick={() => { setVoiceUrl(null); setVoiceError(null); }} className="text-xs text-muted-foreground">
+                        <RefreshCw className="h-3 w-3 mr-1" />Gerar nova
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Button
