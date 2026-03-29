@@ -517,7 +517,7 @@ Sem texto adicional fora deste formato.`,
           duration: pipeline.sceneDuration,
           model,
           referenceImageUrl: pipeline.referenceImageUrl || undefined,
-          narrationUrl: narrationStorageUrl || undefined,
+          narrationUrl: undefined, // lip-sync disabled — user joins audio in editor
         }),
       });
 
@@ -927,11 +927,11 @@ Sem texto adicional fora deste formato.`,
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Custo estimado:</span>
                     <span className="text-purple-500 font-bold">
-                      {pipeline.sceneCount * ((pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + (narrationStorageUrl ? 2 : 0))} créditos
+                      {pipeline.sceneCount * ((pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + 0)} créditos
                     </span>
                   </div>
                   <p className="text-[9px] text-muted-foreground mt-1">
-                    {pipeline.sceneCount} cenas × {(pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + (narrationStorageUrl ? 2 : 0)} créd{narrationStorageUrl ? " (inclui lip-sync)" : ""} = vídeo total de ~{pipeline.sceneCount * pipeline.sceneDuration}s
+                    {pipeline.sceneCount} cenas × {(pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + 0} créd = vídeo total de ~{pipeline.sceneCount * pipeline.sceneDuration}s
                   </p>
                 </div>
               </div>
@@ -1144,7 +1144,7 @@ Sem texto adicional fora deste formato.`,
                         {scene.generating ? (
                           <><Loader2 className="h-3 w-3 animate-spin" />A gerar...</>
                         ) : (
-                          <><Video className="h-3 w-3" />Gerar Cena {scene.index}{narrationStorageUrl ? " + Voz" : ""} · {(pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + (narrationStorageUrl ? 2 : 0)} créditos</>
+                          <><Video className="h-3 w-3" />Gerar Cena {scene.index} · {(pipeline.sceneDuration <= 8 ? 10 : (pipeline.referenceImageUrl ? 7 : 5)) + 0} créditos</>
                         )}
                       </Button>
                     )}
