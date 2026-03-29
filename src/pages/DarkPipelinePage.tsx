@@ -511,7 +511,7 @@ Sem texto adicional fora deste formato.`,
       };
       const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`;
 
-      const model = pipeline.sceneDuration <= 8 ? "veo3-fast" : (pipeline.referenceImageUrl ? "wan26-i2v-flash" : "wan26-t2v-flash");
+      const model = pipeline.sceneDuration <= 8 ? "veo3-fast" : "wan26-t2v-flash";
 
       // Step 1: Submit job
       const submitResp = await fetch(baseUrl, {
