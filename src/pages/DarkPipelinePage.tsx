@@ -162,7 +162,13 @@ export default function DarkPipelinePage() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved).pipeline;
-        if (parsed?.theme) return parsed;
+        if (parsed?.theme) {
+          // Reset generating flags — polling dies on page reload
+          if (parsed.scenes?.length) {
+            parsed.scenes = parsed.scenes.map((s: any) => ({ ...s, generating: false, error: undefined }));
+          }
+          return parsed;
+        }
       }
     } catch {}
     return {
