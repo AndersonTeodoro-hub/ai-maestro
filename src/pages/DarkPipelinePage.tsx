@@ -105,7 +105,7 @@ async function callChat(message: string, token: string): Promise<string> {
 
 export default function DarkPipelinePage() {
   const { user } = useAuth();
-  const { characters, activeCharacter, selectCharacter, referenceImageUrl } = useCharacter();
+  const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock } = useCharacter();
   const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
 
@@ -430,20 +430,34 @@ REGRA ABSOLUTA DE OUTPUT:
     setLoading(true);
     try {
       const token = await getToken();
-      const charBlock = pipeline.characterName
-        ? `O personagem principal é: ${pipeline.characterName}. Mantém a mesma pessoa em todas as cenas.`
-        : "";
+      // Build character identity for scene prompts
+      const charSection = identityBlock
+        ? `PERSONAGEM PRINCIPAL (usar esta descrição EXACTA em TODOS os prompts de cena):
+"""
+${identityBlock}
+"""
+
+REGRA CRÍTICA: Cada prompt DEVE começar com a descrição física completa deste personagem. Não uses "a man", "a woman", "a person" — usa SEMPRE os detalhes acima (rosto, cabelo, corpo, roupa). O mesmo personagem em todas as cenas.`
+        : pipeline.characterName
+          ? `O personagem principal é: ${pipeline.characterName}. Mantém a mesma pessoa em todas as cenas.`
+          : "";
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${pipeline.sceneCount} cenas visuais para geração de vídeo IA.
 
 ROTEIRO:
 ${pipeline.script}
 
-${charBlock}
+${charSection}
 
 Para cada cena, gera:
 1. Descrição curta da cena (1 frase em PT)
-2. Prompt completo em inglês para geração de vídeo IA (3-5 frases detalhadas, incluindo ambiente, iluminação, câmera, ação)
+2. Prompt completo em inglês para geração de vídeo IA (4-6 frases detalhadas). O prompt DEVE incluir:
+   - Descrição física completa do personagem (copiar os detalhes da identidade acima)
+   - Ambiente e cenário detalhado
+   - Iluminação específica
+   - Movimento de câmera
+   - Acção do personagem na cena
+   - "Photorealistic, shot on iPhone 15 Pro, handheld, available light, UGC aesthetic"
 
 Formato OBRIGATÓRIO (uma cena por bloco):
 CENA 1:
@@ -513,12 +527,17 @@ Sem texto adicional fora deste formato.`,
 
       const model = pipeline.sceneDuration <= 8 ? "veo3-fast" : "wan26-t2v-flash";
 
+      // Build final prompt: identity block + scene prompt for visual consistency
+      const finalPrompt = identityBlock
+        ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
+        : scene.prompt;
+
       // Step 1: Submit job
       const submitResp = await fetch(baseUrl, {
         method: "POST",
         headers,
         body: JSON.stringify({
-          prompt: scene.prompt,
+          prompt: finalPrompt,
           aspectRatio: pipeline.aspectRatio,
           duration: pipeline.sceneDuration,
           model,
