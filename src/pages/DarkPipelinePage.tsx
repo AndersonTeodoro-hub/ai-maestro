@@ -526,16 +526,18 @@ Sem texto adicional fora deste formato.`,
     selectCharacter(charId);
     const char = characters.find((c) => c.id === charId);
 
-    // Fetch voice ID from DB (not in context yet)
+    // Fetch voice ID from DB
     let voiceId: string | null = null;
-    try {
-      const { data } = await supabase
-        .from("characters")
-        .select("elevenlabs_voice_id")
-        .eq("id", charId)
-        .single();
-      voiceId = data?.elevenlabs_voice_id || null;
-    } catch { /* ignore */ }
+    const { data, error } = await supabase
+      .from("characters")
+      .select("elevenlabs_voice_id")
+      .eq("id", charId)
+      .single();
+    
+    if (data?.elevenlabs_voice_id) {
+      voiceId = data.elevenlabs_voice_id;
+      toast.success(`Voz do ${charName} detectada!`);
+    }
 
     setPipeline((p) => ({
       ...p,

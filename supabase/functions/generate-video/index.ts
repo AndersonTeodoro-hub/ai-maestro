@@ -45,9 +45,9 @@ Deno.serve(async (req) => {
     const FAL_MODELS: Record<string, { endpoint: string; credits: number; label: string }> = {
       "veo3-fast":       { endpoint: "fal-ai/veo3/fast",                  credits: 10, label: "Veo3 Fast" },
       "veo3":            { endpoint: "fal-ai/veo3",                       credits: 15, label: "Veo3" },
-      "wan26-t2v-flash": { endpoint: "wan/v2.6/text-to-video/flash",      credits: 5,  label: "Wan 2.6 Flash" },
-      "wan26-t2v":       { endpoint: "wan/v2.6/text-to-video",            credits: 8,  label: "Wan 2.6" },
-      "wan26-i2v-flash": { endpoint: "wan/v2.6/image-to-video/flash",     credits: 5,  label: "Wan 2.6 I2V Flash" },
+      "wan26-t2v-flash": { endpoint: "wan/v2.6/text-to-video",            credits: 5,  label: "Wan 2.6 T2V" },
+      "wan26-t2v":       { endpoint: "wan/v2.6/text-to-video",            credits: 8,  label: "Wan 2.6 T2V" },
+      "wan26-i2v-flash": { endpoint: "wan/v2.6/image-to-video",           credits: 5,  label: "Wan 2.6 I2V" },
       "wan26-i2v":       { endpoint: "wan/v2.6/image-to-video",           credits: 8,  label: "Wan 2.6 I2V" },
       "wan26-r2v-flash": { endpoint: "wan/v2.6/reference-to-video/flash", credits: 7,  label: "Wan 2.6 R2V Flash" },
       "wan26-r2v":       { endpoint: "wan/v2.6/reference-to-video",       credits: 10, label: "Wan 2.6 R2V" },
