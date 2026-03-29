@@ -444,6 +444,10 @@ REGRA CRÍTICA: Cada prompt DEVE começar com a descrição física completa des
         : pipeline.characterName
           ? `O personagem principal é: ${pipeline.characterName}. Mantém a mesma pessoa em todas as cenas.`
           : "";
+      const hasNarrationForScenes = !!narrationStorageUrl || !!voiceUrl;
+      const silentRule = hasNarrationForScenes
+        ? `   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."`
+        : `   - O vídeo DEVE ter áudio nativo: sons ambiente, diálogos em português do Brasil se o personagem falar, sons naturais da cena. O áudio faz parte do vídeo.`;
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${pipeline.sceneCount} cenas visuais para geração de vídeo IA.
 
@@ -461,7 +465,7 @@ Para cada cena, gera:
    - Movimento de câmera
    - Acção do personagem na cena
    - "Photorealistic, shot on iPhone 15 Pro, handheld, available light, UGC aesthetic"
-   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."
+${silentRule}
 
 Formato OBRIGATÓRIO (uma cena por bloco):
 CENA 1:
@@ -533,8 +537,11 @@ Sem texto adicional fora deste formato.`,
       const model = pipeline.sceneDuration <= 8 ? "veo3-fast" : "wan26-t2v-flash";
 
       // Build final prompt: identity block + scene prompt for visual consistency
-      const silentSuffix = model.startsWith("veo3")
-        ? "\n\nNo dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only."
+      // If user generated narration (ElevenLabs/TTS), force silent video — audio comes from narration
+      // If no narration, let the model generate native audio (Veo3 dialogue, ambient sound, etc.)
+      const hasNarration = !!narrationStorageUrl || !!voiceUrl;
+      const silentSuffix = hasNarration && model.startsWith("veo3")
+        ? "\n\nNo dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."
         : "";
       const finalPrompt = identityBlock
         ? `${identityBlock}\n\nSCENE: ${scene.prompt}${silentSuffix}`
