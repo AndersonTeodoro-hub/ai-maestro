@@ -136,10 +136,17 @@ export default function DarkPipelinePage() {
     try {
       const token = await getToken();
       const reply = await callChat(
-        `Gera exatamente 5 títulos para vídeo de canal dark/mistério sobre o tema: "${pipeline.theme}".
+        `Gera exatamente 5 títulos para vídeo sobre o tema: "${pipeline.theme}".
+
 Regras:
 - Títulos em Português
-- Estilo clickbait mas não sensacionalista
+- Analisa o nicho do tema (religioso, mistério, educação, motivação, saúde, finanças, etc.) e adapta o estilo:
+  · Se religioso/espiritual: títulos que evocam fé, proteção, milagre, transformação ("Oração Poderosa que...", "Deus Vai...")
+  · Se dark/mistério: curiosidade profunda, suspense ("O que Realmente Aconteceu...", "A Verdade que Ninguém...")
+  · Se educação/ciência: autoridade + revelação ("Os Cientistas Confirmaram...", "7 Descobertas que...")
+  · Se motivação: transformação pessoal ("Como Eu Saí de...", "O Segredo dos...")
+  · Se outro: adapta o melhor estilo de título viral para esse nicho
+- Títulos com alto poder de clique mas sem mentir
 - Cada título numa linha separada, numerado de 1 a 5
 - Sem explicações adicionais, só os 5 títulos`,
         token
@@ -165,14 +172,59 @@ Regras:
     try {
       const token = await getToken();
       const reply = await callChat(
-        `Escreve um roteiro completo para vídeo de canal dark/mistério com o título: "${pipeline.selectedTitle}".
-Regras:
+        `Escreve um roteiro completo para vídeo com o título: "${pipeline.selectedTitle}".
+Tema original: "${pipeline.theme}"
+
+REGRAS DE ESTRUTURA:
 - Exatamente ${pipeline.wordCount} palavras (pode variar ±10%)
-- Em Português
-- Estilo narração imersiva, tom misterioso
-- Inclui introdução hook, desenvolvimento e conclusão
-- NÃO inclui indicações de cena ou timestamps
-- Apenas o texto de narração puro`,
+- Em Português do Brasil
+- Apenas o texto de narração puro — SEM indicações de cena, SEM timestamps, SEM [corte], SEM (pausa)
+
+ESTRUTURA OBRIGATÓRIA DO ROTEIRO:
+
+1. HOOK (primeiros 5-8 segundos / ~30 palavras):
+   Frase de abertura que PRENDE imediatamente. Deve criar urgência, curiosidade ou emoção forte.
+   Exemplos de padrão: "O que você vai ouvir agora pode mudar...", "Existe algo que poucos sabem sobre...", "Pare tudo o que está fazendo e preste atenção..."
+
+2. DESENVOLVIMENTO (corpo principal):
+   Narração imersiva, envolvente, com ritmo emocional.
+   Adapta o tom ao nicho:
+   · Religioso/Espiritual: tom de autoridade espiritual, conexão com Deus, linguagem de fé e esperança
+   · Dark/Mistério: tom misterioso, suspense, revelações graduais
+   · Educação: tom de autoridade, dados surpreendentes, explicações claras
+   · Motivação: tom inspirador, história de superação, virada emocional
+   · Outro: adapta naturalmente
+
+3. CTAs NATIVOS (distribuídos dentro do roteiro — NÃO no final como bloco separado):
+   Insere 2-3 CTAs ao longo do roteiro de forma NATURAL, como se fosse parte da narração.
+   Os CTAs devem ser adaptados ao nicho:
+   
+   · Se RELIGIOSO: CTAs em forma de missão espiritual / bênção:
+     "Eu quero que você compartilhe esse vídeo com 7 pessoas que precisam dessa oração. Cada uma delas será abençoada, e em nome de Jesus, essas bênçãos retornarão em dobro para sua vida."
+     "Se essa palavra tocou seu coração, se inscreva nesse canal. Deus tem uma mensagem nova para você todos os dias."
+     "Deixe nos comentários 'eu recebo' para que essa oração se manifeste na sua vida."
+   
+   · Se DARK/MISTÉRIO: CTAs em forma de pacto com o espectador:
+     "Se você está acompanhando até aqui, deixe seu like — isso me ajuda a trazer mais histórias como essa."
+     "Compartilhe com alguém que gosta de mistérios — mas cuidado, depois de saber isso, não dá para voltar atrás."
+     "Nos comentários, me diz: você acredita que isso realmente aconteceu?"
+   
+   · Se EDUCAÇÃO: CTAs em forma de comunidade de conhecimento:
+     "Se você aprendeu algo novo, compartilhe com alguém que precisa saber disso."
+     "Inscreva-se para não perder as próximas descobertas que vão mudar sua forma de ver o mundo."
+   
+   · Se MOTIVAÇÃO: CTAs em forma de compromisso pessoal:
+     "Compartilhe esse vídeo com alguém que está passando por um momento difícil. Às vezes uma mensagem muda tudo."
+     "Se inscreva e ative o sininho — nosso compromisso é trazer uma palavra de transformação todos os dias."
+   
+   · Se OUTRO nicho: adapta o CTA ao tema de forma criativa e emocional.
+   
+   REGRA CRÍTICA: Os CTAs NÃO podem parecer genéricos ou robotizados. Devem fluir naturalmente dentro da narração como se fossem parte da história/mensagem. O espectador deve sentir que compartilhar é um ATO DE VALOR, não uma obrigação.
+
+4. CONCLUSÃO (últimos ~50 palavras):
+   Encerramento emocional forte que conecta com o início.
+   Inclui o último CTA mais poderoso — o pedido de compartilhamento como missão.
+   Termina com uma frase de impacto que fica na mente do espectador.`,
         token
       );
       setPipeline((p) => ({ ...p, script: reply }));
@@ -386,12 +438,12 @@ Sem texto adicional fora deste formato.`,
               <div className="text-center mb-6">
                 <Sparkles className="h-10 w-10 text-purple-500 mx-auto mb-3" />
                 <h2 className="text-lg font-bold text-foreground">Define o Tema</h2>
-                <p className="text-xs text-muted-foreground">Qual é o tema do teu vídeo dark?</p>
+                <p className="text-xs text-muted-foreground">Qual é o tema do teu vídeo?</p>
               </div>
               <textarea
                 value={pipeline.theme}
                 onChange={(e) => setPipeline((p) => ({ ...p, theme: e.target.value }))}
-                placeholder="Ex: mistérios do fundo do oceano, casos não resolvidos do FBI, fenómenos inexplicáveis..."
+                placeholder="Ex: oração do salmo 91, mistérios do oceano, 5 hábitos milionários, receita de bolo fitness..."
                 rows={3}
                 className="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
               />
