@@ -1,151 +1,111 @@
-# RESUMO PARA PRÓXIMO CHAT — SavvyOwl (29/03/2026)
+# SavvyOwl — Estado do Projeto (29/03/2026 Final)
 
-## REGRA OBRIGATÓRIA ANTES DE QUALQUER COISA
-```bash
-git clone https://GH_TOKEN_SEE_ANDERSON@github.com/AndersonTeodoro-hub/SavvyOwl.git
-cd SavvyOwl
-git log --oneline -5
-cat NEXT_CHAT_SUMMARY.md
-```
-Não escreves código sem ter o repo clonado. Não usas PATCH na Management API com imports externos — dá BOOT_ERROR.
+## PROBLEMAS CRÍTICOS POR RESOLVER
 
----
+### 1. Character Engine NÃO está a ser usado na geração de vídeo
+- O personagem (Pastor Gabriel Mendonça) foi criado e expandido no Character Engine
+- Tem reference_image_url guardado no DB
+- MAS o generate-video NÃO envia a identidade do personagem no prompt
+- O Wan 2.6 T2V gera pessoas aleatórias que não se parecem com o pastor criado
+- **Fix necessário:** O prompt enviado ao fal.ai precisa incluir a descrição completa do personagem (do expanded JSON) + a reference image
 
-## ESTADO REAL (confirmado ao vivo 29/03/2026)
+### 2. Vídeo gerado em inglês (prompt está em inglês)
+- O roteiro é em português do Brasil
+- Mas os prompts de cena gerados pelo Claude são em inglês
+- O Wan 2.6 interpreta o prompt em inglês e gera áudio/texto em inglês
+- **Fix necessário:** Os prompts de cena devem ser em português OU desactivar áudio nativo do Wan 2.6
 
-### Edge Functions — todas a funcionar ✅ (todas com verify_jwt=false)
-| Função | Status | Notas |
-|--------|--------|-------|
-| chat | ✅ 200 | não tocar — deployada via CLI original |
-| character-engine | ✅ 200 | RE-DEPLOYED via Management API (skin_texture + ref image pipeline) |
-| generate-image | ✅ 200 | Aceita referenceImageUrl para img2img consistency |
-| generate-video | ✅ 200 | Wan 2.6 + Veo3, modelo auto-selecionado por duração |
-| generate-voice | ✅ 200 | |
-| stripe-checkout | ✅ 200 | |
-| stripe-webhook | ✅ (400 OPTIONS = correcto) | |
-| youtube-trending | ✅ 200 | |
-| optimize | ✅ 200 | |
-| delete-account | ✅ 200 | |
-| google-auth | ✅ 200 | |
+### 3. Cenário não corresponde ao prompt
+- Os prompts de cena descrevem cenários específicos mas o vídeo gerado não corresponde
+- Prompts de cena são muito curtos/genéricos — precisam de ser mais detalhados
 
-### CRÍTICO: verify_jwt
-- **TODAS as 11 funções têm verify_jwt=false** — desativado via Management API PATCH
-- Razão: Supabase Auth gera JWTs ES256 (novo formato), mas o gateway edge functions com verify_jwt=true só aceita HS256 → causa 401 "Invalid JWT"
-- Cada função que precisa de auth faz validação interna via `/auth/v1/user`
-- Se alguma função nova for deployada, SEMPRE fazer PATCH para verify_jwt=false
+### 4. Formato do vídeo pode não corresponder ao selecionado
+- Precisa de verificar se aspect_ratio está a ser passado correctamente ao fal.ai
 
-### Regra crítica de deploy
-- Funções com `Deno.serve()` + `fetch` nativo → funcionam (todas)
-- `chat` e `character-engine` foram originalmente deployadas via CLI mas character-engine foi RE-DEPLOYED via Management API (DELETE+POST) nesta sessão
-- **Nunca usar PATCH com body** — corrompe a função. Se falhar, DELETE + POST fresh
-- **PATCH só para verify_jwt**: `PATCH /functions/{slug}` com `{"verify_jwt": false}`
+### 5. Cena 2 mostra "7 créditos" quando T2V devia ser 5
+- A lógica de custo pode estar errada — verificar modelo selecionado
 
----
+## O QUE FUNCIONA (CONFIRMADO)
 
-## O QUE FOI FEITO NESTA SESSÃO (29/03/2026)
+### Geração de vídeo — submit+poll architecture
+- **CONFIRMADO**: O submit+poll funciona. Teste real gerou vídeo em 70 segundos
+- URL de teste: https://v3b.fal.media/files/b/0a9427fa/9UBfl94DFECDy31Bd2c47_dxqK85bK.mp4
+- **ROOT CAUSE do problema anterior**: O URL de polling estava errado
+  - Código usava: `queue.fal.run/{model}/requests/{id}/status` → HTTP 405
+  - Correcto: usar `status_url` e `response_url` retornados pelo fal.ai no submit
+- Edge function `generate-video` agora retorna `statusUrl` e `responseUrl` no submit
+- Frontend (DarkPipelinePage + GenerateVideoButton) faz polling com esses URLs
 
-### ✅ Fix 401 Loop — Causa Raiz Real
-- **Problema**: Supabase Auth gera JWTs com algoritmo ES256, edge function gateway com verify_jwt=true rejeita com "Invalid JWT"
-- **Solução**: Desativado verify_jwt em TODAS as 11 functions via Management API PATCH
-- **Confirmado**: character-engine responde HTTP 200 com token real
+### Narração com ElevenLabs
+- Character voice ID é detectado quando personagem é selecionado
+- Narração gerada com a voz do personagem (ElevenLabs)
+- Duração do áudio capturada → scene count auto-calculado
 
-### ✅ Credit Packs na SettingsPage
-- 3 packs (S/M/L) com botões de compra directa no dashboard
-- Pack S: €4.99 / 50 créditos | Pack M: €12.99 / 150 créditos | Pack L: €29.99 / 400 créditos
-- Usa stripe-checkout com action "buy-credits"
+### Estado persiste com F5
+- Pipeline state guardado em localStorage
+- Botão "Novo Projeto" para limpar
 
-### ✅ Skin Texture System (Age-Coherent)
-- Novo campo `skin_texture` no `CharacterFace` type
-- Character Engine expansion prompt com 5 age brackets (18-24, 25-34, 35-44, 45-54, 55+)
-- Cada bracket define: pore density, texture zones, fine lines, sun damage, elasticity
-- Injetado no identity block para todas as gerações
-- Negative prompt reforçado com anti-smooth-skin terms
-- Testado: personagem 28 anos gera "T-zone pores, early nasolabial hints, under-eye texture"
+### Voice prompt generator
+- Gera prompt limpo para ElevenLabs Voice Design (<500 chars)
+- Instruções separadas do prompt
+- URL corrigido: elevenlabs.io/app/voice-design
 
-### ✅ Reference Frame Pipeline (Fase 1)
-- **Character Engine LOCK** agora auto-gera imagem de referência canónica via Gemini
-- Imagem armazenada em Supabase Storage bucket `character-references` (público)
-- URL salvo em `characters.reference_image_url` (nova coluna)
-- **generate-image**: aceita `referenceImageUrl`, envia ao Gemini como visual anchor (img2img)
-- **generate-video**: aceita `referenceImageUrl`, passa ao fal.ai como image_url
-- **CharacterContext**: carrega e propaga `referenceImageUrl` para todos os componentes
-- **Testado end-to-end**: expand → lock → imagem gerada → stored → HTTP 200 acessível
+## STACK TÉCNICA
 
-### ✅ Wan 2.6 Video Models
-- 7 modelos no backend: Veo3 (fast/standard), Wan 2.6 (T2V/I2V/R2V, standard/flash), Kling
-- Créditos dinâmicos por modelo (5-15)
-- Frontend simplificado: utilizador escolhe apenas **8s** ou **15s**
-  - 8s → Veo3 Fast (10 créditos)
-  - 15s sem ref → Wan 2.6 T2V Flash (5 créditos)
-  - 15s com ref → Wan 2.6 R2V Flash (7 créditos)
+- **Frontend**: React/TypeScript + Vite, Vercel (savvyowl.app), auto-deploy on push
+- **Backend**: Supabase project `kumnrldlzttsrgjlsspa` (EU West Ireland)
+- **AI Video**: fal.ai — Wan 2.6 T2V (`wan/v2.6/text-to-video`), Veo3 Fast (`fal-ai/veo3/fast`)
+- **AI Image**: Google Gemini
+- **AI Voice**: ElevenLabs (user API key) + Google TTS (built-in)
+- **AI Text**: Anthropic Claude (character expansion, script, scene prompts)
+- **Payments**: Stripe live (Starter €14.99/mo, Pro €34.99/mo, Packs S/M/L)
+- **Repo**: https://github.com/AndersonTeodoro-hub/SavvyOwl
 
-### ✅ Branding Cleanup
-- Removidas TODAS as referências a AI backends do frontend: Veo3, Wan, Gemini, fal.ai, Midjourney, DALL-E, Leonardo AI, Flux, Runway, HeyGen, Sora, Nano Banana, Kling, NanoBanana
-- Tudo é "SavvyOwl" para o utilizador
-- Nomes internos mantidos no código (não visíveis ao user)
+## CREDENCIAIS E TOKENS
 
-### ✅ Vercel Duplicate Project
-- Identificado `ai-maestro-4jnd` como duplicado (consome build minutes em dobro)
-- Anderson instruído a eliminar via Settings → Delete Project
-- Manter apenas `ai-maestro` (domínio savvyowl.app)
+- **Supabase Project**: kumnrldlzttsrgjlsspa
+- **Supabase Management API**: sbp_57db5a474a9a9f6a462dd4e144ab8a61e02751fa
+- **Anderson User ID**: 2652f4ca-8413-4ce9-bfed-07c0be76b987 (anderson.lteodoro1@gmail.com, plan: starter)
+- **Test User**: 620cddf1-bb09-4e65-a469-c1630853453c (andersonteodoroddn@gmail.com, plan: free)
+- **fal.ai key**: stored in Supabase secrets as FAL_API_KEY (69 chars, starts with f43e5187)
+- **Créditos Anderson**: 150 (restaurados após testes falhados)
 
-### ✅ fal.ai Créditos
-- Anderson carregou $20 em fal.ai/dashboard/billing
-- Saldo confirmado: $20.00
+## EDGE FUNCTIONS (11 total, all verify_jwt=false)
 
----
+Deployed via Management API (DELETE+POST pattern):
+- generate-video (submit+poll architecture)
+- generate-image
+- generate-voice
+- character-engine (deployed via CLI originally, re-deployed via API)
+- chat (CLI deployed — DO NOT redeploy via API, has esm.sh imports)
+- stripe-checkout
+- stripe-webhook
+- check-limits
+- check-subscription
+- get-credits
+- init-credits
 
-## O QUE FALTA (por ordem de prioridade)
+## CHAVE DE DECISÕES
 
-### 🔴 Canal Dark Pipeline Pro
-- Pipeline wizard passo-a-passo: Tema → Títulos → Roteiro → Personagem → Cenário → Cenas → Gerar/Exportar
-- Em discussão: formato (página dedicada vs template no chat)
-- Precisa de decisão do Anderson antes de implementar
+- **Lip-sync desativado**: Áudio inteiro de 2-5min não pode ser enviado a cenas de 15s. Precisa de audio splitting (FFmpeg) por cena. Desactivado por agora — users juntam no CapCut
+- **T2V vs I2V vs R2V**: Usando T2V (sem referência) por enquanto. I2V precisa de image_url (singular). R2V precisa de video_urls + image_urls (arrays) + "Character1" no prompt
+- **Wan 2.6 endpoints**: T2V e I2V NÃO têm variante /flash. Só R2V tem /flash
+- **Polling URLs**: Usar status_url e response_url do submit response do fal.ai (não construir manualmente)
 
-### 🟡 Testar fluxo completo em produção
-- Registo → 10 créditos → gerar imagem → crédito descontado → confirmado
-- Character: expand → lock (ref image auto-generated) → gerar imagem com ref → consistência visual
-- Vídeo: gerar 8s e 15s, confirmar que ambos funcionam
+## PRÓXIMOS PASSOS PRIORITÁRIOS
 
-### 🟡 Fase 2 — Multi-angle Reference Pack
-- Gerar 3-4 ângulos canónicos do personagem (frontal, perfil, três-quartos, corpo)
-- Sistema escolhe ângulo adequado por tipo de cena
+1. **CRÍTICO**: Injectar identidade do personagem nos prompts de cena — sem isto o Character Engine é inútil
+2. **CRÍTICO**: Prompts de cena em português (ou desactivar áudio nativo do Wan 2.6)
+3. **IMPORTANTE**: Testar I2V com reference image para consistência visual
+4. **IMPORTANTE**: Melhorar qualidade dos prompts de cena (mais detalhados, cinematográficos)
+5. **FUTURO**: Audio splitting para lip-sync por cena
+6. **FUTURO**: Remotion para montagem final automática
 
-### 🟡 Fase 3 — Consistency Scoring
-- Comparar imagem gerada com referência via Gemini Vision
-- Auto-regenerar se semelhança for baixa
+## PADRÕES TÉCNICOS
 
-### 🟠 Onboarding flow
-- Guia de primeiros passos após registo
-
----
-
-## INFRA
-
-### Supabase
-- Project ID: `kumnrldlzttsrgjlsspa`
-- URL: `https://kumnrldlzttsrgjlsspa.supabase.co`
-- Região: EU West (Ireland)
-- Storage: buckets `chat-images` (private), `character-references` (public)
-- DB: `characters.reference_image_url` column adicionada
-
-### Git
-- Repo: `https://github.com/AndersonTeodoro-hub/SavvyOwl`
-- Branch: main
-- Último commit: `04a710f` — brand: remove all AI backend names
-
-### Live App
-- URL: `https://savvyowl.app`
-- Deploy: Vercel auto-deploy no push para main
-- Projeto Vercel: `ai-maestro` (eliminar `ai-maestro-4jnd`)
-
-### Tokens (Anderson fornece no início de cada sessão)
-- GitHub, Supabase Management API token
-- APIs (Google, Anthropic, Stripe, fal.ai) nos secrets do Supabase
-
-### Key Management API patterns
-- Function deploy: DELETE then POST to `https://api.supabase.com/v1/projects/{project}/functions`
-- verify_jwt patch: PATCH same endpoint with `{"verify_jwt": false}`
-- Schema changes: POST to `https://api.supabase.com/v1/projects/{project}/database/query`
-- Storage: bucket `character-references` (public)
-- JWT for OAuth users: POST `/auth/v1/admin/generate_link` → curl action_link → extract access_token
+- Edge function deploy: DELETE + POST to Management API
+- verify_jwt: PATCH separately with {"verify_jwt": false}
+- Auth pattern: Use `user` from AuthContext, not getSession()
+- Datacenter IP blocking: Vertex AI with Service Account resolves Google API 403s
+- Diagnosis before solutions: Anderson requires confirmed working before deploying
+- Never write credentials into repo files
