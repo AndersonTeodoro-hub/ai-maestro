@@ -107,7 +107,7 @@ async function callChat(message: string, token: string, characterBlock?: string 
 }
 
 export default function DarkPipelinePage() {
-  const { user } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock } = useCharacter();
   const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
@@ -597,6 +597,7 @@ Sem texto adicional fora deste formato.`,
             ),
           }));
           toast.success(`Cena ${sceneIndex + 1} gerada! (${Math.round(elapsed / 1000)}s)`);
+          refreshProfile(); // Update credits balance in header
           return;
         }
 
@@ -690,6 +691,11 @@ Sem texto adicional fora deste formato.`,
               <RefreshCw className="h-3 w-3 mr-1" />Novo Projeto
             </Button>
           )}
+          {/* Credits balance */}
+          <div className="flex items-center gap-1 bg-purple-500/10 border border-purple-500/20 rounded-full px-2.5 py-1">
+            <Coins className="h-3 w-3 text-purple-500" />
+            <span className="text-[11px] font-bold text-purple-500">{profile?.credits_balance ?? 0}</span>
+          </div>
           {/* Step indicator */}
           <div className="flex items-center gap-1">
             {STEPS.map((s, i) => (
@@ -973,6 +979,12 @@ Sem texto adicional fora deste formato.`,
                     <span className="text-muted-foreground">Custo estimado:</span>
                     <span className="text-purple-500 font-bold">
                       {pipeline.sceneCount * ((pipeline.sceneDuration <= 8 ? 10 : 5))} créditos
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-muted-foreground">Teu saldo:</span>
+                    <span className={`font-bold ${(profile?.credits_balance ?? 0) >= pipeline.sceneCount * (pipeline.sceneDuration <= 8 ? 10 : 5) ? "text-green-500" : "text-destructive"}`}>
+                      {profile?.credits_balance ?? 0} créditos
                     </span>
                   </div>
                   <p className="text-[9px] text-muted-foreground mt-1">
