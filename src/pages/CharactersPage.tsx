@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Users, Plus, ArrowLeft, Lock, Unlock, Trash2, Copy, Check,
   ChevronDown, Loader2, Sparkles, Eye, Pencil, Image, Video,
-  AlertCircle, UserCircle, Download, MessageSquare, Mic, ExternalLink, Save,
+  AlertCircle, UserCircle, Download, MessageSquare, Mic, ExternalLink, Save, RefreshCw,
 } from "lucide-react";
 
 type View = "library" | "create" | "detail";
@@ -207,36 +207,32 @@ export default function CharactersPage() {
     const d = activeChar.expanded as any;
     const voice = d.voice_behavior || {};
     const identity = d.identity || {};
-    const age = identity.age || "adult";
-    const gender = identity.gender || "";
+    const age = identity.age || "30";
+    const gender = identity.gender || "Male";
     const ethnicity = identity.ethnicity_skin || "";
     const voiceQuality = voice.voice_quality || "";
     const emotional = voice.emotional_baseline || "";
-    const mannerisms = voice.mannerisms || "";
 
-    const prompt = `Cria uma voz com as seguintes características no ElevenLabs Voice Design:
+    // Extract key voice attributes
+    const genderEn = gender.toLowerCase().includes("female") ? "Female" : "Male";
+    const ageNum = age.replace(/[^0-9]/g, "") || "30";
 
-PERFIL DO PERSONAGEM: ${d.name || "Personagem"}
-- Género: ${gender}
-- Idade: ${age}
-- Etnia/Aparência: ${ethnicity}
+    // Detect accent from ethnicity
+    let accent = "neutral";
+    const ethLower = (ethnicity || "").toLowerCase();
+    if (ethLower.includes("brazil") || ethLower.includes("portuguese")) accent = "Brazilian Portuguese";
+    else if (ethLower.includes("african") || ethLower.includes("black")) accent = "warm African";
+    else if (ethLower.includes("asian") || ethLower.includes("japanese") || ethLower.includes("chinese")) accent = "East Asian";
+    else if (ethLower.includes("indian") || ethLower.includes("hindi")) accent = "Indian";
+    else if (ethLower.includes("arab") || ethLower.includes("middle east")) accent = "Middle Eastern";
+    else if (ethLower.includes("european") || ethLower.includes("mediterranean")) accent = "Southern European";
+    else if (ethLower.includes("american")) accent = "American";
+    else if (ethLower.includes("british")) accent = "British";
 
-VOZ DESEJADA:
-- Qualidade vocal: ${voiceQuality || "natural, clara, envolvente"}
-- Tom emocional base: ${emotional || "confiante e acessível"}
-- Maneirismos: ${mannerisms || "pausas naturais, ritmo conversacional"}
+    // Build the CLEAN prompt — ONLY what goes into ElevenLabs Voice Design
+    const elevenLabsPrompt = `Perfect audio quality. ${genderEn}, ${ageNum} years old, ${accent} accent. ${voiceQuality || "Natural warm voice with clear articulation"}. ${emotional || "Calm and confident tone"}. Speaks with natural breathing pauses, subtle vocal fry on lower notes, slight pitch variation between sentences. Voice has authentic human micro-imperfections: occasional soft breath intake, natural rhythm changes, never robotic or monotone. Sounds like a real person recorded in a professional studio with a high-end condenser microphone.`;
 
-INSTRUÇÕES PARA O ELEVENLABS:
-1. Vai a elevenlabs.io → Voice Library → Voice Design
-2. Descreve a voz em inglês: "${gender ? (gender.toLowerCase().includes("female") ? "Female" : "Male") : "Male"} voice, ${age}, ${ethnicity ? ethnicity.split(",")[0] : "natural"} accent. ${voiceQuality || "Clear and warm"}. ${emotional || "Confident tone"}. ${mannerisms || "Natural pacing with slight pauses for emphasis"}."
-3. Gera várias amostras e escolhe a que melhor combina com o visual do personagem
-4. Guarda a voz e copia o Voice ID
-5. Cola o Voice ID aqui na SavvyOwl
-
-ALTERNATIVA — Clonar voz existente:
-Se já tens um áudio de referência da voz que queres (mínimo 30 segundos, áudio limpo), podes usar o Voice Cloning do ElevenLabs para criar uma réplica exacta.`;
-
-    setVoicePrompt(prompt);
+    setVoicePrompt(elevenLabsPrompt);
     toast.success(isPT ? "Prompt de voz gerado!" : "Voice prompt generated!");
   };
 
@@ -695,10 +691,27 @@ Se já tens um áudio de referência da voz que queres (mínimo 30 segundos, áu
                         {isPT ? "Gerar Prompt de Voz" : "Generate Voice Prompt"}
                       </Button>
                     ) : (
-                      <div className="space-y-2">
-                        <pre className="p-3 bg-secondary/20 rounded-lg text-[10px] text-foreground/80 whitespace-pre-wrap break-words max-h-[200px] overflow-y-auto border border-border/30">
-                          {voicePrompt}
-                        </pre>
+                      <div className="space-y-3">
+                        {/* Instructions (SavvyOwl UI — not part of the prompt) */}
+                        <div className="bg-secondary/30 rounded-lg p-3 text-[10px] text-muted-foreground space-y-1">
+                          <p className="font-semibold text-foreground/70">{isPT ? "Como criar a voz:" : "How to create the voice:"}</p>
+                          <p>1. {isPT ? "Clica em 'Abrir ElevenLabs' abaixo" : "Click 'Open ElevenLabs' below"}</p>
+                          <p>2. {isPT ? "No ElevenLabs: Voices → My Voices → Add a new voice → Voice Design" : "In ElevenLabs: Voices → My Voices → Add a new voice → Voice Design"}</p>
+                          <p>3. {isPT ? "Cola o prompt abaixo no campo de descrição" : "Paste the prompt below in the description field"}</p>
+                          <p>4. {isPT ? "Clica 'Generate' — gera 3 opções, escolhe a melhor" : "Click 'Generate' — generates 3 options, pick the best"}</p>
+                          <p>5. {isPT ? "Guarda a voz → copia o Voice ID → cola aqui na SavvyOwl" : "Save the voice → copy the Voice ID → paste it here"}</p>
+                        </div>
+
+                        {/* Clean prompt — ONLY this gets copied */}
+                        <div>
+                          <p className="text-[10px] font-semibold text-orange-500 uppercase tracking-wider mb-1">
+                            {isPT ? "Prompt para colar no ElevenLabs:" : "Prompt to paste in ElevenLabs:"}
+                          </p>
+                          <pre className="p-3 bg-orange-500/5 border border-orange-400/20 rounded-lg text-xs text-foreground whitespace-pre-wrap break-words">
+                            {voicePrompt}
+                          </pre>
+                        </div>
+
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -709,7 +722,7 @@ Se já tens um áudio de referência da voz que queres (mínimo 30 segundos, áu
                             <Copy className="h-3 w-3" />Copiar Prompt
                           </Button>
                           <a
-                            href="https://elevenlabs.io/voice-library/voice-design"
+                            href="https://elevenlabs.io/app/voice-design"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -717,6 +730,14 @@ Se já tens um áudio de referência da voz que queres (mínimo 30 segundos, áu
                               <ExternalLink className="h-3 w-3" />Abrir ElevenLabs
                             </Button>
                           </a>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setVoicePrompt(null)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />Regenerar
+                          </Button>
                         </div>
                       </div>
                     )}
