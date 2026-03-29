@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCharacter } from "@/contexts/CharacterContext";
+import { useElevenLabsKey } from "@/hooks/useElevenLabsKey";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, Check, Loader2, Video, Copy,
   Download, Users, Sparkles, FileText, Clapperboard,
-  Film, Image, Clock, Coins, RefreshCw,
+  Film, Image, Clock, Coins, RefreshCw, Mic, Volume2, ChevronDown,
 } from "lucide-react";
 
 type Step = "theme" | "title" | "script" | "character" | "scenes" | "generate";
@@ -104,9 +105,34 @@ async function callChat(message: string, token: string): Promise<string> {
 export default function DarkPipelinePage() {
   const { user } = useAuth();
   const { characters, activeCharacter, selectCharacter, referenceImageUrl } = useCharacter();
+  const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("theme");
   const [loading, setLoading] = useState(false);
+
+  // Voice generation state
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [showVoiceOptions, setShowVoiceOptions] = useState(false);
+  const [selectedTtsVoice, setSelectedTtsVoice] = useState(() => {
+    try {
+      const stored = localStorage.getItem("savvyowl_tts_voice");
+      return stored ? JSON.parse(stored) : { id: "Charon", name: "Charon (Masculino)" };
+    } catch { return { id: "Charon", name: "Charon (Masculino)" }; }
+  });
+
+  const TTS_VOICES = [
+    { id: "Charon", name: "Charon (Masculino, Sério)" },
+    { id: "Gacrux", name: "Gacrux (Masculino, Maduro)" },
+    { id: "Algieba", name: "Algieba (Masculino, Suave)" },
+    { id: "Puck", name: "Puck (Masculino, Animado)" },
+    { id: "Kore", name: "Kore (Feminino, Firme)" },
+    { id: "Zephyr", name: "Zephyr (Feminino, Luminosa)" },
+    { id: "Aoede", name: "Aoede (Feminino, Leve)" },
+  ];
+
+  const useElevenLabsVoice = elevenLabs.hasKey && elevenLabs.hasVoice;
   const [pipeline, setPipeline] = useState<PipelineState>({
     theme: "",
     titles: [],
@@ -233,6 +259,52 @@ ESTRUTURA OBRIGATÓRIA DO ROTEIRO:
       toast.error(e.message || "Erro ao gerar roteiro");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ── Voice generation ──
+  const handleGenerateVoice = async () => {
+    if (!pipeline.script.trim()) return;
+    setVoiceLoading(true);
+    setVoiceError(null);
+    setVoiceUrl(null);
+
+    try {
+      const voiceBody: any = {
+        text: pipeline.script,
+        voiceId: useElevenLabsVoice ? elevenLabs.voiceId : selectedTtsVoice.id,
+        provider: useElevenLabsVoice ? "elevenlabs" : "gemini",
+      };
+      if (useElevenLabsVoice) voiceBody.elevenLabsKey = elevenLabs.apiKey;
+
+      const { data, error: fnError } = await supabase.functions.invoke("generate-voice", { body: voiceBody });
+      if (fnError) throw new Error(fnError.message);
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.audio) {
+        const mimeType = data.mimeType || "audio/mpeg";
+        if (mimeType.includes("L16") || mimeType.includes("pcm")) {
+          const raw = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+          const wavHeader = createWavHeader(raw.length, 24000, 1, 16);
+          const wavData = new Uint8Array(wavHeader.length + raw.length);
+          wavData.set(wavHeader, 0);
+          wavData.set(raw, wavHeader.length);
+          const blob = new Blob([wavData], { type: "audio/wav" });
+          setVoiceUrl(URL.createObjectURL(blob));
+        } else {
+          const byteChars = atob(data.audio);
+          const byteArray = new Uint8Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+          const blob = new Blob([byteArray], { type: mimeType });
+          setVoiceUrl(URL.createObjectURL(blob));
+        }
+        toast.success("Narração gerada!");
+      }
+    } catch (e: any) {
+      setVoiceError(e.message || "Erro ao gerar voz");
+      toast.error("Erro ao gerar narração");
+    } finally {
+      setVoiceLoading(false);
     }
   };
 
@@ -553,6 +625,91 @@ Sem texto adicional fora deste formato.`,
                   <Copy className="h-3 w-3" />Copiar
                 </Button>
               </div>
+
+              {/* ── VOICE GENERATION ── */}
+              <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mic className="h-4 w-4 text-orange-400" />
+                  <p className="text-sm font-semibold text-foreground">Gerar Narração</p>
+                  {useElevenLabsVoice && (
+                    <span className="text-[9px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full font-medium">
+                      {elevenLabs.voiceName} · ElevenLabs
+                    </span>
+                  )}
+                </div>
+
+                {/* Voice selector (TTS only, ElevenLabs uses saved voice) */}
+                {!useElevenLabsVoice && (
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1">Voz da narração</p>
+                    <div className="flex gap-1 flex-wrap">
+                      {TTS_VOICES.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => {
+                            setSelectedTtsVoice(v);
+                            localStorage.setItem("savvyowl_tts_voice", JSON.stringify(v));
+                          }}
+                          className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                            selectedTtsVoice.id === v.id
+                              ? "bg-orange-500 text-white"
+                              : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                          }`}
+                        >
+                          {v.name.split(" (")[0]}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[9px] text-muted-foreground mt-1.5">
+                      Para voz personalizada consistente, configura o ElevenLabs nas <button onClick={() => navigate("/dashboard/settings")} className="text-orange-400 underline">Definições</button>
+                    </p>
+                  </div>
+                )}
+
+                {/* Generate button */}
+                {!voiceUrl && (
+                  <Button
+                    onClick={handleGenerateVoice}
+                    disabled={voiceLoading || !pipeline.script.trim()}
+                    size="sm"
+                    className="gap-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    {voiceLoading ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" />A gerar narração...</>
+                    ) : (
+                      <><Mic className="h-3 w-3" />Gerar Narração{useElevenLabsVoice ? ` (${elevenLabs.voiceName})` : ` (${selectedTtsVoice.name.split(" (")[0]})`}</>
+                    )}
+                  </Button>
+                )}
+
+                {voiceError && <p className="text-[10px] text-destructive">{voiceError}</p>}
+
+                {/* Audio player */}
+                {voiceUrl && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-orange-500/10 border border-orange-400/20">
+                      <Volume2 className="h-4 w-4 text-orange-400 shrink-0" />
+                      <audio controls src={voiceUrl} className="flex-1 h-8" />
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={voiceUrl} download={`${pipeline.selectedTitle || "narracao"}-savvyowl.mp3`}>
+                        <Button variant="outline" size="sm" className="gap-1 text-xs text-orange-400 border-orange-400/30">
+                          <Download className="h-3 w-3" />Download MP3
+                        </Button>
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setVoiceUrl(null); setVoiceError(null); }}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />Gerar nova
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button
                 onClick={() => setStep("character")}
                 className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
@@ -846,4 +1003,24 @@ Sem texto adicional fora deste formato.`,
       </ScrollArea>
     </div>
   );
+}
+
+function createWavHeader(dataLength: number, sampleRate: number, channels: number, bitsPerSample: number): Uint8Array {
+  const header = new ArrayBuffer(44);
+  const view = new DataView(header);
+  const writeString = (offset: number, str: string) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true);
+  view.setUint16(32, channels * bitsPerSample / 8, true);
+  view.setUint16(34, bitsPerSample, true);
+  writeString(36, "data");
+  view.setUint32(40, dataLength, true);
+  return new Uint8Array(header);
 }
