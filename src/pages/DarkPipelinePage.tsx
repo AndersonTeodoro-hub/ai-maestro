@@ -49,7 +49,13 @@ const STEPS: { key: Step; label: string; icon: any }[] = [
   { key: "generate", label: "Gerar", icon: Film },
 ];
 
-async function callChat(message: string, token: string): Promise<string> {
+async function callChat(message: string, token: string, characterBlock?: string | null): Promise<string> {
+  const body: Record<string, unknown> = {
+    messages: [{ role: "user", content: message }],
+    mode: "quick",
+  };
+  if (characterBlock) body.characterBlock = characterBlock;
+
   const resp = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
     {
@@ -59,10 +65,7 @@ async function callChat(message: string, token: string): Promise<string> {
         Authorization: `Bearer ${token}`,
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: message }],
-        mode: "quick",
-      }),
+      body: JSON.stringify(body),
     }
   );
 
@@ -470,7 +473,8 @@ PROMPT: [prompt em inglês]
 
 ...e assim por diante até CENA ${pipeline.sceneCount}.
 Sem texto adicional fora deste formato.`,
-        token
+        token,
+        identityBlock
       );
 
       // Parse scenes
@@ -1114,6 +1118,20 @@ Sem texto adicional fora deste formato.`,
                       className="w-full rounded-lg border border-border/50 bg-secondary/10 px-2 py-1.5 text-[11px] text-foreground focus:outline-none focus:border-purple-400/30 resize-y"
                       placeholder="Edita o prompt se quiseres..."
                     />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const fullPrompt = identityBlock
+                          ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
+                          : scene.prompt;
+                        navigator.clipboard.writeText(fullPrompt);
+                        toast.success(`Prompt da Cena ${scene.index} copiado!`);
+                      }}
+                      className="gap-1 text-[10px] text-muted-foreground hover:text-purple-500"
+                    >
+                      <Copy className="h-3 w-3" />Copiar prompt completo
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -1176,6 +1194,20 @@ Sem texto adicional fora deste formato.`,
                     {scene.error && (
                       <p className="text-[10px] text-destructive mt-1">{scene.error}</p>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const fullPrompt = identityBlock
+                          ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
+                          : scene.prompt;
+                        navigator.clipboard.writeText(fullPrompt);
+                        toast.success(`Prompt da Cena ${scene.index} copiado!`);
+                      }}
+                      className="gap-1 text-[10px] text-muted-foreground hover:text-purple-500 mt-1"
+                    >
+                      <Copy className="h-3 w-3" />Copiar prompt
+                    </Button>
                   </div>
                 </div>
               ))}
