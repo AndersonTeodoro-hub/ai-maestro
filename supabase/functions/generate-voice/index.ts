@@ -65,7 +65,14 @@ Deno.serve(async (req) => {
       });
       if (!resp.ok) { const e = await resp.text(); return new Response(JSON.stringify({ error: "ElevenLabs failed: " + e.substring(0, 200) }), { status: resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }); }
       const buf = await resp.arrayBuffer();
-      return new Response(JSON.stringify({ audio: btoa(String.fromCharCode(...new Uint8Array(buf))), mimeType: "audio/mpeg", provider: "elevenlabs" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Safe base64 encoding for large audio buffers (avoid call stack overflow with spread operator)
+      const bytes = new Uint8Array(buf);
+      let binary = "";
+      const chunkSize = 8192;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunkSize, bytes.length)));
+      }
+      return new Response(JSON.stringify({ audio: btoa(binary), mimeType: "audio/mpeg", provider: "elevenlabs" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Gemini TTS (free)
