@@ -49,10 +49,10 @@ const STEPS: { key: Step; label: string; icon: any }[] = [
   { key: "generate", label: "Gerar", icon: Film },
 ];
 
-async function callChat(message: string, token: string, characterBlock?: string | null): Promise<string> {
+async function callChat(message: string, token: string, characterBlock?: string | null, mode?: string): Promise<string> {
   const body: Record<string, unknown> = {
     messages: [{ role: "user", content: message }],
-    mode: "quick",
+    mode: mode || "quick",
   };
   if (characterBlock) body.characterBlock = characterBlock;
 
@@ -200,6 +200,18 @@ export default function DarkPipelinePage() {
       audioDuration,
     }));
   }, [step, pipeline, narrationStorageUrl, audioDuration]);
+
+  // Re-select character from localStorage after page reload or navigation
+  // Without this, identityBlock is null because activeCharacter resets to null on mount
+  useEffect(() => {
+    if (pipeline.characterId && characters.length > 0 && !activeCharacter) {
+      const found = characters.find((c) => c.id === pipeline.characterId);
+      if (found) {
+        selectCharacter(pipeline.characterId);
+        console.log(`[PIPELINE] Re-selected character "${found.name}" from saved state`);
+      }
+    }
+  }, [pipeline.characterId, characters, activeCharacter, selectCharacter]);
 
   // Reset pipeline (new project)
   const handleNewProject = () => {
@@ -430,6 +442,13 @@ REGRA ABSOLUTA DE OUTPUT:
   // ── STEP 4: Generate scene prompts from script ──
   const handleGenerateScenes = async () => {
     if (!pipeline.script) return;
+
+    // Safety: if character is selected but identityBlock is not loaded yet, warn and abort
+    if (pipeline.characterId && !identityBlock) {
+      toast.error("Personagem selecionado mas identidade não carregada. Tenta selecionar o personagem de novo.");
+      return;
+    }
+
     setLoading(true);
     try {
       const token = await getToken();
@@ -479,7 +498,8 @@ PROMPT: [prompt em inglês]
 ...e assim por diante até CENA ${pipeline.sceneCount}.
 Sem texto adicional fora deste formato.`,
         token,
-        identityBlock
+        identityBlock,
+        identityBlock ? "deep" : "quick" // Claude Sonnet for character identity accuracy, Gemini Flash otherwise
       );
 
       // Parse scenes
