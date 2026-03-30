@@ -454,12 +454,16 @@ REGRA ABSOLUTA DE OUTPUT:
       const token = await getToken();
       // Build character identity for scene prompts
       const charSection = identityBlock
-        ? `PERSONAGEM PRINCIPAL (usar esta descrição EXACTA em TODOS os prompts de cena):
+        ? `PERSONAGEM PRINCIPAL — IDENTIDADE FIXA:
 """
 ${identityBlock}
 """
 
-REGRA CRÍTICA: Cada prompt DEVE começar com a descrição física completa deste personagem. Não uses "a man", "a woman", "a person" — usa SEMPRE os detalhes acima (rosto, cabelo, corpo, roupa). O mesmo personagem em todas as cenas.`
+REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
+- NÃO copies o bloco de identidade inteiro para dentro de cada prompt. O sistema já injeta a identidade automaticamente.
+- Em cada prompt de cena, descreve APENAS: acção, cenário, iluminação, câmera, expressão.
+- Refere o personagem como "The character" ou "He/She" — nunca "a man", "a woman", "a person".
+- Se a cena NÃO tem o personagem (ex: plano de paisagem), indica claramente "No character in this scene".`
         : pipeline.characterName
           ? `O personagem principal é: ${pipeline.characterName}. Mantém a mesma pessoa em todas as cenas.`
           : "";
@@ -477,13 +481,13 @@ ${charSection}
 
 Para cada cena, gera:
 1. Descrição curta da cena (1 frase em PT)
-2. Prompt completo em inglês para geração de vídeo IA (4-6 frases detalhadas). O prompt DEVE incluir:
-   - Descrição física completa do personagem (copiar os detalhes da identidade acima)
+2. Prompt completo em inglês para geração de vídeo IA (3-5 frases). O prompt deve descrever:
+   - O que o personagem FAZ na cena (acção, expressão, gestos)
    - Ambiente e cenário detalhado
    - Iluminação específica
-   - Movimento de câmera
-   - Acção do personagem na cena
+   - Movimento de câmera (close-up, medium shot, wide, etc.)
    - "Photorealistic, shot on iPhone 15 Pro, handheld, available light, UGC aesthetic"
+   - NÃO incluas a descrição física do personagem no prompt (é adicionada automaticamente)
 ${silentRule}
 
 Formato OBRIGATÓRIO (uma cena por bloco):
@@ -502,17 +506,22 @@ Sem texto adicional fora deste formato.`,
         identityBlock ? "deep" : "quick" // Claude Sonnet for character identity accuracy, Gemini Flash otherwise
       );
 
-      // Parse scenes
+      // Parse scenes — split on "CENA N:" pattern, filter only blocks with DESC/PROMPT
       const sceneBlocks = reply.split(/CENA\s*\d+\s*:/i).filter((b) => b.trim());
-      const scenes: SceneData[] = sceneBlocks.slice(0, pipeline.sceneCount).map((block, i) => {
+      const scenes: SceneData[] = [];
+      for (const block of sceneBlocks) {
         const descMatch = block.match(/DESC:\s*(.+?)(?=PROMPT:|$)/si);
-        const promptMatch = block.match(/PROMPT:\s*(.+)/si);
-        return {
-          index: i + 1,
-          description: descMatch?.[1]?.trim() || `Cena ${i + 1}`,
-          prompt: promptMatch?.[1]?.trim() || block.trim(),
-        };
-      });
+        const promptMatch = block.match(/PROMPT:\s*([\s\S]+?)(?=CENA\s*\d+|$)/si);
+        // Only accept blocks that have both DESC and PROMPT
+        if (descMatch && promptMatch) {
+          scenes.push({
+            index: scenes.length + 1,
+            description: descMatch[1].trim(),
+            prompt: promptMatch[1].trim().replace(/\n{3,}/g, "\n\n"), // clean excessive newlines
+          });
+        }
+        if (scenes.length >= pipeline.sceneCount) break;
+      }
 
       // Fill if we got fewer than expected
       while (scenes.length < pipeline.sceneCount) {
@@ -571,17 +580,28 @@ Sem texto adicional fora deste formato.`,
         ? "\n\nNo dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."
         : "";
 
+      // Check if scene prompt already contains identity block (from Claude's output)
+      const promptAlreadyHasIdentity = scene.prompt.includes("FIXED CHARACTER") || scene.prompt.includes("same person in every frame");
+
       let finalPrompt: string;
       if (model.startsWith("wan26")) {
-        // Wan 2.6 T2V: dense prose identity block optimized for text-only video generation
-        finalPrompt = wanT2VBlock
-          ? `${wanT2VBlock} SCENE: ${scene.prompt}`
-          : `${scene.prompt}`;
+        // Wan 2.6 T2V: dense prose identity + scene action
+        if (promptAlreadyHasIdentity) {
+          finalPrompt = scene.prompt;
+        } else {
+          finalPrompt = wanT2VBlock
+            ? `${wanT2VBlock} SCENE: ${scene.prompt}`
+            : scene.prompt;
+        }
       } else {
-        // Veo3: structured identity block (or scene-only if no character)
-        finalPrompt = identityBlock
-          ? `${identityBlock}\n\nSCENE: ${scene.prompt}${silentSuffix}`
-          : `${scene.prompt}${silentSuffix}`;
+        // Veo3: identity block + scene (only prepend if not already present)
+        if (promptAlreadyHasIdentity) {
+          finalPrompt = `${scene.prompt}${silentSuffix}`;
+        } else {
+          finalPrompt = identityBlock
+            ? `${identityBlock}\n\nSCENE: ${scene.prompt}${silentSuffix}`
+            : `${scene.prompt}${silentSuffix}`;
+        }
       }
 
       // Step 1: Submit job
