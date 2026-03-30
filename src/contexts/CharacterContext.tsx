@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { buildCharacterIdentityBlock, buildNegativePrompt } from "@/lib/character-engine/generation";
+import { buildCharacterIdentityBlock, buildNegativePrompt, buildWanT2VIdentity } from "@/lib/character-engine/generation";
 import type { ExpandedCharacter } from "@/types/character";
 
 interface CharacterData {
@@ -17,8 +17,10 @@ interface CharacterContextType {
   characters: CharacterData[];
   /** Currently active character (selected) */
   activeCharacter: CharacterData | null;
-  /** The identity block text for the active character */
+  /** The identity block text for the active character (Veo3/general) */
   identityBlock: string | null;
+  /** Dense prose identity optimized for Wan 2.6 T2V (no image, text-only consistency) */
+  wanT2VBlock: string | null;
   /** The negative prompt for the active character */
   negativePrompt: string | null;
   /** Display name of the active character */
@@ -39,6 +41,7 @@ const CharacterContext = createContext<CharacterContextType>({
   characters: [],
   activeCharacter: null,
   identityBlock: null,
+  wanT2VBlock: null,
   negativePrompt: null,
   activeCharacterName: null,
   referenceImageUrl: null,
@@ -102,6 +105,10 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     ? buildCharacterIdentityBlock(activeCharacter.expanded)
     : null;
 
+  const wanT2VBlock = activeCharacter
+    ? buildWanT2VIdentity(activeCharacter.expanded)
+    : null;
+
   const negativePrompt = activeCharacter
     ? buildNegativePrompt(activeCharacter.expanded)
     : null;
@@ -114,6 +121,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         characters,
         activeCharacter,
         identityBlock,
+        wanT2VBlock,
         negativePrompt,
         activeCharacterName: activeCharacter?.name || null,
         referenceImageUrl,

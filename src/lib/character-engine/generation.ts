@@ -188,6 +188,80 @@ export function buildVeo3Prompt(
 }
 
 /**
+ * Gera prosa descritiva densa optimizada para Wan 2.6 Text-to-Video.
+ * O Wan 2.6 T2V não aceita imagem — a consistência vem 100% do texto.
+ * Prosa fluida contínua porque modelos T2V respondem melhor a descrições naturais.
+ * Inclui campos que o identityBlock ignora: hands, movement_style, ears, mannerisms.
+ */
+export function buildWanT2VIdentity(char: ExpandedCharacter): string {
+  const d = char;
+  const sentences: string[] = [];
+
+  // Identidade central em prosa fluida
+  const who: string[] = [];
+  if (d.identity?.age) who.push(d.identity.age);
+  if (d.identity?.gender) who.push(d.identity.gender.toLowerCase());
+  if (d.identity?.ethnicity_skin) who.push(`with ${d.identity.ethnicity_skin}`);
+  if (who.length > 0) sentences.push(`A ${who.join(", ")}.`);
+  if (d.identity?.reference) sentences.push(`Resembles a blend of ${d.identity.reference}.`);
+
+  // Rosto — todos os detalhes numa sequência contínua
+  const face: string[] = [];
+  if (d.face?.shape) face.push(`${d.face.shape} face shape`);
+  if (d.face?.forehead) face.push(d.face.forehead);
+  if (d.face?.eyes) face.push(d.face.eyes);
+  if (d.face?.eyebrows) face.push(d.face.eyebrows);
+  if (d.face?.nose) face.push(d.face.nose);
+  if (d.face?.mouth) face.push(d.face.mouth);
+  if (d.face?.jaw_chin) face.push(d.face.jaw_chin);
+  if (d.face?.ears) face.push(d.face.ears);
+  if (d.face?.skin_marks) face.push(d.face.skin_marks);
+  if (face.length > 0) sentences.push(`Facial features: ${face.join(", ")}.`);
+  if (d.face?.skin_texture) sentences.push(`Skin: ${d.face.skin_texture}.`);
+
+  // Cabelo
+  const hair: string[] = [];
+  if (d.hair?.color) hair.push(d.hair.color);
+  if (d.hair?.type_texture) hair.push(d.hair.type_texture);
+  if (d.hair?.length) hair.push(d.hair.length);
+  if (d.hair?.style) hair.push(`styled ${d.hair.style}`);
+  if (hair.length > 0) sentences.push(`Hair: ${hair.join(", ")}.`);
+  if (d.hair?.facial_hair && d.hair.facial_hair.toLowerCase() !== "none") {
+    sentences.push(`Facial hair: ${d.hair.facial_hair}.`);
+  }
+
+  // Corpo completo — hands, movement_style incluídos
+  const body: string[] = [];
+  if (d.body?.height_build) body.push(d.body.height_build);
+  if (d.body?.posture) body.push(d.body.posture);
+  if (d.body?.hands) body.push(`hands: ${d.body.hands}`);
+  if (d.body?.physical_asymmetries && d.body.physical_asymmetries.toLowerCase() !== "none") {
+    body.push(d.body.physical_asymmetries);
+  }
+  if (body.length > 0) sentences.push(`Body: ${body.join(", ")}.`);
+  if (d.body?.movement_style) sentences.push(`Movement: ${d.body.movement_style}.`);
+
+  // Guarda-roupa com estado
+  const wardrobe: string[] = [];
+  if (d.default_wardrobe?.typical_top) wardrobe.push(d.default_wardrobe.typical_top);
+  if (d.default_wardrobe?.typical_bottom) wardrobe.push(d.default_wardrobe.typical_bottom);
+  if (d.default_wardrobe?.footwear) wardrobe.push(d.default_wardrobe.footwear);
+  if (d.default_wardrobe?.accessories) wardrobe.push(d.default_wardrobe.accessories);
+  if (d.default_wardrobe?.wardrobe_state) wardrobe.push(d.default_wardrobe.wardrobe_state);
+  if (wardrobe.length > 0) sentences.push(`Wearing: ${wardrobe.join(", ")}.`);
+
+  // Maneirismos — ajudam o T2V a gerar movimento consistente
+  if (d.voice_behavior?.mannerisms) sentences.push(`Mannerisms: ${d.voice_behavior.mannerisms}.`);
+  if (d.voice_behavior?.micro_expressions) sentences.push(`Expressions: ${d.voice_behavior.micro_expressions}.`);
+
+  // Consistência T2V + realismo UGC
+  sentences.push("CRITICAL: This is the SAME person in every frame — do not change face, hair, skin tone, body, or clothing at any point.");
+  sentences.push("Photorealistic UGC shot on iPhone 15 Pro, handheld, natural light, visible skin pores, real hair with flyaways, no beauty filter, no CGI. Five fingers per hand. Natural micro-movements: breathing, weight shifts, eye blinks.");
+
+  return sentences.join(" ");
+}
+
+/**
  * Gera o negative prompt.
  * Combina o negative genérico UGC com o específico do personagem.
  */

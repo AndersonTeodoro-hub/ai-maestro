@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
 
     const FAL_MODELS: Record<string, { endpoint: string; credits: number; label: string }> = {
       "veo3-fast":       { endpoint: "fal-ai/veo3/fast",                  credits: 10, label: "Veo3 Fast" },
+      "veo3-fast-i2v":   { endpoint: "fal-ai/veo3/fast/image-to-video",  credits: 10, label: "Veo3 Fast I2V" },
       "veo3":            { endpoint: "fal-ai/veo3",                       credits: 15, label: "Veo3" },
       "wan26-t2v-flash": { endpoint: "wan/v2.6/text-to-video",            credits: 5,  label: "Wan 2.6 T2V" },
       "wan26-t2v":       { endpoint: "wan/v2.6/text-to-video",            credits: 8,  label: "Wan 2.6 T2V" },

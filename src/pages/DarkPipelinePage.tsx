@@ -108,7 +108,7 @@ async function callChat(message: string, token: string, characterBlock?: string 
 
 export default function DarkPipelinePage() {
   const { user, profile, refreshProfile } = useAuth();
-  const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock } = useCharacter();
+  const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock, wanT2VBlock, negativePrompt } = useCharacter();
   const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
 
@@ -534,23 +534,35 @@ Sem texto adicional fora deste formato.`,
       };
       const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`;
 
-      // Model selection: 8s → Veo3 Fast | 15s → Wan I2V (if reference image) or T2V (if not)
-      const model = pipeline.sceneDuration <= 8
-        ? "veo3-fast"
-        : pipeline.referenceImageUrl
-          ? "wan26-i2v-flash"
-          : "wan26-t2v-flash";
+      // ── MODEL SELECTION ──
+      // 8s + reference image → Veo3 Fast I2V (image guarantees character consistency)
+      // 8s without reference → Veo3 Fast T2V (text-only, identityBlock for consistency)
+      // 15s → Wan 2.6 T2V (always text-only, wanT2VBlock for max consistency)
+      let model: string;
+      if (pipeline.sceneDuration <= 8) {
+        model = pipeline.referenceImageUrl ? "veo3-fast-i2v" : "veo3-fast";
+      } else {
+        model = "wan26-t2v-flash";
+      }
 
-      // Build final prompt: identity block + scene prompt for visual consistency
-      // If user generated narration (ElevenLabs/TTS), force silent video — audio comes from narration
-      // If no narration, let the model generate native audio (Veo3 dialogue, ambient sound, etc.)
+      // ── BUILD PROMPT per model ──
       const hasNarration = !!narrationStorageUrl || !!voiceUrl;
       const silentSuffix = hasNarration && model.startsWith("veo3")
         ? "\n\nNo dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."
         : "";
-      const finalPrompt = identityBlock
-        ? `${identityBlock}\n\nSCENE: ${scene.prompt}${silentSuffix}`
-        : `${scene.prompt}${silentSuffix}`;
+
+      let finalPrompt: string;
+      if (model.startsWith("wan26")) {
+        // Wan 2.6 T2V: dense prose identity block optimized for text-only video generation
+        finalPrompt = wanT2VBlock
+          ? `${wanT2VBlock} SCENE: ${scene.prompt}`
+          : `${scene.prompt}`;
+      } else {
+        // Veo3: structured identity block (or scene-only if no character)
+        finalPrompt = identityBlock
+          ? `${identityBlock}\n\nSCENE: ${scene.prompt}${silentSuffix}`
+          : `${scene.prompt}${silentSuffix}`;
+      }
 
       // Step 1: Submit job
       const submitResp = await fetch(baseUrl, {
@@ -561,7 +573,7 @@ Sem texto adicional fora deste formato.`,
           aspectRatio: pipeline.aspectRatio,
           duration: pipeline.sceneDuration,
           model,
-          referenceImageUrl: pipeline.referenceImageUrl || undefined,
+          referenceImageUrl: model === "veo3-fast-i2v" ? pipeline.referenceImageUrl : undefined,
           narrationUrl: undefined, // lip-sync disabled — user joins audio in editor
         }),
       });
