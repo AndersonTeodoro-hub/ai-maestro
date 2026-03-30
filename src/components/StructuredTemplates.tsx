@@ -156,7 +156,7 @@ const TTS_VOICES = [
 ];
 
 const EMPTY_VP: VPState = {
-  theme: "", titles: [], selectedTitle: "", wordCount: 500,
+  theme: "", titles: [], selectedTitle: "", wordCount: 60,
   sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16",
   script: "", characterId: null, characterName: null,
   characterVoiceId: null, referenceImageUrl: null, scenes: [],
@@ -1366,7 +1366,7 @@ Negative: [negative prompt]
             <div>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Palavras no roteiro</p>
               <div className="flex gap-2">
-                {[300, 500, 800, 1200].map((w) => (
+                {[30, 60, 120, 300, 500].map((w) => (
                   <button key={w} onClick={() => setVp((p) => ({ ...p, wordCount: w }))}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${vp.wordCount === w ? "bg-purple-600 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
                     {w}
