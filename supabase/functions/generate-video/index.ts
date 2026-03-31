@@ -64,6 +64,62 @@ Deno.serve(async (req) => {
       return json({ status: status.status || "PENDING" });
     }
 
+    // ── LIPSYNC ACTION — submit LatentSync job ──
+    if (action === "lipsync") {
+      const { videoUrl: lsVideoUrl, audioUrl: lsAudioUrl } = body;
+      if (!lsVideoUrl || !lsAudioUrl) {
+        return json({ error: "videoUrl e audioUrl são obrigatórios para lip-sync" }, 400);
+      }
+
+      const LIPSYNC_COST = 2;
+
+      const lsProfileResp = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=credits_balance`,
+        { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } }
+      );
+      const lsProfiles = await lsProfileResp.json();
+      const lsBalance = lsProfiles?.[0]?.credits_balance ?? 0;
+      if (lsBalance < LIPSYNC_COST) {
+        return json({ error: "insufficient_credits", message: `Sem créditos (tens ${lsBalance}, precisas ${LIPSYNC_COST}).`, balance: lsBalance, cost: LIPSYNC_COST }, 402);
+      }
+
+      const lsSubmitResp = await fetch("https://queue.fal.run/fal-ai/latentsync", {
+        method: "POST",
+        headers: { Authorization: `Key ${falApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ video_url: lsVideoUrl, audio_url: lsAudioUrl }),
+      });
+      if (!lsSubmitResp.ok) {
+        const err = await lsSubmitResp.text();
+        throw new Error(`LatentSync ${lsSubmitResp.status}: ${err.substring(0, 400)}`);
+      }
+
+      const lsSubmitData = await lsSubmitResp.json();
+      const lsRequestId = lsSubmitData.request_id;
+      if (!lsRequestId) throw new Error("Sem request_id do LatentSync");
+
+      const lsNewBalance = lsBalance - LIPSYNC_COST;
+      await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${userId}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ credits_balance: lsNewBalance }),
+      });
+      await fetch(`${supabaseUrl}/rest/v1/credit_transactions`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ user_id: userId, amount: -LIPSYNC_COST, type: "spend", description: "Lip-sync LatentSync" }),
+      });
+
+      console.log(`[LIPSYNC] Submitted ${lsRequestId} | ${lsBalance} → ${lsNewBalance}`);
+
+      return json({
+        status: "SUBMITTED",
+        requestId: lsRequestId,
+        statusUrl: lsSubmitData.status_url,
+        responseUrl: lsSubmitData.response_url,
+        credits: { balance: lsNewBalance, cost: LIPSYNC_COST },
+      });
+    }
+
     // ── SUBMIT ACTION — submit job and return immediately ──
     if (!prompt) return json({ error: "Prompt is required" }, 400);
 
