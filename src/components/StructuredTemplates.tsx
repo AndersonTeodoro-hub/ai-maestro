@@ -107,7 +107,8 @@ type Props = {
   disabled?: boolean;
 };
 
-type PipelineStep = "theme" | "title" | "config" | "script" | "character" | "narration" | "scenes" | "generate";
+type PipelineStep = "theme" | "title" | "config" | "script" | "character" | "narration" | "scenes" | "generate" | "sg-form" | "vm-adapt";
+type PipelineMode = "viral" | "scene-gen" | "viral-model";
 
 interface SceneData {
   index: number;
@@ -197,6 +198,10 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [selectedTtsVoice, setSelectedTtsVoice] = useState(TTS_VOICES[0]);
   const [sceneAudiosGenerating, setSceneAudiosGenerating] = useState(false);
+  const [pipelineMode, setPipelineMode] = useState<PipelineMode>("viral");
+  const [sgFields, setSgFields] = useState<Record<string, string>>({});
+  const [vmSelectedVideo, setVmSelectedVideo] = useState<any>(null);
+  const [vmFieldValues, setVmFieldValues] = useState<Record<string, string>>({});
 
   const useElevenLabsVoice = elevenLabs.hasKey && elevenLabs.hasVoice;
 
@@ -223,6 +228,10 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const handleNewPipeline = () => {
     setVp(EMPTY_VP);
     setVpStep("theme");
+    setPipelineMode("viral");
+    setSgFields({});
+    setVmSelectedVideo(null);
+    setVmFieldValues({});
     setVoiceUrl(null);
     setVoiceError(null);
     setNarrationStorageUrl(null);
@@ -396,6 +405,127 @@ REGRA ABSOLUTA DE OUTPUT:
       toast.error("Erro ao gerar narração");
     } finally {
       setVoiceLoading(false);
+    }
+  };
+
+  // ── Shared scene parser (supports DESC/PROMPT/NARRAÇÃO format) ──
+  const parseScenes = (reply: string, maxCount: number): SceneData[] => {
+    const sceneBlocks = reply.split(/CENA\s*\d+\s*:/i).filter((b) => b.trim());
+    const scenes: SceneData[] = [];
+    for (const block of sceneBlocks) {
+      const descMatch = block.match(/DESC:\s*(.+?)(?=PROMPT:|$)/si);
+      const promptMatch = block.match(/PROMPT:\s*([\s\S]+?)(?=NARRA[ÇC][AÃ]O:|CENA\s*\d+|$)/si);
+      const narrMatch = block.match(/NARRA[ÇC][AÃ]O:\s*([\s\S]+?)(?=CENA\s*\d+|$)/si);
+      if (descMatch && promptMatch) {
+        scenes.push({
+          index: scenes.length + 1,
+          description: descMatch[1].trim(),
+          prompt: promptMatch[1].trim().replace(/\n{3,}/g, "\n\n"),
+          narrationText: narrMatch ? narrMatch[1].trim() : undefined,
+        });
+      }
+      if (scenes.length >= maxCount) break;
+    }
+    while (scenes.length < maxCount) {
+      scenes.push({ index: scenes.length + 1, description: `Cena ${scenes.length + 1}`, prompt: "Atmospheric cinematic scene with available light" });
+    }
+    return scenes;
+  };
+
+  // ── Scene Generator pipeline: generate scenes from template form ──
+  const handleGenerateScenes_SG = async () => {
+    setVpLoading(true);
+    try {
+      const token = await getToken();
+      const v = sgFields;
+      const hasNarration = !v.voiceover?.includes("Sem voz");
+      const silentRule = hasNarration
+        ? `   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."`
+        : `   - O vídeo deve ter áudio nativo: sons ambiente, diálogos naturais.`;
+      const charSection = identityBlock
+        ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
+        : "";
+
+      const reply = await callChat(
+        `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
+
+BRIEFING DO VÍDEO:
+- Tipo: ${v.videoType || "Narração"}
+- Objetivo: ${v.objective || "Engajar audiência"}
+- Narração: ${v.voiceover || "Com voz off"}
+- Proporção: ${vp.aspectRatio} · Duração por cena: ${vp.sceneDuration}s
+${charSection}
+
+Para CADA cena entrega EXACTAMENTE neste formato:
+CENA 1:
+DESC: [1 frase em PT descrevendo a cena]
+PROMPT: [prompt em inglês, 3-5 frases: ação + câmera + iluminação + cenário. "Photorealistic, shot on iPhone 15 Pro, UGC aesthetic"]
+NARRAÇÃO: [texto exacto que será narrado nesta cena, em português do Brasil]
+
+...até CENA ${vp.sceneCount}.
+${silentRule}
+- Cena 1 = HOOK | Última cena = CTA
+- Sem texto adicional fora do formato`,
+        token, identityBlock, identityBlock ? "deep" : "quick"
+      );
+
+      const scenes = parseScenes(reply, vp.sceneCount);
+      setVp((p) => ({ ...p, scenes }));
+      setVpStep("narration");
+      generateSceneAudios(scenes);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao gerar cenas");
+    } finally {
+      setVpLoading(false);
+    }
+  };
+
+  // ── Viral Modeling pipeline: adapt viral video into scenes ──
+  const handleGenerateScenes_VM = async () => {
+    if (!vmSelectedVideo) return;
+    setVpLoading(true);
+    try {
+      const token = await getToken();
+      const v = vmFieldValues;
+      const sceneCount = 5;
+      const lang = v.videoLang?.includes("Inglês") ? "inglês" : "português do Brasil";
+      const charSection = identityBlock
+        ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
+        : "";
+
+      const reply = await callChat(
+        `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
+
+VÍDEO VIRAL DE REFERÊNCIA:
+- Título: "${vmSelectedVideo.title}"
+- Canal: ${vmSelectedVideo.channel} · ${formatNumber(vmSelectedVideo.views)} views · ${vmSelectedVideo.duration}
+
+MEU CONTEXTO:
+- Nicho: ${v.niche || "geral"} · Público: ${v.audience || "geral"}
+${v.brand ? `- Marca: ${v.brand}` : ""}
+- Idioma da narração: ${lang}
+${charSection}
+
+Adapta o estilo e estrutura do vídeo viral ao meu contexto. Gera EXACTAMENTE ${sceneCount} cenas:
+CENA 1:
+DESC: [1 frase em PT]
+PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Silent cinematic footage only. Audio will be added separately.]
+NARRAÇÃO: [texto exacto da narração em ${lang}]
+
+...até CENA ${sceneCount}.
+- Cena 1 = HOOK | Última cena = CTA
+- Sem texto adicional fora do formato`,
+        token, identityBlock, identityBlock ? "deep" : "quick"
+      );
+
+      const scenes = parseScenes(reply, sceneCount);
+      setVp((p) => ({ ...p, scenes, sceneCount }));
+      setVpStep("narration");
+      generateSceneAudios(scenes);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao adaptar vídeo viral");
+    } finally {
+      setVpLoading(false);
     }
   };
 
@@ -791,9 +921,24 @@ Sem texto adicional fora deste formato.`,
   // ═══════════════════════════════════════════
 
   const handleViralVideoSelect = (vid: any) => {
-    try {
-      const v = fieldValues;
-      const hasChar = !!identityBlock;
+    // Activate pipeline for video generation instead of sending to chat
+    const fv = { ...fieldValues };
+    const dur: 8 | 15 = fv.videoTool?.includes("15s") ? 15 : 8;
+    setVmSelectedVideo(vid);
+    setVmFieldValues(fv);
+    setVp((p) => ({ ...p, sceneDuration: dur, sceneCount: 5, aspectRatio: "9:16" }));
+    setPipelineMode("viral-model");
+    setPipelineActive(true);
+    setVpStep("vm-adapt");
+    setActiveTemplate(null);
+    setFieldValues({});
+    setViralVideos([]);
+    setViralStep("form");
+    return;
+  };
+
+  // (legacy viral modeling prompt builder removed — now activates pipeline directly)
+  const _legacy_unused = (_vid: any, _v: any, _hasChar: boolean) => {
 
       const charSection = hasChar ? (isPT
         ? `\n\n## 3. IMAGEM (${v.imageTool})
@@ -1393,6 +1538,21 @@ STEP 3 — EXECUTION PLAN: Which to do first, weekly calendar, how to iterate.`,
       return;
     }
 
+    // ── Scene Generator: activate pipeline instead of sending to chat ──
+    if (activeTemplate.id === "scene-generator") {
+      const dur: 8 | 15 = fieldValues.tool?.includes("15s") ? 15 : 8;
+      const count = parseInt(fieldValues.scenes) || 5;
+      const ar = fieldValues.aspect?.startsWith("16:9") ? "16:9" : fieldValues.aspect?.startsWith("1:1") ? "1:1" : "9:16";
+      setSgFields({ ...fieldValues });
+      setVp((p) => ({ ...p, sceneDuration: dur, sceneCount: count, aspectRatio: ar }));
+      setPipelineMode("scene-gen");
+      setPipelineActive(true);
+      setVpStep("sg-form");
+      setActiveTemplate(null);
+      setFieldValues({});
+      return;
+    }
+
     let prompt = activeTemplate.buildPrompt(fieldValues);
 
     if (identityBlock && isSceneTemplate(activeTemplate.id)) {
@@ -1454,15 +1614,21 @@ Negative: [negative prompt]
   // RENDER
   // ══════════════════════════════════════════════════════════
 
-  // ── VIRAL VIDEO PIPELINE (8 steps inline) ──
+  // ── ALL VIDEO PIPELINES (viral / scene-gen / viral-model) ──
   if (pipelineActive) {
+    const pipelineTitle = pipelineMode === "scene-gen"
+      ? "🎞️ Gerador de Cenas"
+      : pipelineMode === "viral-model"
+        ? "🔥 Modelar Vídeo Viral"
+        : "🚀 Vídeo Viral Pipeline";
+
     return (
       <div className="w-full max-w-2xl space-y-4">
         {/* Pipeline header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Film className="h-4 w-4 text-purple-500" />
-            <span className="text-sm font-semibold text-foreground">Vídeo Viral Pipeline</span>
+            <span className="text-sm font-semibold text-foreground">{pipelineTitle}</span>
           </div>
           <div className="flex items-center gap-2">
             {vpStep !== "theme" && (
@@ -1486,6 +1652,118 @@ Negative: [negative prompt]
             <div key={s.key} className={`h-1 rounded-full transition-all flex-1 ${i <= vpStepIndex ? "bg-purple-500" : "bg-border"}`} />
           ))}
         </div>
+
+        {/* ── SCENE GENERATOR: sg-form ── */}
+        {vpStep === "sg-form" && (
+          <div className="space-y-3">
+            <div className="text-center">
+              <Clapperboard className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <h3 className="text-sm font-bold text-foreground">Gerador de Cenas — Configuração</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {sgFields.scenes || vp.sceneCount} cenas · {vp.sceneDuration}s cada · {vp.aspectRatio}
+              </p>
+            </div>
+            {/* Objective summary */}
+            {sgFields.objective && (
+              <div className="bg-secondary/30 rounded-lg p-2.5 text-xs text-muted-foreground">
+                <strong className="text-foreground">Objetivo:</strong> {sgFields.objective}
+              </div>
+            )}
+            {/* Character info */}
+            {activeCharacterName ? (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2 text-[10px] text-green-700 dark:text-green-400 flex items-center gap-1.5">
+                <Users className="h-3 w-3 shrink-0" />Personagem activo: <strong>{activeCharacterName}</strong>
+              </div>
+            ) : (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <Users className="h-3 w-3 shrink-0" />Sem personagem — seleciona um acima para consistência visual
+              </div>
+            )}
+            {/* Voice selection */}
+            <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 p-3 space-y-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Voz da narração</p>
+              {vp.characterVoiceId ? (
+                <div className="text-[10px] text-green-400"><Mic className="h-3 w-3 inline mr-1" />Voz do personagem (ElevenLabs)</div>
+              ) : useElevenLabsVoice ? (
+                <div className="text-[10px] text-orange-400"><Mic className="h-3 w-3 inline mr-1" />ElevenLabs: <strong>{elevenLabs.voiceName}</strong></div>
+              ) : (
+                <div className="flex gap-1 flex-wrap">
+                  {TTS_VOICES.map((v) => (
+                    <button key={v.id} onClick={() => setSelectedTtsVoice(v)}
+                      className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${selectedTtsVoice.id === v.id ? "bg-orange-500 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
+                      {v.name.split(" (")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="text-[9px] text-muted-foreground">O áudio de cada cena é gerado automaticamente após criar as cenas</p>
+            </div>
+            <Button onClick={handleGenerateScenes_SG} disabled={vpLoading} className="w-full gap-2 bg-purple-600 hover:bg-purple-700 text-sm">
+              {vpLoading ? <><Loader2 className="h-4 w-4 animate-spin" />A gerar cenas...</> : <><Clapperboard className="h-4 w-4" />Gerar {vp.sceneCount} Cenas</>}
+            </Button>
+            <button onClick={() => { setPipelineActive(false); handleNewPipeline(); }} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto">
+              <ArrowLeft className="h-3 w-3" />Cancelar
+            </button>
+          </div>
+        )}
+
+        {/* ── VIRAL MODELING: vm-adapt ── */}
+        {vpStep === "vm-adapt" && (
+          <div className="space-y-3">
+            <div className="text-center">
+              <Film className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+              <h3 className="text-sm font-bold text-foreground">Modelar Vídeo Viral</h3>
+              <p className="text-[11px] text-muted-foreground">Adapta o vídeo viral ao teu contexto e gera cenas</p>
+            </div>
+            {/* Selected video */}
+            {vmSelectedVideo && (
+              <div className="flex gap-3 p-2.5 rounded-xl border border-border/60 bg-secondary/20">
+                <img src={vmSelectedVideo.thumbnail} alt={vmSelectedVideo.title} className="w-20 h-14 object-cover rounded-lg shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground line-clamp-2 leading-snug">{vmSelectedVideo.title}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{vmSelectedVideo.channel} · {formatNumber(vmSelectedVideo.views)} views</p>
+                </div>
+              </div>
+            )}
+            {/* Context summary */}
+            {vmFieldValues.niche && (
+              <div className="bg-secondary/30 rounded-lg p-2 text-[10px] text-muted-foreground space-y-0.5">
+                <div><strong className="text-foreground">Nicho:</strong> {vmFieldValues.niche}</div>
+                {vmFieldValues.audience && <div><strong className="text-foreground">Público:</strong> {vmFieldValues.audience}</div>}
+                {vmFieldValues.brand && <div><strong className="text-foreground">Marca:</strong> {vmFieldValues.brand}</div>}
+              </div>
+            )}
+            {/* Character */}
+            {activeCharacterName && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2 text-[10px] text-green-700 dark:text-green-400 flex items-center gap-1.5">
+                <Users className="h-3 w-3 shrink-0" />Personagem: <strong>{activeCharacterName}</strong>
+              </div>
+            )}
+            {/* Voice selection */}
+            <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 p-3 space-y-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Voz da narração</p>
+              {useElevenLabsVoice ? (
+                <div className="text-[10px] text-orange-400"><Mic className="h-3 w-3 inline mr-1" />ElevenLabs: <strong>{elevenLabs.voiceName}</strong></div>
+              ) : (
+                <div className="flex gap-1 flex-wrap">
+                  {TTS_VOICES.map((v) => (
+                    <button key={v.id} onClick={() => setSelectedTtsVoice(v)}
+                      className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${selectedTtsVoice.id === v.id ? "bg-orange-500 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
+                      {v.name.split(" (")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="text-[9px] text-muted-foreground">5 cenas adaptadas + áudio por cena gerado em background</p>
+            </div>
+            <Button onClick={handleGenerateScenes_VM} disabled={vpLoading} className="w-full gap-2 bg-purple-600 hover:bg-purple-700 text-sm">
+              {vpLoading ? <><Loader2 className="h-4 w-4 animate-spin" />A adaptar e gerar cenas...</> : <><Film className="h-4 w-4" />Adaptar e Gerar 5 Cenas</>}
+            </Button>
+            <button onClick={() => { setPipelineActive(false); handleNewPipeline(); }} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 mx-auto">
+              <ArrowLeft className="h-3 w-3" />Cancelar
+            </button>
+          </div>
+        )}
 
         {/* ── STEP 1: THEME ── */}
         {vpStep === "theme" && (
