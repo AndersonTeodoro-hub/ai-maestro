@@ -473,7 +473,13 @@ REGRA ABSOLUTA DE OUTPUT:
 
         const { data, error: fnError } = await supabase.functions.invoke("generate-voice", { body: voiceBody });
         if (fnError || data?.error) {
-          console.warn(`[SCENE AUDIO] Cena ${scene.index} falhou:`, fnError?.message || data?.error);
+          const errMsg: string = fnError?.message || data?.error || "";
+          if (errMsg.includes("voice_not_found")) {
+            toast.error("Voz do personagem não encontrada no ElevenLabs. Actualiza o Voice ID na página Characters.");
+            setSceneAudiosGenerating(false);
+            return;
+          }
+          console.warn(`[SCENE AUDIO] Cena ${scene.index} falhou:`, errMsg);
           continue;
         }
         if (!data?.audio) continue;
