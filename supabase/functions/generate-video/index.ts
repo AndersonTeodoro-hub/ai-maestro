@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
         return json({ error: "insufficient_credits", message: `Sem créditos (tens ${lsBalance}, precisas ${LIPSYNC_COST}).`, balance: lsBalance, cost: LIPSYNC_COST }, 402);
       }
 
-      const lsSubmitResp = await fetch("https://queue.fal.run/fal-ai/sync-lipsync/v2", {
+      const lsSubmitResp = await fetch("https://queue.fal.run/fal-ai/sync-lipsync/v2/pro", {
         method: "POST",
         headers: { Authorization: `Key ${falApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ video_url: lsVideoUrl, audio_url: lsAudioUrl }),
