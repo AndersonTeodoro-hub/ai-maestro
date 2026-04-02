@@ -114,6 +114,7 @@ interface SceneData {
   index: number;
   prompt: string;
   description: string;
+  dialogueText?: string;
   videoUrl?: string;
   generating?: boolean;
   error?: string;
@@ -414,13 +415,15 @@ REGRA ABSOLUTA DE OUTPUT:
     const sceneBlocks = reply.split(/CENA\s*\d+\s*:/i).filter((b) => b.trim());
     const scenes: SceneData[] = [];
     for (const block of sceneBlocks) {
-      const descMatch = block.match(/DESC:\s*(.+?)(?=PROMPT:|$)/si);
+      const descMatch = block.match(/DESC:\s*(.+?)(?=DIALOGUE:|PROMPT:|$)/si);
+      const dialogueMatch = block.match(/DIALOGUE:\s*([\s\S]+?)(?=PROMPT:|NARRA[ÇC][AÃ]O:|CENA\s*\d+|$)/si);
       const promptMatch = block.match(/PROMPT:\s*([\s\S]+?)(?=NARRA[ÇC][AÃ]O:|CENA\s*\d+|$)/si);
       const narrMatch = block.match(/NARRA[ÇC][AÃ]O:\s*([\s\S]+?)(?=CENA\s*\d+|$)/si);
       if (descMatch && promptMatch) {
         scenes.push({
           index: scenes.length + 1,
           description: descMatch[1].trim(),
+          dialogueText: dialogueMatch ? dialogueMatch[1].trim() : undefined,
           prompt: promptMatch[1].trim().replace(/\n{3,}/g, "\n\n"),
           narrationText: narrMatch ? narrMatch[1].trim() : undefined,
         });
@@ -447,6 +450,11 @@ REGRA ABSOLUTA DE OUTPUT:
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
         : "";
 
+      const isVeo3_SG = vp.sceneDuration <= 8;
+      const dialogueRule_SG = isVeo3_SG
+        ? `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`
+        : silentRule;
+
       const reply = await callChat(
         `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
 
@@ -460,11 +468,12 @@ ${charSection}
 Para CADA cena entrega EXACTAMENTE neste formato:
 CENA 1:
 DESC: [1 frase em PT descrevendo a cena]
+DIALOGUE: [texto exacto que será narrado nesta cena, em português do Brasil]
 PROMPT: [prompt em inglês, 3-5 frases: ação + câmera + iluminação + cenário. "Photorealistic, shot on iPhone 15 Pro, UGC aesthetic"]
-NARRAÇÃO: [texto exacto que será narrado nesta cena, em português do Brasil]
+NARRAÇÃO: [mesmo texto do DIALOGUE]
 
 ...até CENA ${vp.sceneCount}.
-${silentRule}
+${dialogueRule_SG}
 - Cena 1 = HOOK | Última cena = CTA
 - Sem texto adicional fora do formato`,
         token, identityBlock, identityBlock ? "deep" : "quick"
@@ -494,6 +503,11 @@ ${silentRule}
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
         : "";
 
+      const isVeo3_VM = vp.sceneDuration <= 8;
+      const promptRule_VM = isVeo3_VM
+        ? `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Inclui: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures]`
+        : `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Silent cinematic footage only. Audio will be added separately.]`;
+
       const reply = await callChat(
         `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
 
@@ -510,8 +524,9 @@ ${charSection}
 Adapta o estilo e estrutura do vídeo viral ao meu contexto. Gera EXACTAMENTE ${sceneCount} cenas:
 CENA 1:
 DESC: [1 frase em PT]
-PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Silent cinematic footage only. Audio will be added separately.]
-NARRAÇÃO: [texto exacto da narração em ${lang}]
+DIALOGUE: [texto exacto da narração em ${lang}]
+${promptRule_VM}
+NARRAÇÃO: [mesmo texto do DIALOGUE]
 
 ...até CENA ${sceneCount}.
 - Cena 1 = HOOK | Última cena = CTA
@@ -630,8 +645,10 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
           : "";
 
       // Narration is always intended in this pipeline (step 6 = voice selection)
-      const hasNarrationForScenes = true;
-      const silentRule = `   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."`;
+      const isVeo3_VP = vp.sceneDuration <= 8;
+      const silentRule_VP = isVeo3_VP
+        ? `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`
+        : `   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."`;
 
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -643,22 +660,25 @@ ${charSection}
 
 Para cada cena, gera:
 1. Descrição curta da cena (1 frase em PT)
-2. Prompt completo em inglês para geração de vídeo IA (3-5 frases). O prompt deve descrever:
+2. O trecho exacto do roteiro que corresponde a esta cena (campo DIALOGUE)
+3. Prompt completo em inglês para geração de vídeo IA (3-5 frases). O prompt deve descrever:
    - O que o personagem FAZ na cena (acção, expressão, gestos)
    - Ambiente e cenário detalhado
    - Iluminação específica
    - Movimento de câmera (close-up, medium shot, wide, etc.)
    - "Photorealistic, shot on iPhone 15 Pro, handheld, available light, UGC aesthetic"
    - NÃO incluas a descrição física do personagem no prompt (é adicionada automaticamente)
-${silentRule}
+${silentRule_VP}
 
 Formato OBRIGATÓRIO (uma cena por bloco):
 CENA 1:
 DESC: [descrição em PT]
+DIALOGUE: [trecho exacto do roteiro para esta cena, em português]
 PROMPT: [prompt em inglês]
 
 CENA 2:
 DESC: [descrição em PT]
+DIALOGUE: [trecho exacto do roteiro para esta cena, em português]
 PROMPT: [prompt em inglês]
 
 ...e assim por diante até CENA ${vp.sceneCount}.
@@ -671,12 +691,14 @@ Sem texto adicional fora deste formato.`,
       const sceneBlocks = reply.split(/CENA\s*\d+\s*:/i).filter((b) => b.trim());
       const scenes: SceneData[] = [];
       for (const block of sceneBlocks) {
-        const descMatch = block.match(/DESC:\s*(.+?)(?=PROMPT:|$)/si);
+        const descMatch = block.match(/DESC:\s*(.+?)(?=DIALOGUE:|PROMPT:|$)/si);
+        const dialogueMatch = block.match(/DIALOGUE:\s*([\s\S]+?)(?=PROMPT:|CENA\s*\d+|$)/si);
         const promptMatch = block.match(/PROMPT:\s*([\s\S]+?)(?=CENA\s*\d+|$)/si);
         if (descMatch && promptMatch) {
           scenes.push({
             index: scenes.length + 1,
             description: descMatch[1].trim(),
+            dialogueText: dialogueMatch ? dialogueMatch[1].trim() : undefined,
             prompt: promptMatch[1].trim().replace(/\n{3,}/g, "\n\n"),
           });
         }
@@ -739,9 +761,14 @@ Sem texto adicional fora deste formato.`,
         model = "wan26-t2v-flash";
       }
 
-      // Scene has audio if audioUrl is set or prompt already has silent rule
+      // Veo3: generate_audio=true so the character produces natural lip/speech movements.
+      // Wan 2.6: b-roll without character speech, generate_audio=false.
+      const generateAudio = model.startsWith("veo3");
+
+      // Veo3 uses generate_audio=true (character speaks), so no silent suffix needed.
+      // Wan 2.6 is ambient b-roll — also no silent suffix required.
       const hasNarration = !!scene.audioUrl || scene.prompt.includes("Silent cinematic footage");
-      const silentSuffix = hasNarration && model.startsWith("veo3")
+      const silentSuffix = hasNarration && !generateAudio
         ? "\n\nNo dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."
         : "";
 
@@ -772,7 +799,9 @@ Sem texto adicional fora deste formato.`,
           duration: vp.sceneDuration,
           model,
           referenceImageUrl: model === "veo3-fast-i2v" ? vp.referenceImageUrl : undefined,
-          silentVideo: hasNarration,
+          // Veo3 always uses generate_audio=true (handled in edge function).
+          // silentVideo only relevant for Wan 2.6 when narration audio is added separately.
+          silentVideo: !generateAudio && hasNarration,
         }),
       });
 
@@ -801,7 +830,8 @@ Sem texto adicional fora deste formato.`,
           const rawVideoUrl = pollData.videoUrl;
           const audioUrl = vpRef.current.scenes[sceneIndex]?.audioUrl;
 
-          if (audioUrl) {
+          // Lipsync: only for Veo3 (has natural speech movements) + ElevenLabs audio ready
+          if (generateAudio && audioUrl) {
             setVp((p) => ({
               ...p,
               scenes: p.scenes.map((s, i) =>

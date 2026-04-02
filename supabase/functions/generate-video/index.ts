@@ -182,11 +182,10 @@ Deno.serve(async (req) => {
     } else {
       falBody.duration = dur;
       if (referenceImageUrl) falBody.image_url = referenceImageUrl;
-      // Veo3: control audio generation via API parameter (not just prompt text)
-      // silentVideo=true means user has narration → disable native audio
-      // silentVideo=false or absent → enable native audio (Veo3 generates dialogue/ambient)
+      // Veo3: always generate with audio so the character produces natural lip/speech movements.
+      // Sync Lipsync 2.0 will replace the generic audio with ElevenLabs voice when available.
       if (selectedModel.startsWith("veo3")) {
-        falBody.generate_audio = silentVideo ? false : true;
+        falBody.generate_audio = true;
       }
     }
 
