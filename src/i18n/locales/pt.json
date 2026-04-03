@@ -5,7 +5,10 @@
     "promptLibrary": "Biblioteca de Prompts",
     "analytics": "Análises",
     "settings": "Definições",
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "characters": "Personagens",
+    "darkPipeline": "Dark Pipeline Pro",
+    "dubbing": "Dublagem"
   },
   "common": {
     "or": "ou",
@@ -42,10 +45,10 @@
       "f1_desc": "Busca automatica de videos virais reais do YouTube. Escolhe um, e a SavvyOwl modela-o para o teu nicho com prompts prontos a usar.",
       "f2_title": "Gerar Imagens com IA",
       "f2_desc": "Gera imagens profissionais com Nano Banana diretamente na app. Prompts otimizados para thumbnails, posts e UGC.",
-      "f3_title": "Gerar Videos com Veo3",
-      "f3_desc": "Cria videos cinematicos com a tecnologia Veo3 do Google. Prompts profissionais para Reels, TikTok e canais Dark.",
+      "f3_title": "Gerar Videos com Seedance",
+      "f3_desc": "Cria videos cinematicos com a tecnologia Seedance do Google. Prompts profissionais para Reels, TikTok e canais Dark.",
       "f4_title": "Pipeline Canal Dark",
-      "f4_desc": "Fluxo completo: titulo viral, roteiro narrado e cenas Veo3 prontas. Conteúdo dark faceless em 3 passos.",
+      "f4_desc": "Fluxo completo: titulo viral, roteiro narrado e cenas Seedance prontas. Conteúdo dark faceless em 3 passos.",
       "f5_title": "Pipeline Viral Pro",
       "f5_desc": "Do conceito viral ao video pronto: roteiro com lip-sync, cenas dinamicas e instruções de montagem no CapCut.",
       "f6_title": "10 Templates Profissionais",
@@ -70,7 +73,7 @@
       "youWrote": "TU ESCREVESTE",
       "savvySent": "A SAVVYOWL ENTREGOU",
       "before_text": "Quero fazer um video dark sobre o Titanic para o meu canal do YouTube, algo cinematico",
-      "after_text": "Titulo viral + Roteiro completo narrado + 5 cenas Veo3 em ingles com estilo cinematico histórico + Instrucoes CapCut. Tudo copiavel.",
+      "after_text": "Titulo viral + Roteiro completo narrado + 5 cenas Seedance em ingles com estilo cinematico histórico + Instrucoes CapCut. Tudo copiavel.",
       "stat1_label": "ANTES",
       "stat1_value": "3 horas",
       "stat2_label": "COM SAVVYOWL",
@@ -89,7 +92,7 @@
       "step2_title": "A SavvyOwl cria tudo",
       "step2_desc": "Prompts otimizados, scripts estruturados, prompts de imagem e video -- tudo gerado automaticamente no formato certo para cada ferramenta.",
       "step3_title": "Copia, gera e publica",
-      "step3_desc": "Cada prompt vem num bloco copiavel. Gera imagens com Nano Banana e videos com Veo3 diretamente na app. Copia para o CapCut e publica."
+      "step3_desc": "Cada prompt vem num bloco copiavel. Gera imagens com Nano Banana e videos com Seedance diretamente na app. Copia para o CapCut e publica."
     },
     "benefits": {
       "badge": "PORQUE SAVVYOWL",
@@ -98,7 +101,7 @@
       "card1_title": "Pipeline completo",
       "card1_desc": "Da idea ao video publicado. Titulo, roteiro, imagem, video e montagem -- tudo num fluxo contínuo sem saltar entre apps.",
       "card2_title": "Prompts de nivel profissional",
-      "card2_desc": "Cada prompt e otimizado para a ferramenta de destino: Nano Banana, Veo3, Midjourney, Sora. Em ingles, com detalhes tecnicos.",
+      "card2_desc": "Cada prompt e otimizado para a ferramenta de destino: Nano Banana, Seedance, Midjourney, Sora. Em ingles, com detalhes tecnicos.",
       "card3_title": "BYOK -- Controlo total",
       "card3_desc": "Usa a tua própria API key do Google para gerar imagens e videos. Pagas diretamente ao Google, sem intermediarios. Sem limites da SavvyOwl."
     },
@@ -111,7 +114,7 @@
       "step2_title": "2. Escolhe um template",
       "step2_desc": "Tens 10 templates profissionais: desde copies para Instagram até pipelines completos de video. Preenche os campos e a IA faz o resto.",
       "step3_title": "3. Gera imagens e videos",
-      "step3_desc": "Adiciona a tua API key do Google nas Definições para gerar imagens (Nano Banana) e videos (Veo3) diretamente na SavvyOwl.",
+      "step3_desc": "Adiciona a tua API key do Google nas Definições para gerar imagens (Nano Banana) e videos (Seedance) diretamente na SavvyOwl.",
       "step4_title": "4. Copia e publica",
       "step4_desc": "Todos os prompts vem em blocos copiaveis. As imagens e videos sao descarregaveis. Cola no CapCut, agenda no Buffer e publica."
     },
@@ -135,7 +138,7 @@
       "q1": "A SavvyOwl e gratuita?",
       "a1": "Sim! O plano gratuito inclui 5 pedidos por dia, 3 modos de IA e acessó a todos os templates. Para usó ilimitado, o plano Starter custa 9 euros/mes.",
       "q2": "Precisó de uma API key para usar?",
-      "a2": "Nao! O chat e os templates funcionam sem API key. So precisas de uma Google API Key se quiseres gerar imagens (Nano Banana) ou videos (Veo3) diretamente na app.",
+      "a2": "Nao! O chat e os templates funcionam sem API key. So precisas de uma Google API Key se quiseres gerar imagens (Nano Banana) ou videos (Seedance) diretamente na app.",
       "q3": "Como funciona o BYOK (Bring Your Own Key)?",
       "a3": "Vai a Definições, cola a tua Google API Key e pronto. A key fica guardada no teu browser. Pagas diretamente ao Google pelos créditos que usas.",
       "q4": "Que templates estao disponíveis?",
@@ -170,7 +173,7 @@
         "150 imagens ou 15 vídeos",
         "Character Engine ilimitado",
         "Todos os 10 templates",
-        "Vídeo UGC com Veo 3.1",
+        "Vídeo UGC com Seedance 1.5 Pro",
         "Suporte prioritário"
       ],
       "starter_cta": "COMEÇAR AGORA",
@@ -182,7 +185,7 @@
         "500 imagens ou 50 vídeos",
         "Character Engine ilimitado",
         "Todos os templates + acesso antecipado",
-        "Vídeo UGC com Veo 3.1 Fast",
+        "Vídeo UGC com Seedance 1.5 Pro",
         "Suporte dedicado"
       ],
       "pro_cta": "COMEÇAR AGORA",
@@ -401,8 +404,8 @@
     "deleteRequested": "Conta eliminada com sucesso.",
     "deleteFailed": "Falha ao eliminar a conta. Tenta novamente.",
     "apiKeys": "API Keys (Gerar imagens e videos)",
-    "apiKeysDesc": "Conecta a tua Google Cloud API Key para gerar imagens (Nano Banana) e videos (Veo3) diretamente na SavvyOwl. A tua key fica guardada apenas no teu browser.",
-    "apiKeyHint": "Usada para Nano Banana (imagens) e Veo3 (videos). Ativa a Gemini API no teu projeto Google Cloud.",
+    "apiKeysDesc": "Conecta a tua Google Cloud API Key para gerar imagens (Nano Banana) e videos (Seedance) diretamente na SavvyOwl. A tua key fica guardada apenas no teu browser.",
+    "apiKeyHint": "Usada para Nano Banana (imagens) e Seedance (videos). Ativa a Gemini API no teu projeto Google Cloud.",
     "saveApiKeys": "Guardar API Key",
     "removeApiKey": "Remover",
     "apiKeysSaved": "API Key guardada!",

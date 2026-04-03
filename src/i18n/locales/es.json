@@ -5,7 +5,10 @@
     "promptLibrary": "Biblioteca de Prompts",
     "analytics": "Análisis",
     "settings": "Ajustes",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "characters": "Personajes",
+    "darkPipeline": "Dark Pipeline Pro",
+    "dubbing": "Doblaje"
   },
   "common": {
     "or": "o",

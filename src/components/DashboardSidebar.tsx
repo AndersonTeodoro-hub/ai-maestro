@@ -30,9 +30,9 @@ export function DashboardSidebar() {
     { title: t("nav.chat"), url: "/dashboard/chat", icon: MessageSquare },
     { title: t("nav.promptLibrary"), url: "/dashboard/prompts", icon: BookOpen },
     { title: t("nav.analytics"), url: "/dashboard/analytics", icon: BarChart3 },
-    { title: "Characters", url: "/dashboard/characters", icon: Users },
-    { title: "Dark Pipeline Pro", url: "/dashboard/dark-pipeline", icon: Film },
-    { title: "Dublagem", url: "/dashboard/dubbing", icon: Mic },
+    { title: t("nav.characters"), url: "/dashboard/characters", icon: Users },
+    { title: t("nav.darkPipeline"), url: "/dashboard/dark-pipeline", icon: Film },
+    { title: t("nav.dubbing"), url: "/dashboard/dubbing", icon: Mic },
     { title: t("nav.settings"), url: "/dashboard/settings", icon: Settings },
   ];
 
