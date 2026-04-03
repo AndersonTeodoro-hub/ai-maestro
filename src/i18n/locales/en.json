@@ -533,5 +533,41 @@
       "download": "Download",
       "newDubbing": "New Dubbing"
     }
+  },
+  "dp": {
+    "title": "Dark Pipeline Pro",
+    "back": "Back",
+    "newProject": "New Project",
+    "newProjectStarted": "New project started",
+    "steps": { "niche": "Niche", "style": "Style", "theme": "Theme", "title": "Title", "script": "Script", "character": "Character", "scenes": "Scenes", "generate": "Generate" },
+    "niches": { "biblicas": "Bible Stories", "motivacional": "Motivational", "curiosidades": "Fun Facts", "historias-reais": "True Stories", "corpo-humano": "Human Body" },
+    "niche": { "title": "Choose Niche", "subtitle": "What type of content do you want to create?" },
+    "style": {
+      "title": "Channel Visual Style", "loading": "Loading...", "existing": "Existing profiles", "characters_count": "character(s)",
+      "createNew": "Create new style profile", "skip": "Continue without style profile",
+      "formTitle": "New style profile", "nameLabel": "Profile name *", "namePlaceholder": "E.g.: Epic Bible Channel, Dark Mysteries...",
+      "visualLabel": "Visual description *", "visualPlaceholder": "Describe the visual style: lighting, scenes, camera type, era...",
+      "paletteLabel": "Color palette", "palettePlaceholder": "E.g.: golden tones, sepia, deep blue, high contrast...",
+      "atmosphereLabel": "Atmosphere", "atmospherePlaceholder": "E.g.: mysterious, epic, warm, dark, cinematic...",
+      "sceneTypesLabel": "Scene types", "sceneTypesPlaceholder": "E.g.: dramatic close-up, aerial shot, slow motion, silhouettes...",
+      "charsTitle": "Profile characters", "addChar": "Add", "noChars": "No characters added",
+      "editChar": "Edit", "newChar": "New", "charNamePlaceholder": "Character name",
+      "charDescPlaceholder": "Detailed physical description: face, body, clothes, accessories, age, skin tone...",
+      "saveChar": "Save", "addCharBtn": "Add", "cancel": "Cancel", "markPrimary": "Mark as primary", "primary": "Primary",
+      "refGenerated": "Reference image generated", "regenerate": "Regenerate", "generating": "Generating...",
+      "generateImage": "Generate Reference Image · 2 cred", "generatingImage": "Generating image...",
+      "imageGenerated": "Image of {{name}} generated!", "imageGenerating": "Generating image of {{name}}...",
+      "creating": "Creating...", "createAndNext": "Create profile and continue",
+      "created": "Style profile created!", "createError": "Error creating profile",
+      "deleted": "Profile deleted", "deleteError": "Error deleting",
+      "imageError": "Error generating image", "imageFailed": "Generation failed", "imageTimeout": "Timeout — try again"
+    },
+    "theme": { "title": "Define the Theme", "subtitle": "Niche: {{niche}} · What is your video about?", "placeholder": "E.g.: psalm 91 prayer, ocean mysteries, 5 millionaire habits, fitness cake recipe...", "generating": "Generating titles...", "generate": "Generate 5 Titles", "error": "Error generating titles" },
+    "titleStep": { "title": "Choose the Title", "subtitle": "Theme: {{theme}}", "customTitle": "Or write your own title", "customPlaceholder": "Write your title here...", "refreshTitles": "Generate new titles", "durationLabel": "Video duration", "costEstimate": "Estimated cost", "balance": "Your balance", "credits": "credits", "generating": "Generating script...", "generateScript": "Generate Script ({{duration}}min · ~{{words}} words)" },
+    "script": { "words": "words", "regenerate": "Regenerate", "copy": "Copy", "copied": "Script copied!", "next": "Select Character", "error": "Error generating script" },
+    "character": { "title": "Character", "subtitle": "Choose an existing character or continue without one", "saved": "Saved characters", "createNew": "Create New Character in Character Engine", "configTitle": "Scene configuration", "durationLabel": "Duration per scene", "scenesLabel": "Total scenes", "autoScenes": "Auto · {{duration}} audio ÷ {{perScene}}s", "formatLabel": "Format", "costEstimate": "Estimated cost", "balance": "Your balance", "credits": "credits", "costBreakdown": "{{scenes}} scenes × {{cost}} cred = total video ~{{totalDuration}}s", "voiceDetected": "Voice for {{name}} detected!", "skip": "Continue without character" },
+    "narration": { "title": "Generate Narration", "voiceLabel": "Voice", "ttsVoice": "TTS Voice (Gemini)", "selectVoice": "Select voice", "generate": "Generate Narration", "generateWithVoice": "Generate Narration ({{name}}'s voice)", "generateWithEL": "Generate Narration ({{name}})", "generateWithTTS": "Generate Narration ({{name}})", "generatingVoice": "Generating narration...", "generated": "Narration generated!", "regenerate": "Generate new", "error": "Error generating narration", "voiceNotFound": "Character voice not found on ElevenLabs. Update the Voice ID on the Characters page.", "audioReady": "Scene audios ready — lip-sync available!" },
+    "scenes": { "title": "Scenes", "copyAll": "Copy all prompts", "allCopied": "All prompts copied!", "generateVideos": "Generate videos on SavvyOwl", "editPlaceholder": "Edit the prompt if you want...", "copyPrompt": "Copy full prompt", "promptCopied": "Scene {{index}} prompt copied!", "generating": "Generating scenes...", "generateScenes": "Generate Scenes", "error": "Error generating scenes", "identityNotLoaded": "Character selected but identity not loaded. Try selecting the character again." },
+    "generate": { "title": "Generate Videos", "copyPrompt": "Copy prompt", "promptCopied": "Scene {{index}} prompt copied!", "generateScene": "Generate Scene {{index}}", "sceneCredits": "· {{cost}} credits", "sceneCreditsLipsync": "· {{cost}} credits (+ lip-sync)", "sceneGenerated": "Scene {{index}} generated! ({{seconds}}s)", "sceneLipsync": "Scene {{index}}: syncing voice...", "sceneLipsyncDone": "Scene {{index}} with synced voice! ({{seconds}}s)", "sceneLipsyncFailed": "Scene {{index}}: lip-sync failed — unsynced video kept.", "sceneLipsyncTimeout": "Scene {{index}}: lip-sync timeout — unsynced video kept.", "sceneFailed": "Scene {{index}}: generation failed — 8 credits refunded", "sceneError": "Scene {{index}}: {{error}}", "failed": "Generation failed on server", "timeout": "Timeout — video taking more than 10 minutes", "backStep": "Back to previous step" }
   }
 }

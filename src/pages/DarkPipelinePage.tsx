@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft, ArrowRight, Check, Loader2, Video, Copy,
   Download, Users, Sparkles, FileText, Clapperboard,
@@ -71,23 +72,23 @@ interface PipelineState {
   aspectRatio: string;
 }
 
-const NICHES = [
-  { id: "biblicas", label: "Histórias Bíblicas", emoji: "✝️" },
-  { id: "motivacional", label: "Motivacional", emoji: "🔥" },
-  { id: "curiosidades", label: "Curiosidades", emoji: "🧠" },
-  { id: "historias-reais", label: "Histórias Reais", emoji: "📖" },
-  { id: "corpo-humano", label: "Corpo Humano", emoji: "🫀" },
+const NICHE_IDS = [
+  { id: "biblicas", emoji: "✝️" },
+  { id: "motivacional", emoji: "🔥" },
+  { id: "curiosidades", emoji: "🧠" },
+  { id: "historias-reais", emoji: "📖" },
+  { id: "corpo-humano", emoji: "🫀" },
 ];
 
-const STEPS: { key: Step; label: string; icon: any }[] = [
-  { key: "niche", label: "Nicho", icon: Sparkles },
-  { key: "style", label: "Estilo", icon: Palette },
-  { key: "theme", label: "Tema", icon: Sparkles },
-  { key: "title", label: "Título", icon: FileText },
-  { key: "script", label: "Roteiro", icon: FileText },
-  { key: "character", label: "Personagem", icon: Users },
-  { key: "scenes", label: "Cenas", icon: Clapperboard },
-  { key: "generate", label: "Gerar", icon: Film },
+const STEP_KEYS: { key: Step; icon: any }[] = [
+  { key: "niche", icon: Sparkles },
+  { key: "style", icon: Palette },
+  { key: "theme", icon: Sparkles },
+  { key: "title", icon: FileText },
+  { key: "script", icon: FileText },
+  { key: "character", icon: Users },
+  { key: "scenes", icon: Clapperboard },
+  { key: "generate", icon: Film },
 ];
 
 async function callChat(message: string, token: string, characterBlock?: string | null, mode?: string): Promise<string> {
@@ -152,6 +153,10 @@ export default function DarkPipelinePage() {
   const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock, wanT2VBlock, negativePrompt } = useCharacter();
   const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const NICHES = NICHE_IDS.map((n) => ({ ...n, label: t(`dp.niches.${n.id}`) }));
+  const STEPS = STEP_KEYS.map((s) => ({ ...s, label: t(`dp.steps.${s.key}`) }));
 
   // Persist pipeline state in localStorage
   const STORAGE_KEY = "savvyowl_dark_pipeline";
@@ -317,10 +322,10 @@ export default function DarkPipelinePage() {
       setStyleFormOpen(false);
       setStyleForm({ name: "", visual_description: "", color_palette: "", atmosphere: "", scene_types: "" });
       setStyleFormChars([]);
-      toast.success("Perfil de estilo criado!");
+      toast.success(t("dp.style.created"));
       setStep("theme");
     } catch (e: any) {
-      toast.error(e.message || "Erro ao criar perfil");
+      toast.error(e.message || t("dp.style.createError"));
     } finally {
       setStyleLoading(false);
     }
@@ -328,12 +333,12 @@ export default function DarkPipelinePage() {
 
   const handleDeleteStyleProfile = async (id: string) => {
     const { error } = await supabase.from("style_profiles" as any).delete().eq("id", id);
-    if (error) { toast.error("Erro ao apagar"); return; }
+    if (error) { toast.error(t("dp.style.deleteError")); return; }
     setStyleProfiles((prev) => prev.filter((p) => p.id !== id));
     if (pipeline.styleProfileId === id) {
       setPipeline((p) => ({ ...p, styleProfileId: null, styleProfile: null }));
     }
-    toast.success("Perfil apagado");
+    toast.success(t("dp.style.deleted"));
   };
 
   const handleSelectStyleProfile = (sp: StyleProfile) => {
@@ -409,7 +414,7 @@ export default function DarkPipelinePage() {
       if (submitData.status !== "SUBMITTED") throw new Error("Falha ao submeter");
 
       const { statusUrl, responseUrl } = submitData;
-      toast.info(`A gerar imagem de ${char.name}...`);
+      toast.info(t("dp.style.imageGenerating", { name: char.name }));
 
       // Poll for result
       const maxWait = 120000;
@@ -459,17 +464,17 @@ export default function DarkPipelinePage() {
             }));
           }
 
-          toast.success(`Imagem de ${char.name} gerada!`);
+          toast.success(t("dp.style.imageGenerated", { name: char.name }));
           setCharImageGenerating((prev) => ({ ...prev, [char.id]: false }));
           return;
         }
         if (pollData.status === "FAILED") {
-          throw new Error(pollData.error || "Geração falhou");
+          throw new Error(pollData.error || t("dp.style.imageFailed"));
         }
       }
-      throw new Error("Timeout — tenta novamente");
+      throw new Error(t("dp.style.imageTimeout"));
     } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar imagem");
+      toast.error(e.message || t("dp.style.imageError"));
       setCharImageGenerating((prev) => ({ ...prev, [char.id]: false }));
     }
   };
@@ -490,7 +495,7 @@ export default function DarkPipelinePage() {
     setVoiceUrl(null);
     setNarrationStorageUrl(null);
     setAudioDuration(null);
-    toast.success("Novo projeto iniciado");
+    toast.success(t("dp.newProjectStarted"));
   };
 
   const currentStepIndex = STEPS.findIndex((s) => s.key === step);
@@ -531,7 +536,7 @@ Regras:
       setPipeline((p) => ({ ...p, titles }));
       setStep("title");
     } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar títulos");
+      toast.error(e.message || t("dp.theme.error"));
     } finally {
       setLoading(false);
     }
@@ -575,7 +580,7 @@ REGRA ABSOLUTA DE OUTPUT:
       setPipeline((p) => ({ ...p, script: reply }));
       setStep("script");
     } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar roteiro");
+      toast.error(e.message || t("dp.script.error"));
     } finally {
       setLoading(false);
     }
@@ -660,11 +665,11 @@ REGRA ABSOLUTA DE OUTPUT:
           }
         }
 
-        toast.success("Narração gerada!");
+        toast.success(t("dp.narration.generated"));
       }
     } catch (e: any) {
-      setVoiceError(e.message || "Erro ao gerar voz");
-      toast.error("Erro ao gerar narração");
+      setVoiceError(e.message || t("dp.narration.error"));
+      toast.error(t("dp.narration.error"));
     } finally {
       setVoiceLoading(false);
     }
@@ -697,7 +702,7 @@ REGRA ABSOLUTA DE OUTPUT:
         if (fnError || data?.error) {
           const errMsg: string = fnError?.message || data?.error || "";
           if (errMsg.includes("voice_not_found")) {
-            toast.error("Voz do personagem não encontrada no ElevenLabs. Actualiza o Voice ID na página Characters.");
+            toast.error(t("dp.narration.voiceNotFound"));
             setSceneAudiosGenerating(false);
             return;
           }
@@ -748,7 +753,7 @@ REGRA ABSOLUTA DE OUTPUT:
       }
     }
     setSceneAudiosGenerating(false);
-    toast.success("Áudios das cenas prontos — lip-sync disponível!");
+    toast.success(t("dp.narration.audioReady"));
   };
 
   // ── STEP 4: Generate scene prompts from script ──
@@ -757,7 +762,7 @@ REGRA ABSOLUTA DE OUTPUT:
 
     // Safety: if character is selected but identityBlock is not loaded yet, warn and abort
     if (pipeline.characterId && !identityBlock) {
-      toast.error("Personagem selecionado mas identidade não carregada. Tenta selecionar o personagem de novo.");
+      toast.error(t("dp.scenes.identityNotLoaded"));
       return;
     }
 
@@ -879,7 +884,7 @@ Sem texto adicional fora deste formato.`,
         generateSceneAudios(scenes); // fire-and-forget — audioUrl atualiza por cena
       }
     } catch (e: any) {
-      toast.error(e.message || "Erro ao gerar cenas");
+      toast.error(e.message || t("dp.scenes.error"));
     } finally {
       setLoading(false);
     }
@@ -992,7 +997,7 @@ Sem texto adicional fora deste formato.`,
                   : s
               ),
             }));
-            toast.info(`Cena ${sceneIndex + 1}: a sincronizar voz...`);
+            toast.info(t("dp.generate.sceneLipsync", { index: sceneIndex + 1 }));
 
             // Submit lip-sync job
             const lsSubmitResp = await fetch(baseUrl, {
@@ -1028,7 +1033,7 @@ Sem texto adicional fora deste formato.`,
                       : s
                   ),
                 }));
-                toast.success(`Cena ${sceneIndex + 1} com voz sincronizada! (${Math.round((elapsed + lsElapsed) / 1000)}s)`);
+                toast.success(t("dp.generate.sceneLipsyncDone", { index: sceneIndex + 1, seconds: Math.round((elapsed + lsElapsed) / 1000) }));
                 refreshProfile();
                 return;
               }
@@ -1041,7 +1046,7 @@ Sem texto adicional fora deste formato.`,
                     i === sceneIndex ? { ...s, generating: false, lipsyncStatus: "error" } : s
                   ),
                 }));
-                toast.warning(`Cena ${sceneIndex + 1}: lip-sync falhou — vídeo sem sincronização mantido.`);
+                toast.warning(t("dp.generate.sceneLipsyncFailed", { index: sceneIndex + 1 }));
                 refreshProfile();
                 return;
               }
@@ -1054,7 +1059,7 @@ Sem texto adicional fora deste formato.`,
                 i === sceneIndex ? { ...s, generating: false, lipsyncStatus: "error" } : s
               ),
             }));
-            toast.warning(`Cena ${sceneIndex + 1}: lip-sync timeout — vídeo sem sincronização mantido.`);
+            toast.warning(t("dp.generate.sceneLipsyncTimeout", { index: sceneIndex + 1 }));
             refreshProfile();
             return;
           }
@@ -1066,7 +1071,7 @@ Sem texto adicional fora deste formato.`,
               i === sceneIndex ? { ...s, videoUrl: rawVideoUrl, generating: false } : s
             ),
           }));
-          toast.success(`Cena ${sceneIndex + 1} gerada! (${Math.round(elapsed / 1000)}s)`);
+          toast.success(t("dp.generate.sceneGenerated", { index: sceneIndex + 1, seconds: Math.round(elapsed / 1000) }));
           refreshProfile();
           return;
         }
@@ -1076,15 +1081,15 @@ Sem texto adicional fora deste formato.`,
           try {
             await fetch(baseUrl, { method: "POST", headers, body: JSON.stringify({ action: "refund", model }) });
             refreshProfile();
-            toast.warning(`Cena ${sceneIndex + 1}: geração falhou — 8 créditos devolvidos`);
+            toast.warning(t("dp.generate.sceneFailed", { index: sceneIndex + 1 }));
           } catch {}
-          throw new Error(pollData.error || "Geração falhou no servidor");
+          throw new Error(pollData.error || t("dp.generate.failed"));
         }
 
         // Still pending — continue polling
       }
 
-      throw new Error("Timeout — o vídeo está a demorar mais de 10 minutos");
+      throw new Error(t("dp.generate.timeout"));
     } catch (e: any) {
       setPipeline((p) => ({
         ...p,
@@ -1092,7 +1097,7 @@ Sem texto adicional fora deste formato.`,
           i === sceneIndex ? { ...s, generating: false, error: e.message } : s
         ),
       }));
-      toast.error(`Cena ${sceneIndex + 1}: ${e.message}`);
+      toast.error(t("dp.generate.sceneError", { index: sceneIndex + 1, error: e.message }));
     }
   };
 
@@ -1120,7 +1125,7 @@ Sem texto adicional fora deste formato.`,
     ].filter(Boolean).join("\n");
 
     navigator.clipboard.writeText(lines);
-    toast.success("Todos os prompts copiados!");
+    toast.success(t("dp.scenes.allCopied"));
   };
 
   // ── Character selection ──
@@ -1138,7 +1143,7 @@ Sem texto adicional fora deste formato.`,
     
     if (data?.elevenlabs_voice_id) {
       voiceId = data.elevenlabs_voice_id;
-      toast.success(`Voz do ${charName} detectada!`);
+      toast.success(t("dp.character.voiceDetected", { name: charName }));
     }
 
     setPipeline((p) => ({
@@ -1156,15 +1161,15 @@ Sem texto adicional fora deste formato.`,
       <header className="h-12 flex items-center justify-between border-b border-border px-4 shrink-0">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/chat")} className="gap-1.5 text-xs">
-            <ArrowLeft className="h-3.5 w-3.5" />Voltar
+            <ArrowLeft className="h-3.5 w-3.5" />{t("dp.back")}
           </Button>
           <Film className="h-4 w-4 text-purple-500" />
-          <span className="text-sm font-semibold text-foreground">Dark Pipeline Pro</span>
+          <span className="text-sm font-semibold text-foreground">{t("dp.title")}</span>
         </div>
         <div className="flex items-center gap-2">
           {step !== "theme" && (
             <Button variant="ghost" size="sm" onClick={handleNewProject} className="text-[10px] text-muted-foreground">
-              <RefreshCw className="h-3 w-3 mr-1" />Novo Projeto
+              <RefreshCw className="h-3 w-3 mr-1" />{t("dp.newProject")}
             </Button>
           )}
           {/* Credits balance */}
@@ -1194,8 +1199,8 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Sparkles className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Escolhe o Nicho</h2>
-                <p className="text-xs text-muted-foreground">Que tipo de conteúdo queres criar?</p>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.niche.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("dp.niche.subtitle")}</p>
               </div>
               <div className="grid grid-cols-1 gap-2">
                 {NICHES.map((n) => (
@@ -1224,7 +1229,7 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-4">
                 <Palette className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Estilo Visual do Canal</h2>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.style.title")}</h2>
                 <p className="text-xs text-muted-foreground">Nicho: {pipeline.niche}</p>
               </div>
 
@@ -1236,7 +1241,7 @@ Sem texto adicional fora deste formato.`,
               {/* Existing profiles */}
               {!styleFormOpen && !styleLoading && styleProfiles.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Perfis existentes</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.existing")}</p>
                   {styleProfiles.map((sp) => (
                     <div
                       key={sp.id}
@@ -1252,7 +1257,7 @@ Sem texto adicional fora deste formato.`,
                           <p className="text-sm font-medium text-foreground">{sp.name}</p>
                           <p className="text-[11px] text-muted-foreground line-clamp-2">{sp.visual_description}</p>
                           {sp.characters?.length > 0 && (
-                            <p className="text-[10px] text-purple-400 mt-1">{sp.characters.length} personagem(ns)</p>
+                            <p className="text-[10px] text-purple-400 mt-1">{sp.characters.length} {t("dp.style.characters_count")}</p>
                           )}
                         </div>
                         <button
@@ -1274,7 +1279,7 @@ Sem texto adicional fora deste formato.`,
                   onClick={() => setStyleFormOpen(true)}
                   className="w-full gap-2 text-sm"
                 >
-                  <Plus className="h-4 w-4" />Criar novo perfil de estilo
+                  <Plus className="h-4 w-4" />{t("dp.style.createNew")}
                 </Button>
               )}
 
@@ -1286,7 +1291,7 @@ Sem texto adicional fora deste formato.`,
                   onClick={() => setStep("theme")}
                   className="w-full text-xs text-muted-foreground"
                 >
-                  Avançar sem perfil de estilo
+                  {t("dp.style.skip")}
                 </Button>
               )}
 
@@ -1294,59 +1299,59 @@ Sem texto adicional fora deste formato.`,
               {styleFormOpen && (
                 <div className="space-y-3 border border-purple-500/20 rounded-xl p-4 bg-purple-500/5">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-foreground">Novo perfil de estilo</p>
+                    <p className="text-sm font-semibold text-foreground">{t("dp.style.formTitle")}</p>
                     <button onClick={() => { setStyleFormOpen(false); setStyleFormChars([]); }} className="p-1 text-muted-foreground hover:text-foreground">
                       <X className="h-4 w-4" />
                     </button>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Nome do perfil *</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.nameLabel")}</label>
                     <input
                       value={styleForm.name}
                       onChange={(e) => setStyleForm((f) => ({ ...f, name: e.target.value }))}
-                      placeholder="Ex: Canal Bíblico Épico, Mistérios Sombrios..."
+                      placeholder={t("dp.style.namePlaceholder")}
                       className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição visual *</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.visualLabel")}</label>
                     <textarea
                       value={styleForm.visual_description}
                       onChange={(e) => setStyleForm((f) => ({ ...f, visual_description: e.target.value }))}
-                      placeholder="Descreve o estilo visual: iluminação, cenários, tipo de câmera, época..."
+                      placeholder={t("dp.style.visualPlaceholder")}
                       rows={3}
                       className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Paleta de cores</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.paletteLabel")}</label>
                     <input
                       value={styleForm.color_palette}
                       onChange={(e) => setStyleForm((f) => ({ ...f, color_palette: e.target.value }))}
-                      placeholder="Ex: tons dourados, sépia, azul profundo, contraste alto..."
+                      placeholder={t("dp.style.palettePlaceholder")}
                       className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Atmosfera</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.atmosphereLabel")}</label>
                     <input
                       value={styleForm.atmosphere}
                       onChange={(e) => setStyleForm((f) => ({ ...f, atmosphere: e.target.value }))}
-                      placeholder="Ex: misteriosa, épica, acolhedora, sombria, cinematográfica..."
+                      placeholder={t("dp.style.atmospherePlaceholder")}
                       className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipos de cena</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.sceneTypesLabel")}</label>
                     <input
                       value={styleForm.scene_types}
                       onChange={(e) => setStyleForm((f) => ({ ...f, scene_types: e.target.value }))}
-                      placeholder="Ex: close-up dramático, plano aéreo, câmera lenta, silhuetas..."
+                      placeholder={t("dp.style.sceneTypesPlaceholder")}
                       className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                     />
                   </div>
@@ -1354,10 +1359,10 @@ Sem texto adicional fora deste formato.`,
                   {/* ── CHARACTERS SECTION ── */}
                   <div className="border-t border-border/50 pt-3 mt-3">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Personagens do perfil</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.style.charsTitle")}</p>
                       {!charFormOpen && (
                         <button onClick={() => handleOpenCharForm()} className="flex items-center gap-1 text-[10px] text-purple-500 hover:text-purple-400">
-                          <UserPlus className="h-3 w-3" />Adicionar
+                          <UserPlus className="h-3 w-3" />{t("dp.style.addChar")}
                         </button>
                       )}
                     </div>
@@ -1371,12 +1376,12 @@ Sem texto adicional fora deste formato.`,
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="text-xs font-medium text-foreground">{c.name}</p>
-                                  {c.isPrimary && <span className="text-[9px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full">Principal</span>}
+                                  {c.isPrimary && <span className="text-[9px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full">{t("dp.style.primary")}</span>}
                                 </div>
                                 <p className="text-[10px] text-muted-foreground line-clamp-1">{c.physicalDescription}</p>
                               </div>
                               <div className="flex items-center gap-1 ml-2 shrink-0">
-                                <button onClick={() => handleTogglePrimary(i)} title="Marcar como principal"
+                                <button onClick={() => handleTogglePrimary(i)} title={t("dp.style.markPrimary")}
                                   className={`p-1 rounded transition-colors ${c.isPrimary ? "text-purple-500" : "text-muted-foreground hover:text-purple-500"}`}>
                                   <Users className="h-3 w-3" />
                                 </button>
@@ -1397,13 +1402,13 @@ Sem texto adicional fora deste formato.`,
                                   className="h-16 w-16 rounded-lg object-cover border border-border/50"
                                 />
                                 <div className="flex-1">
-                                  <p className="text-[9px] text-green-500">Imagem de referência gerada</p>
+                                  <p className="text-[9px] text-green-500">{t("dp.style.refGenerated")}</p>
                                   <button
                                     onClick={() => handleGenerateCharImage(i)}
                                     disabled={charImageGenerating[c.id]}
                                     className="text-[9px] text-muted-foreground hover:text-purple-500 mt-0.5"
                                   >
-                                    {charImageGenerating[c.id] ? "A gerar..." : "Regenerar"}
+                                    {charImageGenerating[c.id] ? t("dp.style.generating") : t("dp.style.regenerate")}
                                   </button>
                                 </div>
                               </div>
@@ -1416,9 +1421,9 @@ Sem texto adicional fora deste formato.`,
                                 className="gap-1.5 text-[10px] w-full"
                               >
                                 {charImageGenerating[c.id] ? (
-                                  <><Loader2 className="h-3 w-3 animate-spin" />A gerar imagem...</>
+                                  <><Loader2 className="h-3 w-3 animate-spin" />{t("dp.style.generatingImage")}</>
                                 ) : (
-                                  <><Image className="h-3 w-3" />Gerar Imagem de Referência · 2 créd</>
+                                  <><Image className="h-3 w-3" />{t("dp.style.generateImage")}</>
                                 )}
                               </Button>
                             )}
@@ -1428,32 +1433,32 @@ Sem texto adicional fora deste formato.`,
                     )}
 
                     {styleFormChars.length === 0 && !charFormOpen && (
-                      <p className="text-[10px] text-muted-foreground/60 mb-2">Nenhum personagem adicionado</p>
+                      <p className="text-[10px] text-muted-foreground/60 mb-2">{t("dp.style.noChars")}</p>
                     )}
 
                     {/* Character form */}
                     {charFormOpen && (
                       <div className="space-y-2 p-3 rounded-lg bg-secondary/20 border border-border/50">
-                        <p className="text-xs font-semibold text-foreground">{charEditIndex !== null ? "Editar" : "Novo"} personagem</p>
+                        <p className="text-xs font-semibold text-foreground">{charEditIndex !== null ? t("dp.style.editChar") : t("dp.style.newChar")} {t("dp.steps.character").toLowerCase()}</p>
                         <input
                           value={charForm.name}
                           onChange={(e) => setCharForm((f) => ({ ...f, name: e.target.value }))}
-                          placeholder="Nome do personagem"
+                          placeholder={t("dp.style.charNamePlaceholder")}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                         />
                         <textarea
                           value={charForm.physicalDescription}
                           onChange={(e) => setCharForm((f) => ({ ...f, physicalDescription: e.target.value }))}
-                          placeholder="Descrição física detalhada: rosto, corpo, roupa, acessórios, idade, tom de pele..."
+                          placeholder={t("dp.style.charDescPlaceholder")}
                           rows={3}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
                         />
                         <div className="flex gap-2">
                           <Button size="sm" onClick={handleSaveChar} disabled={!charForm.name.trim() || !charForm.physicalDescription.trim()} className="gap-1 text-xs bg-purple-600 hover:bg-purple-700">
-                            <Check className="h-3 w-3" />{charEditIndex !== null ? "Guardar" : "Adicionar"}
+                            <Check className="h-3 w-3" />{charEditIndex !== null ? t("dp.style.saveChar") : t("dp.style.addCharBtn")}
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => { setCharFormOpen(false); setCharEditIndex(null); }} className="text-xs">
-                            Cancelar
+                            {t("dp.style.cancel")}
                           </Button>
                         </div>
                       </div>
@@ -1467,7 +1472,7 @@ Sem texto adicional fora deste formato.`,
                     className="w-full gap-2 bg-purple-600 hover:bg-purple-700 mt-2"
                   >
                     {styleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    {styleLoading ? "A criar..." : "Criar perfil e avançar"}
+                    {styleLoading ? t("dp.style.creating") : t("dp.style.createAndNext")}
                   </Button>
                 </div>
               )}
@@ -1479,13 +1484,13 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Sparkles className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Define o Tema</h2>
-                <p className="text-xs text-muted-foreground">Nicho: {pipeline.niche} · Qual é o tema do teu vídeo?</p>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.theme.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("dp.theme.subtitle", { niche: pipeline.niche })}</p>
               </div>
               <textarea
                 value={pipeline.theme}
                 onChange={(e) => setPipeline((p) => ({ ...p, theme: e.target.value }))}
-                placeholder="Ex: oração do salmo 91, mistérios do oceano, 5 hábitos milionários, receita de bolo fitness..."
+                placeholder={t("dp.theme.placeholder")}
                 rows={3}
                 className="w-full rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
               />
@@ -1495,7 +1500,7 @@ Sem texto adicional fora deste formato.`,
                 className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {loading ? "A gerar títulos..." : "Gerar 5 Títulos"}
+                {loading ? t("dp.theme.generating") : t("dp.theme.generate")}
               </Button>
             </div>
           )}
@@ -1505,8 +1510,8 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-4">
                 <FileText className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Escolhe o Título</h2>
-                <p className="text-xs text-muted-foreground">Tema: {pipeline.theme}</p>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.titleStep.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("dp.titleStep.subtitle", { theme: pipeline.theme })}</p>
               </div>
               {/* AI-generated titles */}
               <div className="space-y-2">
@@ -1528,11 +1533,11 @@ Sem texto adicional fora deste formato.`,
 
               {/* Custom title */}
               <div className="border-t border-border/50 pt-3">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Ou escreve o teu próprio título</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">{t("dp.titleStep.customTitle")}</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Escreve aqui o teu título..."
+                    placeholder={t("dp.titleStep.customPlaceholder")}
                     className="flex-1 rounded-xl border border-border bg-secondary/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && (e.target as HTMLInputElement).value.trim()) {
@@ -1555,7 +1560,7 @@ Sem texto adicional fora deste formato.`,
                 disabled={loading}
                 className="gap-1.5 text-xs"
               >
-                <RefreshCw className="h-3 w-3" />Gerar novos títulos
+                <RefreshCw className="h-3 w-3" />{t("dp.titleStep.refreshTitles")}
               </Button>
               <div className="pt-2">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Duração do vídeo</p>
@@ -1609,15 +1614,15 @@ Sem texto adicional fora deste formato.`,
                   disabled={loading}
                   className="gap-1.5 text-xs"
                 >
-                  <RefreshCw className="h-3 w-3" />Regenerar
+                  <RefreshCw className="h-3 w-3" />{t("dp.script.regenerate")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => { navigator.clipboard.writeText(pipeline.script); toast.success("Roteiro copiado!"); }}
+                  onClick={() => { navigator.clipboard.writeText(pipeline.script); toast.success(t("dp.script.copied")); }}
                   className="gap-1.5 text-xs"
                 >
-                  <Copy className="h-3 w-3" />Copiar
+                  <Copy className="h-3 w-3" />{t("dp.script.copy")}
                 </Button>
               </div>
 
@@ -1635,14 +1640,14 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-4">
                 <Users className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Personagem</h2>
-                <p className="text-xs text-muted-foreground">Escolhe um personagem existente ou avança sem personagem</p>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.character.title")}</h2>
+                <p className="text-xs text-muted-foreground">{t("dp.character.subtitle")}</p>
               </div>
 
               {/* Existing characters */}
               {characters.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Personagens guardados</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("dp.character.saved")}</p>
                   {characters.map((char) => (
                     <button
                       key={char.id}
@@ -1672,7 +1677,7 @@ Sem texto adicional fora deste formato.`,
                 onClick={() => navigate("/dashboard/characters")}
                 className="w-full gap-2 text-xs"
               >
-                <Sparkles className="h-3.5 w-3.5" />Criar Novo Personagem no Character Engine
+                <Sparkles className="h-3.5 w-3.5" />{t("dp.character.createNew")}
               </Button>
 
               {/* Config: duration, scenes, aspect ratio */}
@@ -1862,7 +1867,7 @@ Sem texto adicional fora deste formato.`,
                 className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clapperboard className="h-4 w-4" />}
-                {loading ? "A gerar cenas..." : "Gerar Cenas"}
+                {loading ? t("dp.scenes.generating") : t("dp.scenes.generateScenes")}
               </Button>
             </div>
           )}
@@ -1879,14 +1884,14 @@ Sem texto adicional fora deste formato.`,
               {/* Action buttons */}
               <div className="flex gap-2 flex-wrap">
                 <Button onClick={handleExportPrompts} variant="outline" size="sm" className="gap-1.5 text-xs">
-                  <Copy className="h-3 w-3" />Copiar todos os prompts
+                  <Copy className="h-3 w-3" />{t("dp.scenes.copyAll")}
                 </Button>
                 <Button
                   onClick={() => setStep("generate")}
                   size="sm"
                   className="gap-1.5 text-xs bg-purple-600 hover:bg-purple-700"
                 >
-                  <Video className="h-3 w-3" />Gerar vídeos na SavvyOwl
+                  <Video className="h-3 w-3" />{t("dp.scenes.generateVideos")}
                 </Button>
               </div>
 
@@ -1925,11 +1930,11 @@ Sem texto adicional fora deste formato.`,
                           ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
                           : scene.prompt;
                         navigator.clipboard.writeText(fullPrompt);
-                        toast.success(`Prompt da Cena ${scene.index} copiado!`);
+                        toast.success(t("dp.scenes.promptCopied", { index: scene.index }));
                       }}
                       className="gap-1 text-[10px] text-muted-foreground hover:text-purple-500"
                     >
-                      <Copy className="h-3 w-3" />Copiar prompt completo
+                      <Copy className="h-3 w-3" />{t("dp.scenes.copyPrompt")}
                     </Button>
                   </div>
                 </div>
@@ -1942,7 +1947,7 @@ Sem texto adicional fora deste formato.`,
             <div className="space-y-4">
               <div className="text-center mb-4">
                 <Film className="h-10 w-10 text-purple-500 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-foreground">Gerar Vídeos</h2>
+                <h2 className="text-lg font-bold text-foreground">{t("dp.generate.title")}</h2>
                 <p className="text-xs text-muted-foreground">Clica em cada cena para gerar o vídeo</p>
               </div>
 
@@ -2051,11 +2056,11 @@ Sem texto adicional fora deste formato.`,
                           ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
                           : scene.prompt;
                         navigator.clipboard.writeText(fullPrompt);
-                        toast.success(`Prompt da Cena ${scene.index} copiado!`);
+                        toast.success(t("dp.scenes.promptCopied", { index: scene.index }));
                       }}
                       className="gap-1 text-[10px] text-muted-foreground hover:text-purple-500 mt-1"
                     >
-                      <Copy className="h-3 w-3" />Copiar prompt
+                      <Copy className="h-3 w-3" />{t("dp.generate.copyPrompt")}
                     </Button>
                   </div>
                 </div>
@@ -2085,7 +2090,7 @@ Sem texto adicional fora deste formato.`,
                 }}
                 className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
               >
-                <ArrowLeft className="h-3 w-3" />Voltar ao passo anterior
+                <ArrowLeft className="h-3 w-3" />{t("dp.generate.backStep")}
               </button>
             </div>
           )}
