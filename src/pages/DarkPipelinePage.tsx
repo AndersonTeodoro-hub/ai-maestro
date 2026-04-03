@@ -11,9 +11,30 @@ import {
   ArrowLeft, ArrowRight, Check, Loader2, Video, Copy,
   Download, Users, Sparkles, FileText, Clapperboard,
   Film, Image, Clock, Coins, RefreshCw, Mic, Volume2, ChevronDown,
+  Palette, Plus, Trash2, Pencil, X, UserPlus,
 } from "lucide-react";
 
-type Step = "theme" | "title" | "script" | "character" | "scenes" | "generate";
+type Step = "niche" | "style" | "theme" | "title" | "script" | "character" | "scenes" | "generate";
+
+interface StyleCharacter {
+  id: string;
+  name: string;
+  physicalDescription: string;
+}
+
+interface StyleProfile {
+  id: string;
+  user_id: string;
+  niche: string;
+  name: string;
+  visual_description: string;
+  color_palette: string | null;
+  atmosphere: string | null;
+  scene_types: string | null;
+  characters: StyleCharacter[];
+  character_images: Record<string, string> | null;
+  created_at: string;
+}
 
 interface SceneData {
   index: number;
@@ -29,6 +50,9 @@ interface SceneData {
 }
 
 interface PipelineState {
+  niche: string;
+  styleProfileId: string | null;
+  styleProfile: StyleProfile | null;
   theme: string;
   titles: string[];
   selectedTitle: string;
@@ -44,7 +68,17 @@ interface PipelineState {
   aspectRatio: string;
 }
 
+const NICHES = [
+  { id: "biblicas", label: "Histórias Bíblicas", emoji: "✝️" },
+  { id: "motivacional", label: "Motivacional", emoji: "🔥" },
+  { id: "curiosidades", label: "Curiosidades", emoji: "🧠" },
+  { id: "historias-reais", label: "Histórias Reais", emoji: "📖" },
+  { id: "corpo-humano", label: "Corpo Humano", emoji: "🫀" },
+];
+
 const STEPS: { key: Step; label: string; icon: any }[] = [
+  { key: "niche", label: "Nicho", icon: Sparkles },
+  { key: "style", label: "Estilo", icon: Palette },
   { key: "theme", label: "Tema", icon: Sparkles },
   { key: "title", label: "Título", icon: FileText },
   { key: "script", label: "Roteiro", icon: FileText },
@@ -121,9 +155,9 @@ export default function DarkPipelinePage() {
   const [step, setStep] = useState<Step>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved).step || "theme";
+      if (saved) return JSON.parse(saved).step || "niche";
     } catch {}
-    return "theme";
+    return "niche";
   });
   const [loading, setLoading] = useState(false);
 
@@ -180,10 +214,13 @@ export default function DarkPipelinePage() {
       }
     } catch {}
     return {
+      niche: "",
+      styleProfileId: null,
+      styleProfile: null,
       theme: "",
       titles: [],
       selectedTitle: "",
-      wordCount: 500,
+      wordCount: 450,
       script: "",
       characterId: null,
       characterName: null,
@@ -222,12 +259,122 @@ export default function DarkPipelinePage() {
     }
   }, [pipeline.characterId, characters, activeCharacter, selectCharacter]);
 
+  // ── Style Profile state ──
+  const [styleProfiles, setStyleProfiles] = useState<StyleProfile[]>([]);
+  const [styleLoading, setStyleLoading] = useState(false);
+  const [styleFormOpen, setStyleFormOpen] = useState(false);
+  const [styleForm, setStyleForm] = useState({ name: "", visual_description: "", color_palette: "", atmosphere: "", scene_types: "" });
+  const [styleFormChars, setStyleFormChars] = useState<StyleCharacter[]>([]);
+  const [charFormOpen, setCharFormOpen] = useState(false);
+  const [charEditIndex, setCharEditIndex] = useState<number | null>(null);
+  const [charForm, setCharForm] = useState({ name: "", physicalDescription: "" });
+
+  // Load style profiles when niche changes
+  useEffect(() => {
+    if (!pipeline.niche || !user?.id) return;
+    const load = async () => {
+      setStyleLoading(true);
+      const { data } = await supabase
+        .from("style_profiles" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("niche", pipeline.niche)
+        .order("created_at", { ascending: false });
+      setStyleProfiles((data as any as StyleProfile[]) || []);
+      setStyleLoading(false);
+    };
+    load();
+  }, [pipeline.niche, user?.id]);
+
+  const handleCreateStyleProfile = async () => {
+    if (!user?.id || !styleForm.name.trim() || !styleForm.visual_description.trim()) return;
+    setStyleLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("style_profiles" as any)
+        .insert({
+          user_id: user.id,
+          niche: pipeline.niche,
+          name: styleForm.name.trim(),
+          visual_description: styleForm.visual_description.trim(),
+          color_palette: styleForm.color_palette.trim() || null,
+          atmosphere: styleForm.atmosphere.trim() || null,
+          scene_types: styleForm.scene_types.trim() || null,
+          characters: styleFormChars,
+          character_images: {},
+        } as any)
+        .select()
+        .single();
+      if (error) throw error;
+      const created = data as any as StyleProfile;
+      setStyleProfiles((prev) => [created, ...prev]);
+      setPipeline((p) => ({ ...p, styleProfileId: created.id, styleProfile: created }));
+      setStyleFormOpen(false);
+      setStyleForm({ name: "", visual_description: "", color_palette: "", atmosphere: "", scene_types: "" });
+      setStyleFormChars([]);
+      toast.success("Perfil de estilo criado!");
+      setStep("theme");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao criar perfil");
+    } finally {
+      setStyleLoading(false);
+    }
+  };
+
+  const handleDeleteStyleProfile = async (id: string) => {
+    const { error } = await supabase.from("style_profiles" as any).delete().eq("id", id);
+    if (error) { toast.error("Erro ao apagar"); return; }
+    setStyleProfiles((prev) => prev.filter((p) => p.id !== id));
+    if (pipeline.styleProfileId === id) {
+      setPipeline((p) => ({ ...p, styleProfileId: null, styleProfile: null }));
+    }
+    toast.success("Perfil apagado");
+  };
+
+  const handleSelectStyleProfile = (sp: StyleProfile) => {
+    setPipeline((p) => ({ ...p, styleProfileId: sp.id, styleProfile: sp }));
+    setStep("theme");
+  };
+
+  const handleOpenCharForm = (editIdx?: number) => {
+    if (editIdx !== undefined) {
+      const c = styleFormChars[editIdx];
+      setCharForm({ name: c.name, physicalDescription: c.physicalDescription });
+      setCharEditIndex(editIdx);
+    } else {
+      setCharForm({ name: "", physicalDescription: "" });
+      setCharEditIndex(null);
+    }
+    setCharFormOpen(true);
+  };
+
+  const handleSaveChar = () => {
+    if (!charForm.name.trim() || !charForm.physicalDescription.trim()) return;
+    const newChar: StyleCharacter = {
+      id: charEditIndex !== null ? styleFormChars[charEditIndex].id : crypto.randomUUID(),
+      name: charForm.name.trim(),
+      physicalDescription: charForm.physicalDescription.trim(),
+    };
+    if (charEditIndex !== null) {
+      setStyleFormChars((prev) => prev.map((c, i) => i === charEditIndex ? newChar : c));
+    } else {
+      setStyleFormChars((prev) => [...prev, newChar]);
+    }
+    setCharFormOpen(false);
+    setCharForm({ name: "", physicalDescription: "" });
+    setCharEditIndex(null);
+  };
+
+  const handleRemoveChar = (idx: number) => {
+    setStyleFormChars((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   // Reset pipeline (new project)
   const handleNewProject = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setStep("theme");
+    setStep("niche");
     setPipeline({
-      theme: "", titles: [], selectedTitle: "", wordCount: 500, script: "",
+      niche: "", styleProfileId: null, styleProfile: null, theme: "", titles: [], selectedTitle: "", wordCount: 450, script: "",
       characterId: null, characterName: null, characterVoiceId: null,
       referenceImageUrl: null, sceneDuration: 15, sceneCount: 5, scenes: [], aspectRatio: "9:16",
     });
@@ -252,6 +399,7 @@ export default function DarkPipelinePage() {
       const token = await getToken();
       const reply = await callChat(
         `Gera exatamente 5 títulos para vídeo sobre o tema: "${pipeline.theme}".
+Nicho: ${pipeline.niche || "geral"}
 
 Regras:
 - Títulos em Português
@@ -933,13 +1081,255 @@ Sem texto adicional fora deste formato.`,
       <ScrollArea className="flex-1">
         <div className="max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
 
+          {/* ── STEP: NICHE ── */}
+          {step === "niche" && (
+            <div className="space-y-4">
+              <div className="text-center mb-6">
+                <Sparkles className="h-10 w-10 text-purple-500 mx-auto mb-3" />
+                <h2 className="text-lg font-bold text-foreground">Escolhe o Nicho</h2>
+                <p className="text-xs text-muted-foreground">Que tipo de conteúdo queres criar?</p>
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                {NICHES.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      setPipeline((p) => ({ ...p, niche: n.label }));
+                      setStep("style");
+                    }}
+                    className={`w-full text-left p-4 rounded-xl border transition-all flex items-center gap-3 ${
+                      pipeline.niche === n.label
+                        ? "border-purple-500 bg-purple-500/10"
+                        : "border-border/50 bg-secondary/20 hover:bg-secondary/40"
+                    }`}
+                  >
+                    <span className="text-2xl">{n.emoji}</span>
+                    <span className="text-sm font-medium text-foreground">{n.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP: STYLE ── */}
+          {step === "style" && (
+            <div className="space-y-4">
+              <div className="text-center mb-4">
+                <Palette className="h-10 w-10 text-purple-500 mx-auto mb-3" />
+                <h2 className="text-lg font-bold text-foreground">Estilo Visual do Canal</h2>
+                <p className="text-xs text-muted-foreground">Nicho: {pipeline.niche}</p>
+              </div>
+
+              {/* Loading */}
+              {styleLoading && !styleFormOpen && (
+                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-purple-500" /></div>
+              )}
+
+              {/* Existing profiles */}
+              {!styleFormOpen && !styleLoading && styleProfiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Perfis existentes</p>
+                  {styleProfiles.map((sp) => (
+                    <div
+                      key={sp.id}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                        pipeline.styleProfileId === sp.id
+                          ? "border-purple-500 bg-purple-500/10"
+                          : "border-border/50 bg-secondary/20 hover:bg-secondary/40"
+                      }`}
+                      onClick={() => handleSelectStyleProfile(sp)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{sp.name}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">{sp.visual_description}</p>
+                          {sp.characters?.length > 0 && (
+                            <p className="text-[10px] text-purple-400 mt-1">{sp.characters.length} personagem(ns)</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteStyleProfile(sp.id); }}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Create new button */}
+              {!styleFormOpen && !styleLoading && (
+                <Button
+                  variant="outline"
+                  onClick={() => setStyleFormOpen(true)}
+                  className="w-full gap-2 text-sm"
+                >
+                  <Plus className="h-4 w-4" />Criar novo perfil de estilo
+                </Button>
+              )}
+
+              {/* Skip button */}
+              {!styleFormOpen && !styleLoading && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep("theme")}
+                  className="w-full text-xs text-muted-foreground"
+                >
+                  Avançar sem perfil de estilo
+                </Button>
+              )}
+
+              {/* ── CREATE FORM ── */}
+              {styleFormOpen && (
+                <div className="space-y-3 border border-purple-500/20 rounded-xl p-4 bg-purple-500/5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground">Novo perfil de estilo</p>
+                    <button onClick={() => { setStyleFormOpen(false); setStyleFormChars([]); }} className="p-1 text-muted-foreground hover:text-foreground">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Nome do perfil *</label>
+                    <input
+                      value={styleForm.name}
+                      onChange={(e) => setStyleForm((f) => ({ ...f, name: e.target.value }))}
+                      placeholder="Ex: Canal Bíblico Épico, Mistérios Sombrios..."
+                      className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Descrição visual *</label>
+                    <textarea
+                      value={styleForm.visual_description}
+                      onChange={(e) => setStyleForm((f) => ({ ...f, visual_description: e.target.value }))}
+                      placeholder="Descreve o estilo visual: iluminação, cenários, tipo de câmera, época..."
+                      rows={3}
+                      className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Paleta de cores</label>
+                    <input
+                      value={styleForm.color_palette}
+                      onChange={(e) => setStyleForm((f) => ({ ...f, color_palette: e.target.value }))}
+                      placeholder="Ex: tons dourados, sépia, azul profundo, contraste alto..."
+                      className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Atmosfera</label>
+                    <input
+                      value={styleForm.atmosphere}
+                      onChange={(e) => setStyleForm((f) => ({ ...f, atmosphere: e.target.value }))}
+                      placeholder="Ex: misteriosa, épica, acolhedora, sombria, cinematográfica..."
+                      className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipos de cena</label>
+                    <input
+                      value={styleForm.scene_types}
+                      onChange={(e) => setStyleForm((f) => ({ ...f, scene_types: e.target.value }))}
+                      placeholder="Ex: close-up dramático, plano aéreo, câmera lenta, silhuetas..."
+                      className="w-full mt-1 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                    />
+                  </div>
+
+                  {/* ── CHARACTERS SECTION ── */}
+                  <div className="border-t border-border/50 pt-3 mt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Personagens do perfil</p>
+                      {!charFormOpen && (
+                        <button onClick={() => handleOpenCharForm()} className="flex items-center gap-1 text-[10px] text-purple-500 hover:text-purple-400">
+                          <UserPlus className="h-3 w-3" />Adicionar
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Character list */}
+                    {styleFormChars.length > 0 && !charFormOpen && (
+                      <div className="space-y-1.5 mb-2">
+                        {styleFormChars.map((c, i) => (
+                          <div key={c.id} className="flex items-center justify-between p-2 rounded-lg bg-secondary/30 border border-border/50">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-foreground">{c.name}</p>
+                              <p className="text-[10px] text-muted-foreground line-clamp-1">{c.physicalDescription}</p>
+                            </div>
+                            <div className="flex items-center gap-1 ml-2 shrink-0">
+                              <button onClick={() => handleOpenCharForm(i)} className="p-1 text-muted-foreground hover:text-purple-500">
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button onClick={() => handleRemoveChar(i)} className="p-1 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {styleFormChars.length === 0 && !charFormOpen && (
+                      <p className="text-[10px] text-muted-foreground/60 mb-2">Nenhum personagem adicionado</p>
+                    )}
+
+                    {/* Character form */}
+                    {charFormOpen && (
+                      <div className="space-y-2 p-3 rounded-lg bg-secondary/20 border border-border/50">
+                        <p className="text-xs font-semibold text-foreground">{charEditIndex !== null ? "Editar" : "Novo"} personagem</p>
+                        <input
+                          value={charForm.name}
+                          onChange={(e) => setCharForm((f) => ({ ...f, name: e.target.value }))}
+                          placeholder="Nome do personagem"
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                        />
+                        <textarea
+                          value={charForm.physicalDescription}
+                          onChange={(e) => setCharForm((f) => ({ ...f, physicalDescription: e.target.value }))}
+                          placeholder="Descrição física detalhada: rosto, corpo, roupa, acessórios, idade, tom de pele..."
+                          rows={3}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40 resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleSaveChar} disabled={!charForm.name.trim() || !charForm.physicalDescription.trim()} className="gap-1 text-xs bg-purple-600 hover:bg-purple-700">
+                            <Check className="h-3 w-3" />{charEditIndex !== null ? "Guardar" : "Adicionar"}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setCharFormOpen(false); setCharEditIndex(null); }} className="text-xs">
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Save profile */}
+                  <Button
+                    onClick={handleCreateStyleProfile}
+                    disabled={!styleForm.name.trim() || !styleForm.visual_description.trim() || styleLoading}
+                    className="w-full gap-2 bg-purple-600 hover:bg-purple-700 mt-2"
+                  >
+                    {styleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {styleLoading ? "A criar..." : "Criar perfil e avançar"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── STEP: THEME ── */}
           {step === "theme" && (
             <div className="space-y-4">
               <div className="text-center mb-6">
                 <Sparkles className="h-10 w-10 text-purple-500 mx-auto mb-3" />
                 <h2 className="text-lg font-bold text-foreground">Define o Tema</h2>
-                <p className="text-xs text-muted-foreground">Qual é o tema do teu vídeo?</p>
+                <p className="text-xs text-muted-foreground">Nicho: {pipeline.niche} · Qual é o tema do teu vídeo?</p>
               </div>
               <textarea
                 value={pipeline.theme}
@@ -967,6 +1357,7 @@ Sem texto adicional fora deste formato.`,
                 <h2 className="text-lg font-bold text-foreground">Escolhe o Título</h2>
                 <p className="text-xs text-muted-foreground">Tema: {pipeline.theme}</p>
               </div>
+              {/* AI-generated titles */}
               <div className="space-y-2">
                 {pipeline.titles.map((title, i) => (
                   <button
@@ -983,6 +1374,29 @@ Sem texto adicional fora deste formato.`,
                   </button>
                 ))}
               </div>
+
+              {/* Custom title */}
+              <div className="border-t border-border/50 pt-3">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Ou escreve o teu próprio título</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Escreve aqui o teu título..."
+                    className="flex-1 rounded-xl border border-border bg-secondary/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-400/40"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.target as HTMLInputElement).value.trim()) {
+                        setPipeline((p) => ({ ...p, selectedTitle: (e.target as HTMLInputElement).value.trim() }));
+                      }
+                    }}
+                    onChange={(e) => {
+                      if (e.target.value.trim()) {
+                        setPipeline((p) => ({ ...p, selectedTitle: e.target.value }));
+                      }
+                    }}
+                    value={pipeline.titles.includes(pipeline.selectedTitle) ? "" : pipeline.selectedTitle}
+                  />
+                </div>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
@@ -993,19 +1407,20 @@ Sem texto adicional fora deste formato.`,
                 <RefreshCw className="h-3 w-3" />Gerar novos títulos
               </Button>
               <div className="pt-2">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Palavras no roteiro</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Duração do vídeo</p>
                 <div className="flex gap-2">
-                  {[300, 500, 800, 1200].map((w) => (
+                  {[{ min: 1, words: 150 }, { min: 2, words: 300 }, { min: 3, words: 450 }, { min: 5, words: 750 }].map((opt) => (
                     <button
-                      key={w}
-                      onClick={() => setPipeline((p) => ({ ...p, wordCount: w }))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        pipeline.wordCount === w
-                          ? "bg-purple-600 text-white"
-                          : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                      key={opt.min}
+                      onClick={() => setPipeline((p) => ({ ...p, wordCount: opt.words }))}
+                      className={`flex-1 p-2 rounded-lg border text-center transition-all ${
+                        pipeline.wordCount === opt.words
+                          ? "border-purple-500 bg-purple-500/10"
+                          : "border-border/50 hover:bg-secondary/40"
                       }`}
                     >
-                      {w}
+                      <span className="text-sm font-bold block">{opt.min}min</span>
+                      <span className="text-[9px] text-muted-foreground">~{opt.words} palavras</span>
                     </button>
                   ))}
                 </div>
@@ -1016,7 +1431,7 @@ Sem texto adicional fora deste formato.`,
                 className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                {loading ? "A gerar roteiro..." : `Gerar Roteiro (${pipeline.wordCount} palavras)`}
+                {loading ? "A gerar roteiro..." : `Gerar Roteiro (${Math.round(pipeline.wordCount / 150)}min · ~${pipeline.wordCount} palavras)`}
               </Button>
             </div>
           )}
