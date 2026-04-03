@@ -23,81 +23,17 @@
   },
   "landing": {
     "nav": { "features": "FEATURES", "how": "COMO FUNCIONA", "pricing": "PREÇOS", "faq": "FAQ", "login": "ENTRAR", "cta": "COMEÇAR GRÁTIS" },
-    "hero": {
-      "badge": "PLATAFORMA DE CRIAÇÃO DE VÍDEOS COM IA",
-      "h1a": "Cria vídeos virais.",
-      "h1b": "Com o teu influencer virtual.",
-      "subtitle": "4 ferramentas profissionais numa só plataforma — vídeos virais UGC, criativos de marca, conteúdo nichado cinematográfico e dublagem com IA. O mesmo personagem, sempre consistente.",
-      "cta": "CRIAR GRATUITAMENTE",
-      "ctaSecondary": "VER COMO FUNCIONA",
-      "socialProof": "USADO POR CRIADORES EM PORTUGAL, BRASIL E ANGOLA"
-    },
-    "stats": { "s1_value": "Seedance 1.5", "s1_label": "Motor Viral", "s2_value": "Kling 3.0", "s2_label": "Motor Dublagem", "s3_value": "4", "s3_label": "Ferramentas Pro", "s4_value": "100%", "s4_label": "Consistência visual" },
-    "problem": {
-      "badge": "O PROBLEMA",
-      "title_a": "Conteúdo UGC",
-      "title_b": "que não engana ninguém.",
-      "subtitle": "Tens ferramentas de IA. Generates imagens. Mas os teus vídeos parecem feitos por robô, o teu personagem muda de cara em cada cena, e demoras horas a montar tudo.",
-      "p1_n": "01", "p1_title": "Personagem inconsistente", "p1_desc": "Cada geração cria um rosto diferente. Os seguidores não se identificam com ninguém.",
-      "p2_n": "02", "p2_title": "Vídeos com estética IA", "p2_desc": "Perfeito demais para parecer real. Plataformas e utilizadores detetam e ignoram.",
-      "p3_n": "03", "p3_title": "Workflow fragmentado", "p3_desc": "Saltas entre 4-5 ferramentas diferentes. Horas gastas, resultado medíocre."
-    },
+    "hero": { "badge": "PLATAFORMA DE CRIAÇÃO DE VÍDEOS COM IA", "h1a": "Cria vídeos virais.", "h1b": "Com o teu influencer virtual.", "subtitle": "4 ferramentas profissionais numa só plataforma — vídeos virais UGC, criativos de marca, conteúdo nichado cinematográfico e dublagem com IA. O mesmo personagem, sempre consistente.", "cta": "CRIAR GRATUITAMENTE", "ctaSecondary": "VER COMO FUNCIONA", "socialProof": "USADO POR CRIADORES EM PORTUGAL, BRASIL E ANGOLA" },
+    "stats": { "s1_value": "Lip-sync", "s1_label": "Nativo", "s2_value": "Voice Clone", "s2_label": "Clonagem de voz", "s3_value": "4", "s3_label": "Ferramentas Pro", "s4_value": "100%", "s4_label": "Consistência visual" },
+    "problem": { "badge": "O PROBLEMA", "title_a": "Conteúdo UGC", "title_b": "que não engana ninguém.", "subtitle": "Tens ferramentas de IA. Generates imagens. Mas os teus vídeos parecem feitos por robô, o teu personagem muda de cara em cada cena, e demoras horas a montar tudo.", "p1_n": "01", "p1_title": "Personagem inconsistente", "p1_desc": "Cada geração cria um rosto diferente. Os seguidores não se identificam com ninguém.", "p2_n": "02", "p2_title": "Vídeos com estética IA", "p2_desc": "Perfeito demais para parecer real. Plataformas e utilizadores detetam e ignoram.", "p3_n": "03", "p3_title": "Workflow fragmentado", "p3_desc": "Saltas entre 4-5 ferramentas diferentes. Horas gastas, resultado medíocre." },
     "quote": "\"A solução não é mais ferramentas. É a ferramenta certa.\"",
-    "features": {
-      "badge": "FUNCIONALIDADES",
-      "title_a": "Tudo o que precisas.",
-      "title_b": "Num só lugar.",
-      "f1_title": "Vídeo Viral Pipeline", "f1_desc": "Cria vídeos curtos virais UGC até 12s com lip-sync nativo, áudio natural e consistência de personagem perfeita.", "f1_tag": "SEEDANCE",
-      "f2_title": "Dublagem com IA", "f2_desc": "Upload um vídeo viral, selecciona o teu influencer e a IA recria tudo — rosto, corpo, voz — com motion control até 30s.", "f2_tag": "KLING 3.0",
-      "f3_title": "Dark Pipeline Pro", "f3_desc": "Vídeos cinematográficos por nicho com Style Engine, personagens consistentes e prompts optimizados por categoria.", "f3_tag": "WAN 2.6",
-      "f4_title": "Character Engine", "f4_desc": "Cria o teu influencer virtual com identidade fixa — mesmo rosto, corpo e voz em todos os vídeos.", "f4_tag": "EXCLUSIVO",
-      "f5_title": "Modelar Vídeo Viral", "f5_desc": "Cria anúncios e apresentações de marca com personagem UGC e lip-sync nativo.", "f5_tag": "CRIATIVOS",
-      "f6_title": "Pipeline Completo", "f6_desc": "Do tema ao vídeo final — roteiro, narração, cenas e geração numa só ferramenta.", "f6_tag": "WORKFLOW"
-    },
-    "howItWorks": {
-      "badge": "COMO FUNCIONA",
-      "title_a": "Três passos.",
-      "title_b": "Zero fricção.",
-      "step1_n": "01", "step1_title": "Cria o teu Personagem", "step1_desc": "O Character Engine gera um influencer virtual único — rosto, corpo, voz, tudo consistente.",
-      "step2_n": "02", "step2_title": "Escolhe a Ferramenta", "step2_desc": "Viral Pipeline, Dublagem, Dark Pipeline ou Modelar Viral — cada uma optimizada para o teu objectivo.",
-      "step3_n": "03", "step3_title": "Gera e Publica", "step3_desc": "A IA gera vídeos com Seedance 1.5 Pro, Kling 3.0 ou Wan 2.6 — lip-sync nativo, qualidade cinematográfica."
-    },
+    "features": { "badge": "FUNCIONALIDADES", "title_a": "Tudo o que precisas.", "title_b": "Num só lugar.", "f1_title": "Viral Video Pipeline", "f1_desc": "Cria vídeos curtos virais UGC até 12s com lip-sync nativo, áudio natural e consistência de personagem perfeita.", "f1_tag": "VÍDEO VIRAL", "f2_title": "Dublagem com IA", "f2_desc": "Upload um vídeo viral, selecciona o teu influencer e a IA recria tudo — rosto, corpo, voz — com motion control até 30s.", "f2_tag": "DUBLAGEM IA", "f3_title": "Dark Pipeline Pro", "f3_desc": "Vídeos cinematográficos por nicho com Style Engine, personagens consistentes e prompts optimizados por categoria.", "f3_tag": "CINEMATOGRÁFICO", "f4_title": "Character Engine", "f4_desc": "Cria o teu influencer virtual com identidade fixa — mesmo rosto, corpo e voz em todos os vídeos.", "f4_tag": "EXCLUSIVO", "f5_title": "Modelar Vídeo Viral", "f5_desc": "Cria anúncios e apresentações de marca com personagem UGC e lip-sync nativo.", "f5_tag": "CRIATIVOS", "f6_title": "Pipeline Completo", "f6_desc": "Do tema ao vídeo final — roteiro, narração, cenas e geração numa só ferramenta.", "f6_tag": "WORKFLOW" },
+    "howItWorks": { "badge": "COMO FUNCIONA", "title_a": "Três passos.", "title_b": "Zero fricção.", "step1_n": "01", "step1_title": "Cria o teu Personagem", "step1_desc": "O Character Engine gera um influencer virtual único — rosto, corpo, voz, tudo consistente.", "step2_n": "02", "step2_title": "Escolhe a Ferramenta", "step2_desc": "Viral Pipeline, Dublagem, Dark Pipeline ou Modelar Viral — cada uma optimizada para o teu objectivo.", "step3_n": "03", "step3_title": "Gera e Publica", "step3_desc": "A SavvyOwl gera vídeos com lip-sync nativo, voice cloning e qualidade cinematográfica — tudo automaticamente." },
     "socialProofQuote": "\"Finalmente uma plataforma que entende que UGC não é sobre perfeição — é sobre autenticidade consistente.\"",
     "socialProofSource": "CRIADORES DE CONTEÚDO EM PORTUGAL, BRASIL E ANGOLA",
-    "pricing": {
-      "badge": "PREÇOS",
-      "title_a": "Investe no teu",
-      "title_b": "crescimento.",
-      "subtitle": "Sem contratos. Cancela quando quiseres. 10 créditos gratuitos para começar.",
-      "popular": "POPULAR",
-      "viewPacks": "VER PACKS DE CRÉDITOS AVULSO",
-      "free_name": "Gratuito", "free_price": "€0", "free_period": "", "free_sub": "Para começar",
-      "free_features": ["10 créditos", "Até 10 imagens", "Todos os templates", "Character Engine (1 personagem)"],
-      "free_cta": "COMEÇAR GRÁTIS",
-      "starter_name": "Starter", "starter_price": "€29,99", "starter_period": "/mês", "starter_sub": "Para criadores individuais",
-      "starter_features": ["60 créditos/mês", "Viral Pipeline (Seedance)", "Character Engine ilimitado", "Todos os templates", "Suporte prioritário"],
-      "starter_cta": "COMEÇAR AGORA",
-      "pro_name": "Pro", "pro_price": "€59,99", "pro_period": "/mês", "pro_sub": "Para criadores profissionais",
-      "pro_features": ["180 créditos/mês", "+ Dublagem (Kling 3.0)", "+ Dark Pipeline (Wan 2.6)", "Character Engine ilimitado", "Suporte dedicado"],
-      "pro_cta": "COMEÇAR AGORA"
-    },
-    "faq": {
-      "badge": "FAQ",
-      "title_a": "Tens dúvidas?",
-      "title_b": "Temos respostas.",
-      "q1": "O que são créditos?", "a1": "1 crédito = 1 imagem. 12 créditos = 1 vídeo viral (Seedance). 30 créditos = 1 dublagem (Kling). Os créditos do plano renovam mensalmente. Packs avulso nunca expiram.",
-      "q2": "O que é o Character Engine?", "a2": "É o nosso sistema exclusivo que mantém o teu influencer virtual visualmente consistente em todas as imagens e vídeos. O mesmo rosto, o mesmo estilo, sempre.",
-      "q3": "Os vídeos parecem feitos por IA?", "a3": "Não é esse o objetivo. Usamos Seedance 1.5 Pro com prompts otimizados para estética UGC — câmara instável, pele com textura, iluminação natural. O resultado parece filmado com telemóvel.",
-      "q4": "O que é a Dublagem com IA?", "a4": "Fazes upload de um vídeo viral, seleccionas o teu personagem, e o Kling 3.0 Motion Control recria o vídeo com o rosto, corpo e voz do teu influencer virtual.",
-      "q5": "Posso cancelar quando quiser?", "a5": "Sim. Cancelas a qualquer momento. O acesso continua até ao fim do período já pago.",
-      "q6": "Qual a diferença entre Starter e Pro?", "a6": "O Starter inclui Viral Pipeline (Seedance). O Pro adiciona Dublagem (Kling 3.0) e Dark Pipeline (Wan 2.6) — mais créditos e mais ferramentas."
-    },
-    "ctaFinal": {
-      "title_a": "O teu próximo vídeo",
-      "title_b": "começa aqui.",
-      "subtitle": "10 créditos gratuitos. Sem cartão de crédito. Cancela quando quiseres.",
-      "cta": "CRIAR CONTA GRÁTIS"
-    },
+    "pricing": { "badge": "PREÇOS", "title_a": "Investe no teu", "title_b": "crescimento.", "subtitle": "Sem contratos. Cancela quando quiseres. 10 créditos gratuitos para começar.", "popular": "POPULAR", "viewPacks": "VER PACKS DE CRÉDITOS AVULSO", "free_name": "Gratuito", "free_price": "€0", "free_period": "", "free_sub": "Para começar", "free_features": ["10 créditos", "Até 10 imagens", "Todos os templates", "Character Engine (1 personagem)"], "free_cta": "COMEÇAR GRÁTIS", "starter_name": "Starter", "starter_price": "€29,99", "starter_period": "/mês", "starter_sub": "Para criadores individuais", "starter_features": ["60 créditos/mês", "Viral Pipeline", "Character Engine ilimitado", "Todos os templates", "Suporte prioritário"], "starter_cta": "COMEÇAR AGORA", "pro_name": "Pro", "pro_price": "€59,99", "pro_period": "/mês", "pro_sub": "Para criadores profissionais", "pro_features": ["180 créditos/mês", "+ AI Dubbing", "+ Dark Pipeline Pro", "Character Engine ilimitado", "Suporte dedicado"], "pro_cta": "COMEÇAR AGORA" },
+    "faq": { "badge": "FAQ", "title_a": "Tens dúvidas?", "title_b": "Temos respostas.", "q1": "O que são créditos?", "a1": "1 crédito = 1 imagem. 12 créditos = 1 vídeo viral. 30 créditos = 1 dublagem. Os créditos do plano renovam mensalmente. Packs avulso nunca expiram.", "q2": "O que é o Character Engine?", "a2": "É o nosso sistema exclusivo que mantém o teu influencer virtual visualmente consistente em todas as imagens e vídeos. O mesmo rosto, o mesmo estilo, sempre.", "q3": "Os vídeos parecem feitos por IA?", "a3": "Não é esse o objetivo. O nosso motor de vídeo usa prompts optimizados para estética UGC — câmara instável, pele com textura, iluminação natural. O resultado parece filmado com telemóvel.", "q4": "O que é a Dublagem com IA?", "a4": "Fazes upload de um vídeo viral, seleccionas o teu personagem, e a SavvyOwl recria o vídeo com o rosto, corpo e voz do teu influencer virtual.", "q5": "Posso cancelar quando quiser?", "a5": "Sim. Cancelas a qualquer momento. O acesso continua até ao fim do período já pago.", "q6": "Qual a diferença entre Starter e Pro?", "a6": "O Starter inclui Viral Pipeline. O Pro adiciona AI Dubbing e Dark Pipeline Pro — mais créditos e mais ferramentas." },
+    "ctaFinal": { "title_a": "O teu próximo vídeo", "title_b": "começa aqui.", "subtitle": "10 créditos gratuitos. Sem cartão de crédito. Cancela quando quiseres.", "cta": "CRIAR CONTA GRÁTIS" },
     "footer": { "features": "Features", "pricing": "Preços", "plans": "Planos", "login": "Entrar" }
   },
   "auth": {

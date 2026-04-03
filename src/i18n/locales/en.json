@@ -32,7 +32,7 @@
       "ctaSecondary": "SEE HOW IT WORKS",
       "socialProof": "USED BY CREATORS IN PORTUGAL, BRAZIL AND ANGOLA"
     },
-    "stats": { "s1_value": "Seedance 1.5", "s1_label": "Viral Engine", "s2_value": "Kling 3.0", "s2_label": "Dubbing Engine", "s3_value": "4", "s3_label": "Pro Tools", "s4_value": "100%", "s4_label": "Visual consistency" },
+    "stats": { "s1_value": "Lip-sync", "s1_label": "Native", "s2_value": "Voice Clone", "s2_label": "Voice cloning", "s3_value": "4", "s3_label": "Pro Tools", "s4_value": "100%", "s4_label": "Visual consistency" },
     "problem": {
       "badge": "THE PROBLEM",
       "title_a": "UGC content",
@@ -47,9 +47,9 @@
       "badge": "FEATURES",
       "title_a": "Everything you need.",
       "title_b": "In one place.",
-      "f1_title": "Viral Video Pipeline", "f1_desc": "Create short viral UGC videos up to 12s with native lip-sync, natural audio and perfect character consistency.", "f1_tag": "SEEDANCE",
-      "f2_title": "AI Dubbing", "f2_desc": "Upload a viral video, select your influencer and AI recreates everything — face, body, voice — with motion control up to 30s.", "f2_tag": "KLING 3.0",
-      "f3_title": "Dark Pipeline Pro", "f3_desc": "Cinematic videos by niche with Style Engine, consistent characters and category-optimized prompts.", "f3_tag": "WAN 2.6",
+      "f1_title": "Viral Video Pipeline", "f1_desc": "Create short viral UGC videos up to 12s with native lip-sync, natural audio and perfect character consistency.", "f1_tag": "VIRAL VIDEO",
+      "f2_title": "AI Dubbing", "f2_desc": "Upload a viral video, select your influencer and AI recreates everything — face, body, voice — with motion control up to 30s.", "f2_tag": "AI DUBBING",
+      "f3_title": "Dark Pipeline Pro", "f3_desc": "Cinematic videos by niche with Style Engine, consistent characters and category-optimized prompts.", "f3_tag": "CINEMATIC",
       "f4_title": "Character Engine", "f4_desc": "Create your virtual influencer with fixed identity — same face, body and voice across all videos.", "f4_tag": "EXCLUSIVE",
       "f5_title": "Model Viral Video", "f5_desc": "Create brand ads and presentations with UGC character and native lip-sync.", "f5_tag": "CREATIVES",
       "f6_title": "Complete Pipeline", "f6_desc": "From theme to final video — script, narration, scenes and generation in one tool.", "f6_tag": "WORKFLOW"
@@ -60,7 +60,7 @@
       "title_b": "Zero friction.",
       "step1_n": "01", "step1_title": "Create your Character", "step1_desc": "The Character Engine generates a unique virtual influencer — face, body, voice, all consistent.",
       "step2_n": "02", "step2_title": "Choose the Tool", "step2_desc": "Viral Pipeline, Dubbing, Dark Pipeline or Model Viral — each optimized for your goal.",
-      "step3_n": "03", "step3_title": "Generate and Publish", "step3_desc": "AI generates videos with Seedance 1.5 Pro, Kling 3.0 or Wan 2.6 — native lip-sync, cinematic quality."
+      "step3_n": "03", "step3_title": "Generate and Publish", "step3_desc": "SavvyOwl generates videos with native lip-sync, voice cloning and cinematic quality — all automatically."
     },
     "socialProofQuote": "\"Finally a platform that understands UGC isn't about perfection — it's about consistent authenticity.\"",
     "socialProofSource": "CONTENT CREATORS IN PORTUGAL, BRAZIL AND ANGOLA",
@@ -75,22 +75,22 @@
       "free_features": ["10 credits", "Up to 10 images", "All templates", "Character Engine (1 character)"],
       "free_cta": "START FREE",
       "starter_name": "Starter", "starter_price": "€29.99", "starter_period": "/mo", "starter_sub": "For individual creators",
-      "starter_features": ["60 credits/month", "Viral Pipeline (Seedance)", "Unlimited Character Engine", "All templates", "Priority support"],
+      "starter_features": ["60 credits/month", "Viral Pipeline", "Unlimited Character Engine", "All templates", "Priority support"],
       "starter_cta": "GET STARTED",
       "pro_name": "Pro", "pro_price": "€59.99", "pro_period": "/mo", "pro_sub": "For professional creators",
-      "pro_features": ["180 credits/month", "+ Dubbing (Kling 3.0)", "+ Dark Pipeline (Wan 2.6)", "Unlimited Character Engine", "Dedicated support"],
+      "pro_features": ["180 credits/month", "+ AI Dubbing", "+ Dark Pipeline Pro", "Unlimited Character Engine", "Dedicated support"],
       "pro_cta": "GET STARTED"
     },
     "faq": {
       "badge": "FAQ",
       "title_a": "Questions?",
       "title_b": "We have answers.",
-      "q1": "What are credits?", "a1": "1 credit = 1 image. 12 credits = 1 viral video (Seedance). 30 credits = 1 dubbing (Kling). Plan credits renew monthly. Packs never expire.",
+      "q1": "What are credits?", "a1": "1 credit = 1 image. 12 credits = 1 viral video. 30 credits = 1 dubbing. Plan credits renew monthly. Packs never expire.",
       "q2": "What is the Character Engine?", "a2": "Our exclusive system that keeps your virtual influencer visually consistent across all images and videos. Same face, same style, always.",
-      "q3": "Do the videos look AI-made?", "a3": "That's not the goal. We use Seedance 1.5 Pro with prompts optimized for UGC aesthetics — shaky camera, skin texture, natural lighting. The result looks phone-filmed.",
-      "q4": "What is AI Dubbing?", "a4": "Upload a viral video, select your character, and Kling 3.0 Motion Control recreates the video with your virtual influencer's face, body and voice.",
+      "q3": "Do the videos look AI-made?", "a3": "That's not the goal. Our video engine uses prompts optimized for UGC aesthetics — shaky camera, skin texture, natural lighting. The result looks phone-filmed.",
+      "q4": "What is AI Dubbing?", "a4": "Upload a viral video, select your character, and SavvyOwl recreates the video with your virtual influencer's face, body and voice.",
       "q5": "Can I cancel anytime?", "a5": "Yes. Cancel at any time. Access continues until the end of the paid period.",
-      "q6": "What's the difference between Starter and Pro?", "a6": "Starter includes Viral Pipeline (Seedance). Pro adds Dubbing (Kling 3.0) and Dark Pipeline (Wan 2.6) — more credits and more tools."
+      "q6": "What's the difference between Starter and Pro?", "a6": "Starter includes Viral Pipeline. Pro adds AI Dubbing and Dark Pipeline Pro — more credits and more tools."
     },
     "ctaFinal": {
       "title_a": "Your next video",

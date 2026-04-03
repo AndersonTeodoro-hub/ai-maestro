@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
@@ -153,6 +154,9 @@ export default function Landing() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div className="hidden md:block [&_button]:text-[rgba(240,237,232,0.4)] [&_button:hover]:text-[#f0ede8]">
+              <LanguageSelector />
+            </div>
             <Link to="/login" className="hidden md:inline" style={{ fontSize: 11, color: C.textMuted, textDecoration: "none", letterSpacing: "1px", transition: "color 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = C.text)}
               onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}

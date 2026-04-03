@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const FONT_DISPLAY = "'Cormorant Garamond', Georgia, serif";
 const FONT_BODY = "'Libre Franklin', sans-serif";
@@ -94,6 +95,9 @@ export default function Pricing() {
             <span className="text-xs font-medium" style={{ letterSpacing: "0.15em", color: light }}>SAVVYOWL</span>
           </Link>
           <div className="flex items-center gap-4">
+            <div className="[&_button]:text-white/40 [&_button:hover]:text-white/80">
+              <LanguageSelector />
+            </div>
             <Link to="/login" className="text-xs" style={{ color: `${light}60`, letterSpacing: "1px" }}>ENTRAR</Link>
             <Link to="/register" className="text-xs px-4 py-2" style={{ backgroundColor: gold, color: dark, letterSpacing: "1px" }}>REGISTAR</Link>
           </div>

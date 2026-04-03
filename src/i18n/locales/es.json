@@ -22,131 +22,19 @@
     "autoDetect": "Detección automática"
   },
   "landing": {
-    "nav": {
-      "product": "PRODUCTO",
-      "pricing": "PRECIOS",
-      "login": "Entrar",
-      "cta": "Empezar"
-    },
-    "hero": {
-      "badge": "TU IA. MÁS INTELIGENTE.",
-      "h1a": "Escribe lo que necesitas.",
-      "h1b": "La IA hace el resto.",
-      "subtitle": "SavvyOwl mejora automáticamente lo que escribes, elige la mejor IA para la tarea y te muestra exactamente cuánto gastaste. Crea mejor contenido, más rápido y más barato.",
-      "cta": "Prueba gratis →",
-      "ctaSecondary": "See how it works ↓",
-      "socialProof": "NO CARD REQUIRED · START IN 30 SECONDS"
-    },
-    "demo": {
-      "badge": "VE LA DIFERENCIA",
-      "title_a": "Tú escribes así.",
-      "title_b": "SavvyOwl lo mejora.",
-      "subtitle": "Antes de enviar a la IA, SavvyOwl limpia lo que escribiste — quita lo que sobra, mejora la instrucción, y el resultado sale mejor. Tú no haces nada. Pasa solo.",
-      "before_text": "Hola, me gustaría que me escribieras un texto tipo copy de marketing para publicar en mi Instagram hablando de cómo mis seguidores pueden usar inteligencia artificial para crear contenido para sus redes sociales de forma más eficiente y barata, con un tono motivacional e inspirador si es posible",
-      "after_text": "Copy para Instagram: cómo usar IA para crear contenido para redes sociales — eficiente, accesible. Tono: motivacional. Formato: post.",
-      "stat1_label": "ANTES",
-      "stat1_value": "87 palabras",
-      "stat2_label": "DESPUÉS",
-      "stat2_value": "24 palabras",
-      "stat3_label": "MÁS CORTO",
-      "stat3_value": "72%",
-      "stat4_label": "RESULTADO",
-      "stat4_value": "Mejor",
-      "youWrote": "YOU WROTE",
-      "savvySent": "SAVVYOWL SENT"
-    },
-    "howItWorks": {
-      "badge": "CÓMO FUNCIONA",
-      "title_a": "Tres pasos.",
-      "title_b": "Sin complicaciones.",
-      "step1_title": "Escribe lo que necesitas",
-      "step1_desc": "Pide lo que quieras en lenguaje normal. 'Hazme un copy para Instagram', 'escribe un email para un cliente', 'dame ideas para Reels'. Sin formatos especiales, sin comandos técnicos.",
-      "step2_title": "SavvyOwl mejora y envía",
-      "step2_desc": "Lo que escribiste se mejora automáticamente — queda más claro, más directo — y se envía a la IA que dará el mejor resultado para ese tipo de tarea.",
-      "step3_title": "Recibes y ves el coste",
-      "step3_desc": "La respuesta llega en segundos. Ves exactamente cuánto costó. Si te gustó, guárdalo para reutilizar. Sin sorpresas en la factura."
-    },
-    "benefits": {
-      "badge": "LO QUE GANAS",
-      "title_a": "Resultados concretos.",
-      "title_b": "No promesas.",
-      "card1_title": "Mejores respuestas",
-      "card1_desc": "Lo que escribes se mejora antes de llegar a la IA. La instrucción queda más clara, la respuesta sale mejor. Solo notas que el resultado es mejor de lo normal.",
-      "card2_title": "La IA correcta para cada tarea",
-      "card2_desc": "No todas las IAs son buenas en todo. SavvyOwl sabe cuál es la mejor para lo que pediste — copy rápido, texto largo, análisis — y la envía automáticamente.",
-      "card3_title": "Siempre sabes cuánto gastas",
-      "card3_desc": "Ves el coste de cada petición, por día, por mes. Defines un presupuesto. Si te acercas al límite, SavvyOwl te avisa. Cero sorpresas."
-    },
-    "ais": {
-      "badge": "IAS DISPONIBLES",
-      "title_a": "Tres IAs.",
-      "title_b": "Y lo que viene.",
-      "subtitle": "Tres IAs disponibles hoy — para tareas rápidas, textos complejos y estrategia. Y esto es solo el comienzo.",
-      "flash_desc": "Rápida y asequible. Ideal para tareas del día a día: ideas de posts, subtítulos, emails, resúmenes, traducciones. Respuestas en segundos.",
-      "pro_desc": "Potente y precisa. Para cuando necesitas más: artículos largos, estrategia de contenido, análisis detallado, textos que exigen matiz.",
-      "claude_desc": "Inteligencia profunda. Excelente para textos largos y bien estructurados, razonamiento complejo, escritura creativa y análisis estratégico con contexto.",
-      "coming_soon": "Próximamente: ChatGPT · DALL·E · Midjourney · ElevenLabs · y más. Una interfaz para todas las IAs que usas."
-    },
-    "audience": {
-      "badge": "PARA QUIÉN",
-      "title_a": "Creado para quienes",
-      "title_b": "crean cada día.",
-      "card1_title": "Creadores de Contenido",
-      "card1_desc": "Subtítulos, scripts, ideas para Reels, copy para posts — pide en lenguaje normal y recibe respuestas que puedes usar directamente. Sin perder tiempo reformulando.",
-      "card2_title": "Influencers",
-      "card2_desc": "Respuestas rápidas a marcas, calendarios de contenido, copy para stories. SavvyOwl te ayuda a mantener el ritmo sin contratar asistente.",
-      "card3_title": "Agencias y Freelancers",
-      "card3_desc": "Varios clientes, varios proyectos, un presupuesto. Ve cuánto gastas por cliente, controla los costes, entrega más rápido."
-    },
-    "pricing": {
-      "badge": "PRECIOS",
-      "title_a": "Simple.",
-      "title_b": "Sin sorpresas.",
-      "free_label": "ESENCIAL",
-      "month": "mes",
-      "free_features": [
-        "5 peticiones al día",
-        "Gemini Flash, Gemini Pro & Claude",
-        "Historial de conversaciones",
-        "Mejora automática de tus textos"
-      ],
-      "free_cta": "EMPEZAR",
-      "pro_label": "PROFESIONAL",
-      "popular": "POPULAR",
-      "pro_features": [
-        "Peticiones ilimitadas",
-        "Todas las IAs (cuando disponibles)",
-        "Historial completo",
-        "Mejora avanzada",
-        "Biblioteca de instrucciones guardadas",
-        "Control total de costes",
-        "Soporte prioritario"
-      ],
-      "pro_cta": "EMPEZAR",
-      "free_price": "€0",
-      "free_subtitle": "Try it with no commitment",
-      "pro_subtitle": "For those who create content every day"
-    },
-    "cta_final": {
-      "title_a": "Pruébalo.",
-      "title_b": "Es gratis para empezar.",
-      "subtitle": "Crea tu cuenta en 30 segundos. Sin tarjeta de crédito.",
-      "cta": "Crear cuenta gratis →"
-    },
-    "footer": {
-      "text": "SavvyOwl · Lisboa, 2026"
-    },
-    "pain": {
-      "badge": "YOUR DAILY REALITY",
-      "title_a": "Sound",
-      "title_b": "familiar?",
-      "pain1_title": "Hours rewriting prompts",
-      "pain1_desc": "You write a prompt in ChatGPT, the result isn't right. You rewrite it. Try again. 20 minutes wasted on a post that should take 2.",
-      "pain2_title": "Generic, unusable outputs",
-      "pain2_desc": "The AI gives you vague text you can't publish. You edit everything. What's the point of AI if you're doing all the work?",
-      "pain3_title": "No idea what you're spending",
-      "pain3_desc": "You pay for 3 different subscriptions and have no clue if you're spending €10 or €50 a month. Zero visibility."
-    }
+    "nav": { "features": "FUNCIONES", "how": "CÓMO FUNCIONA", "pricing": "PRECIOS", "faq": "FAQ", "login": "ENTRAR", "cta": "EMPEZAR GRATIS" },
+    "hero": { "badge": "PLATAFORMA DE CREACIÓN DE VÍDEOS CON IA", "h1a": "Crea vídeos virales.", "h1b": "Con tu influencer virtual.", "subtitle": "4 herramientas profesionales en una sola plataforma — vídeos virales UGC, creativos de marca, contenido cinematográfico de nicho y doblaje con IA. El mismo personaje, siempre consistente.", "cta": "CREAR GRATIS", "ctaSecondary": "VER CÓMO FUNCIONA", "socialProof": "USADO POR CREADORES EN PORTUGAL, BRASIL Y ANGOLA" },
+    "stats": { "s1_value": "Lip-sync", "s1_label": "Nativo", "s2_value": "Voice Clone", "s2_label": "Clonación de voz", "s3_value": "4", "s3_label": "Herramientas Pro", "s4_value": "100%", "s4_label": "Consistencia visual" },
+    "problem": { "badge": "EL PROBLEMA", "title_a": "Contenido UGC", "title_b": "que no engaña a nadie.", "subtitle": "Tienes herramientas de IA. Generas imágenes. Pero tus vídeos parecen hechos por un robot, tu personaje cambia de cara en cada escena y tardas horas en montarlo todo.", "p1_n": "01", "p1_title": "Personaje inconsistente", "p1_desc": "Cada generación crea un rostro diferente. Los seguidores no se identifican con nadie.", "p2_n": "02", "p2_title": "Vídeos con estética IA", "p2_desc": "Demasiado perfecto para parecer real. Las plataformas y usuarios lo detectan e ignoran.", "p3_n": "03", "p3_title": "Workflow fragmentado", "p3_desc": "Saltas entre 4-5 herramientas diferentes. Horas gastadas, resultado mediocre." },
+    "quote": "\"La solución no es más herramientas. Es la herramienta correcta.\"",
+    "features": { "badge": "FUNCIONES", "title_a": "Todo lo que necesitas.", "title_b": "En un solo lugar.", "f1_title": "Viral Video Pipeline", "f1_desc": "Crea vídeos cortos virales UGC de hasta 12s con lip-sync nativo, audio natural y consistencia perfecta del personaje.", "f1_tag": "VÍDEO VIRAL", "f2_title": "Doblaje con IA", "f2_desc": "Sube un vídeo viral, selecciona tu influencer y la IA lo recrea todo — rostro, cuerpo, voz — con motion control hasta 30s.", "f2_tag": "DOBLAJE IA", "f3_title": "Dark Pipeline Pro", "f3_desc": "Vídeos cinematográficos por nicho con Style Engine, personajes consistentes y prompts optimizados por categoría.", "f3_tag": "CINEMATOGRÁFICO", "f4_title": "Character Engine", "f4_desc": "Crea tu influencer virtual con identidad fija — mismo rostro, cuerpo y voz en todos los vídeos.", "f4_tag": "EXCLUSIVO", "f5_title": "Modelar Vídeo Viral", "f5_desc": "Crea anuncios y presentaciones de marca con personaje UGC y lip-sync nativo.", "f5_tag": "CREATIVOS", "f6_title": "Pipeline Completo", "f6_desc": "Del tema al vídeo final — guion, narración, escenas y generación en una sola herramienta.", "f6_tag": "WORKFLOW" },
+    "howItWorks": { "badge": "CÓMO FUNCIONA", "title_a": "Tres pasos.", "title_b": "Cero fricción.", "step1_n": "01", "step1_title": "Crea tu Personaje", "step1_desc": "El Character Engine genera un influencer virtual único — rostro, cuerpo, voz, todo consistente.", "step2_n": "02", "step2_title": "Elige la Herramienta", "step2_desc": "Viral Pipeline, Doblaje, Dark Pipeline o Modelar Viral — cada una optimizada para tu objetivo.", "step3_n": "03", "step3_title": "Genera y Publica", "step3_desc": "SavvyOwl genera vídeos con lip-sync nativo, clonación de voz y calidad cinematográfica — todo automáticamente." },
+    "socialProofQuote": "\"Por fin una plataforma que entiende que UGC no se trata de perfección — se trata de autenticidad consistente.\"",
+    "socialProofSource": "CREADORES DE CONTENIDO EN PORTUGAL, BRASIL Y ANGOLA",
+    "pricing": { "badge": "PRECIOS", "title_a": "Invierte en tu", "title_b": "crecimiento.", "subtitle": "Sin contratos. Cancela cuando quieras. 10 créditos gratis para empezar.", "popular": "POPULAR", "viewPacks": "VER PACKS DE CRÉDITOS", "free_name": "Gratis", "free_price": "€0", "free_period": "", "free_sub": "Para empezar", "free_features": ["10 créditos", "Hasta 10 imágenes", "Todos los templates", "Character Engine (1 personaje)"], "free_cta": "EMPEZAR GRATIS", "starter_name": "Starter", "starter_price": "€29,99", "starter_period": "/mes", "starter_sub": "Para creadores individuales", "starter_features": ["60 créditos/mes", "Viral Pipeline", "Character Engine ilimitado", "Todos los templates", "Soporte prioritario"], "starter_cta": "EMPEZAR", "pro_name": "Pro", "pro_price": "€59,99", "pro_period": "/mes", "pro_sub": "Para creadores profesionales", "pro_features": ["180 créditos/mes", "+ AI Dubbing", "+ Dark Pipeline Pro", "Character Engine ilimitado", "Soporte dedicado"], "pro_cta": "EMPEZAR" },
+    "faq": { "badge": "FAQ", "title_a": "¿Tienes dudas?", "title_b": "Tenemos respuestas.", "q1": "¿Qué son los créditos?", "a1": "1 crédito = 1 imagen. 12 créditos = 1 vídeo viral. 30 créditos = 1 doblaje. Los créditos del plan se renuevan mensualmente. Los packs nunca expiran.", "q2": "¿Qué es el Character Engine?", "a2": "Nuestro sistema exclusivo que mantiene tu influencer virtual visualmente consistente en todas las imágenes y vídeos. Mismo rostro, mismo estilo, siempre.", "q3": "¿Los vídeos parecen hechos por IA?", "a3": "Ese no es el objetivo. Nuestro motor de vídeo usa prompts optimizados para estética UGC — cámara inestable, textura de piel, iluminación natural. El resultado parece filmado con el móvil.", "q4": "¿Qué es el Doblaje con IA?", "a4": "Subes un vídeo viral, seleccionas tu personaje, y SavvyOwl recrea el vídeo con el rostro, cuerpo y voz de tu influencer virtual.", "q5": "¿Puedo cancelar cuando quiera?", "a5": "Sí. Cancelas en cualquier momento. El acceso continúa hasta el final del período pagado.", "q6": "¿Cuál es la diferencia entre Starter y Pro?", "a6": "El Starter incluye Viral Pipeline. El Pro añade AI Dubbing y Dark Pipeline Pro — más créditos y más herramientas." },
+    "ctaFinal": { "title_a": "Tu próximo vídeo", "title_b": "empieza aquí.", "subtitle": "10 créditos gratis. Sin tarjeta de crédito. Cancela cuando quieras.", "cta": "CREAR CUENTA GRATIS" },
+    "footer": { "features": "Funciones", "pricing": "Precios", "plans": "Planes", "login": "Entrar" }
   },
   "auth": {
     "welcomeBack": "Bienvenido de vuelta",
