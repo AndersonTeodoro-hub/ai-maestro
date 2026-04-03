@@ -5,6 +5,7 @@ import { ArrowRight, Check, ChevronDown, Play, Zap, Users, Video, Image, Sparkle
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const C = {
@@ -56,6 +57,7 @@ function Reveal({ children, delay = 0, className = "" }: { children: React.React
 export default function Landing() {
   const { user, session } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -93,95 +95,28 @@ export default function Landing() {
   };
 
   const stats = [
-    { value: "Veo 3.1", label: "Motor de vídeo" },
-    { value: "Imagen 3", label: "Motor de imagem" },
-    { value: "10+", label: "Templates UGC" },
-    { value: "100%", label: "Personagem consistente" },
+    { value: t("landing.stats.s1_value"), label: t("landing.stats.s1_label") },
+    { value: t("landing.stats.s2_value"), label: t("landing.stats.s2_label") },
+    { value: t("landing.stats.s3_value"), label: t("landing.stats.s3_label") },
+    { value: t("landing.stats.s4_value"), label: t("landing.stats.s4_label") },
   ];
 
   const features = [
-    {
-      icon: Users,
-      title: "Character Engine",
-      desc: "O teu influencer virtual mantém o mesmo rosto, estilo e energia em cada imagem e vídeo gerado. Zero inconsistências.",
-      tag: "EXCLUSIVO",
-    },
-    {
-      icon: Video,
-      title: "Vídeo UGC Autêntico",
-      desc: "Gera vídeos de 8 segundos com Veo 3.1 que parecem filmados com telemóvel — não parecem feitos por IA.",
-      tag: "VEO 3.1",
-    },
-    {
-      icon: Image,
-      title: "Imagens Profissionais",
-      desc: "Vertex AI Imagen 3 para imagens de produto e lifestyle que vendem. Identity lock automático do teu personagem.",
-      tag: "IMAGEN 3",
-    },
-    {
-      icon: Sparkles,
-      title: "10 Templates Profissionais",
-      desc: "Viral Pipeline, Dark Channel, Scene Generator, UGC Influencer — fluxos completos do prompt ao conteúdo publicado.",
-      tag: "TEMPLATES",
-    },
-    {
-      icon: Zap,
-      title: "Pipeline Completo",
-      desc: "Texto, imagem e vídeo num só lugar. Sem saltar entre apps. Da ideia ao conteúdo em minutos, não horas.",
-      tag: "WORKFLOW",
-    },
-    {
-      icon: Play,
-      title: "Modela Vídeos Virais",
-      desc: "Encontra vídeos virais do YouTube e adapta-os ao teu nicho com prompts prontos — tudo automaticamente.",
-      tag: "VIRAL",
-    },
+    { icon: Video, title: t("landing.features.f1_title"), desc: t("landing.features.f1_desc"), tag: t("landing.features.f1_tag") },
+    { icon: Play, title: t("landing.features.f2_title"), desc: t("landing.features.f2_desc"), tag: t("landing.features.f2_tag") },
+    { icon: Sparkles, title: t("landing.features.f3_title"), desc: t("landing.features.f3_desc"), tag: t("landing.features.f3_tag") },
+    { icon: Users, title: t("landing.features.f4_title"), desc: t("landing.features.f4_desc"), tag: t("landing.features.f4_tag") },
+    { icon: Image, title: t("landing.features.f5_title"), desc: t("landing.features.f5_desc"), tag: t("landing.features.f5_tag") },
+    { icon: Zap, title: t("landing.features.f6_title"), desc: t("landing.features.f6_desc"), tag: t("landing.features.f6_tag") },
   ];
 
   const plans = [
-    {
-      key: "free",
-      name: "Gratuito",
-      price: "€0",
-      period: "",
-      sub: "Para começar",
-      features: ["10 créditos", "Até 10 imagens", "Todos os templates", "Character Engine"],
-      cta: "Começar Grátis",
-      primary: false,
-      action: () => navigate("/register"),
-    },
-    {
-      key: "starter",
-      name: "Starter",
-      price: "€14,99",
-      period: "/mês",
-      sub: "Para criadores individuais",
-      features: ["150 créditos/mês", "150 imagens ou 15 vídeos", "Character Engine ilimitado", "Vídeo UGC com Veo 3.1", "Suporte prioritário"],
-      cta: "Começar Agora",
-      primary: true,
-      action: () => handleCheckout("starter"),
-    },
-    {
-      key: "pro",
-      name: "Pro",
-      price: "€34,99",
-      period: "/mês",
-      sub: "Para equipas profissionais",
-      features: ["500 créditos/mês", "500 imagens ou 50 vídeos", "Character Engine ilimitado", "Veo 3.1 + acesso antecipado", "Suporte dedicado"],
-      cta: "Começar Agora",
-      primary: false,
-      action: () => handleCheckout("pro"),
-    },
+    { key: "free", name: t("landing.pricing.free_name"), price: t("landing.pricing.free_price"), period: t("landing.pricing.free_period"), sub: t("landing.pricing.free_sub"), features: t("landing.pricing.free_features", { returnObjects: true }) as string[], cta: t("landing.pricing.free_cta"), primary: false, action: () => navigate("/register") },
+    { key: "starter", name: t("landing.pricing.starter_name"), price: t("landing.pricing.starter_price"), period: t("landing.pricing.starter_period"), sub: t("landing.pricing.starter_sub"), features: t("landing.pricing.starter_features", { returnObjects: true }) as string[], cta: t("landing.pricing.starter_cta"), primary: true, action: () => handleCheckout("starter") },
+    { key: "pro", name: t("landing.pricing.pro_name"), price: t("landing.pricing.pro_price"), period: t("landing.pricing.pro_period"), sub: t("landing.pricing.pro_sub"), features: t("landing.pricing.pro_features", { returnObjects: true }) as string[], cta: t("landing.pricing.pro_cta"), primary: false, action: () => handleCheckout("pro") },
   ];
 
-  const faqs = [
-    { q: "O que são créditos?", a: "1 crédito = 1 imagem. 10 créditos = 1 vídeo de 8 segundos. Os créditos do plano renovam mensalmente. Packs avulso nunca expiram." },
-    { q: "O que é o Character Engine?", a: "É o nosso sistema exclusivo que mantém o teu influencer virtual visualmente consistente em todas as imagens e vídeos. O mesmo rosto, o mesmo estilo, sempre." },
-    { q: "Os vídeos parecem feitos por IA?", a: "Não é esse o objetivo. Usamos Veo 3.1 com prompts otimizados para estética UGC — câmara instável, pele com textura, iluminação natural. O resultado parece filmado com telemóvel." },
-    { q: "Posso cancelar quando quiser?", a: "Sim. Cancelas a qualquer momento. O acesso continua até ao fim do período já pago." },
-    { q: "Precisam de cartão de crédito para o plano gratuito?", a: "Não. Registas com email ou Google e tens acesso imediato a 10 créditos gratuitos." },
-    { q: "Qual a diferença entre Starter e Pro?", a: "Volume de créditos (150 vs 500/mês) e nível de suporte. Ambos têm acesso total ao Character Engine, Veo 3.1 e todos os templates." },
-  ];
+  const faqs = [1, 2, 3, 4, 5, 6].map((n) => ({ q: t(`landing.faq.q${n}`), a: t(`landing.faq.a${n}`) }));
 
   return (
     <div style={{ backgroundColor: C.bg, color: C.text, fontFamily: "'Libre Franklin', sans-serif", overflowX: "hidden" }}>
@@ -209,7 +144,7 @@ export default function Landing() {
           </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: 32 }} className="hidden md:flex">
-            {[["#features", "FEATURES"], ["#how", "COMO FUNCIONA"], ["#pricing", "PREÇOS"], ["#faq", "FAQ"]].map(([href, label]) => (
+            {[["#features", t("landing.nav.features")], ["#how", t("landing.nav.how")], ["#pricing", t("landing.nav.pricing")], ["#faq", t("landing.nav.faq")]].map(([href, label]) => (
               <a key={href} href={href} style={{ fontSize: 10, letterSpacing: "2px", color: C.textMuted, textDecoration: "none", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = C.text)}
                 onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}
@@ -221,11 +156,11 @@ export default function Landing() {
             <Link to="/login" className="hidden md:inline" style={{ fontSize: 11, color: C.textMuted, textDecoration: "none", letterSpacing: "1px", transition: "color 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = C.text)}
               onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}
-            >ENTRAR</Link>
+            >{t("landing.nav.login")}</Link>
             <Link to="/register" style={{ fontSize: 10, letterSpacing: "2px", padding: "10px 20px", backgroundColor: C.gold, color: C.bg, textDecoration: "none", fontWeight: 500, transition: "opacity 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
               onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-            >COMEÇAR GRÁTIS</Link>
+            >{t("landing.nav.cta")}</Link>
             <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", color: C.text, cursor: "pointer", padding: 8 }}>
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -236,10 +171,10 @@ export default function Landing() {
           {menuOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
               style={{ backgroundColor: "rgba(8,8,8,0.98)", borderTop: `1px solid ${C.border}`, padding: "16px 24px 24px" }}>
-              {[["#features", "FEATURES"], ["#how", "COMO FUNCIONA"], ["#pricing", "PREÇOS"], ["#faq", "FAQ"]].map(([href, label]) => (
+              {[["#features", t("landing.nav.features")], ["#how", t("landing.nav.how")], ["#pricing", t("landing.nav.pricing")], ["#faq", t("landing.nav.faq")]].map(([href, label]) => (
                 <a key={href} href={href} onClick={() => setMenuOpen(false)} style={{ display: "block", padding: "14px 0", fontSize: 11, letterSpacing: "2px", color: C.textMuted, textDecoration: "none", borderBottom: `1px solid ${C.border}` }}>{label}</a>
               ))}
-              <Link to="/login" onClick={() => setMenuOpen(false)} style={{ display: "block", padding: "14px 0", fontSize: 11, letterSpacing: "2px", color: C.textMuted, textDecoration: "none" }}>ENTRAR</Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)} style={{ display: "block", padding: "14px 0", fontSize: 11, letterSpacing: "2px", color: C.textMuted, textDecoration: "none" }}>{t("landing.nav.login")}</Link>
             </motion.div>
           )}
         </AnimatePresence>
@@ -268,21 +203,21 @@ export default function Landing() {
 
         <motion.div style={{ y: heroY, opacity: heroOpacity, position: "relative", zIndex: 1, textAlign: "center", padding: "120px 24px 60px", maxWidth: 960, margin: "0 auto" }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }}>
-            <Tag>PLATAFORMA DE CONTEÚDO UGC COM IA</Tag>
+            <Tag>{t("landing.hero.badge")}</Tag>
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.15, ease }}
             className="display"
             style={{ fontSize: "clamp(52px, 10vw, 108px)", lineHeight: 1.0, margin: "32px 0 24px", letterSpacing: "-0.03em", fontWeight: 400 }}
           >
-            O teu personagem.<br />
-            <span style={{ color: C.gold, fontStyle: "italic" }}>Sempre consistente.</span>
+            {t("landing.hero.h1a")}<br />
+            <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.hero.h1b")}</span>
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease }}
             style={{ fontSize: 16, color: C.textMuted, maxWidth: 520, margin: "0 auto 48px", lineHeight: 1.7, fontWeight: 300 }}
           >
-            Cria imagens e vídeos UGC autênticos com o teu influencer virtual — o mesmo rosto, em cada cena, sem estúdio, sem câmara.
+            {t("landing.hero.subtitle")}
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.45, ease }}
@@ -292,20 +227,20 @@ export default function Landing() {
               onMouseEnter={e => { e.currentTarget.style.backgroundColor = C.goldLight; }}
               onMouseLeave={e => { e.currentTarget.style.backgroundColor = C.gold; }}
             >
-              CRIAR GRATUITAMENTE <ArrowRight size={14} />
+              {t("landing.hero.cta")} <ArrowRight size={14} />
             </Link>
             <a href="#features" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "14px 24px", color: C.textMuted, textDecoration: "none", fontSize: 11, letterSpacing: "2px", border: `1px solid ${C.border}`, transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
               onMouseLeave={e => { e.currentTarget.style.color = C.textMuted; e.currentTarget.style.borderColor = C.border; }}
             >
-              VER COMO FUNCIONA
+              {t("landing.hero.ctaSecondary")}
             </a>
           </motion.div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.8 }}
             style={{ marginTop: 48, fontSize: 10, letterSpacing: "3px", color: C.textFaint }}
           >
-            USADO POR CRIADORES EM PORTUGAL, BRASIL E ANGOLA
+            {t("landing.hero.socialProof")}
           </motion.p>
         </motion.div>
 
@@ -335,22 +270,18 @@ export default function Landing() {
       <section style={{ padding: "120px 24px", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }}>
           <Reveal>
-            <Tag>O PROBLEMA</Tag>
+            <Tag>{t("landing.problem.badge")}</Tag>
             <h2 className="display" style={{ fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1.1, margin: "24px 0", fontWeight: 400 }}>
-              Conteúdo UGC<br />
-              <span style={{ color: C.gold, fontStyle: "italic" }}>que não engana ninguém.</span>
+              {t("landing.problem.title_a")}<br />
+              <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.problem.title_b")}</span>
             </h2>
             <p style={{ color: C.textMuted, lineHeight: 1.8, fontWeight: 300, fontSize: 15 }}>
-              Tens ferramentas de IA. Generates imagens. Mas os teus vídeos parecem feitos por robô, o teu personagem muda de cara em cada cena, e demoras horas a montar tudo.
+              {t("landing.problem.subtitle")}
             </p>
           </Reveal>
           <Reveal delay={0.2}>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {[
-                { n: "01", title: "Personagem inconsistente", desc: "Cada geração cria um rosto diferente. Os seguidores não se identificam com ninguém." },
-                { n: "02", title: "Vídeos com estética IA", desc: "Perfeito demais para parecer real. Plataformas e utilizadores detetam e ignoram." },
-                { n: "03", title: "Workflow fragmentado", desc: "Saltas entre 4-5 ferramentas diferentes. Horas gastas, resultado medíocre." },
-              ].map(item => (
+              {[1, 2, 3].map((n) => ({ n: t(`landing.problem.p${n}_n`), title: t(`landing.problem.p${n}_title`), desc: t(`landing.problem.p${n}_desc`) })).map(item => (
                 <div key={item.n} style={{ backgroundColor: C.surface, padding: "28px 32px", borderLeft: `2px solid ${C.border}` }}>
                   <span style={{ fontSize: 10, color: C.gold, letterSpacing: "2px" }}>{item.n}</span>
                   <p style={{ fontSize: 15, fontWeight: 500, margin: "8px 0 4px", color: C.text }}>{item.title}</p>
@@ -366,7 +297,7 @@ export default function Landing() {
       <div style={{ textAlign: "center", padding: "60px 24px", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, backgroundColor: C.surface }}>
         <Reveal>
           <p className="display" style={{ fontSize: "clamp(24px, 4vw, 48px)", fontStyle: "italic", color: C.gold, fontWeight: 400 }}>
-            "A solução não é mais ferramentas.<br />É a ferramenta certa."
+            {t("landing.quote")}
           </p>
         </Reveal>
       </div>
@@ -376,10 +307,10 @@ export default function Landing() {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <Reveal>
             <div style={{ marginBottom: 80 }}>
-              <Tag>FUNCIONALIDADES</Tag>
+              <Tag>{t("landing.features.badge")}</Tag>
               <h2 className="display" style={{ fontSize: "clamp(36px, 5vw, 64px)", lineHeight: 1.1, margin: "24px 0 0", fontWeight: 400 }}>
-                Tudo o que precisas.<br />
-                <span style={{ color: C.gold, fontStyle: "italic" }}>Num só lugar.</span>
+                {t("landing.features.title_a")}<br />
+                <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.features.title_b")}</span>
               </h2>
             </div>
           </Reveal>
@@ -409,20 +340,16 @@ export default function Landing() {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <Reveal>
             <div style={{ textAlign: "center", marginBottom: 80 }}>
-              <Tag>COMO FUNCIONA</Tag>
+              <Tag>{t("landing.howItWorks.badge")}</Tag>
               <h2 className="display" style={{ fontSize: "clamp(36px, 5vw, 64px)", lineHeight: 1.1, margin: "24px 0 0", fontWeight: 400 }}>
-                Três passos.<br />
-                <span style={{ color: C.gold, fontStyle: "italic" }}>Zero fricção.</span>
+                {t("landing.howItWorks.title_a")}<br />
+                <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.howItWorks.title_b")}</span>
               </h2>
             </div>
           </Reveal>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1 }}>
-            {[
-              { n: "01", title: "Cria o teu Personagem", desc: "Define o visual do teu influencer virtual. O Character Engine gera o identity lock — um perfil de consistência visual que bloqueia a aparência em todos os conteúdos." },
-              { n: "02", title: "Escolhe um Template", desc: "Seleciona entre 10 templates profissionais: Viral Pipeline, Dark Channel, UGC Scene, Viral Modeling. Preenches os campos e a SavvyOwl constrói o pipeline completo." },
-              { n: "03", title: "Gera e Publica", desc: "Imagens com Imagen 3, vídeos com Veo 3.1 — todos com o teu personagem. Descarrega, publica. O ciclo repete-se em minutos, não horas." },
-            ].map((step, i) => (
+            {[1, 2, 3].map((n) => ({ n: t(`landing.howItWorks.step${n}_n`), title: t(`landing.howItWorks.step${n}_title`), desc: t(`landing.howItWorks.step${n}_desc`) })).map((step, i) => (
               <Reveal key={step.n} delay={i * 0.12}>
                 <div style={{ padding: "48px 36px" }}>
                   <span className="display" style={{ fontSize: 72, fontWeight: 400, color: C.borderGold, letterSpacing: "-0.04em", lineHeight: 1 }}>{step.n}</span>
@@ -441,9 +368,9 @@ export default function Landing() {
           <Reveal>
             <GoldLine className="mx-auto mb-12" />
             <p className="display" style={{ fontSize: "clamp(28px, 4vw, 52px)", lineHeight: 1.3, fontWeight: 400, fontStyle: "italic", marginBottom: 32 }}>
-              "Finalmente uma plataforma que entende que UGC não é sobre perfeição — é sobre <span style={{ color: C.gold }}>autenticidade consistente.</span>"
+              {t("landing.socialProofQuote")}
             </p>
-            <p style={{ fontSize: 11, letterSpacing: "3px", color: C.textMuted }}>CRIADORES DE CONTEÚDO EM PORTUGAL, BRASIL E ANGOLA</p>
+            <p style={{ fontSize: 11, letterSpacing: "3px", color: C.textMuted }}>{t("landing.socialProofSource")}</p>
             <GoldLine className="mx-auto mt-12" />
           </Reveal>
         </div>
@@ -454,12 +381,12 @@ export default function Landing() {
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <Reveal>
             <div style={{ textAlign: "center", marginBottom: 80 }}>
-              <Tag>PREÇOS</Tag>
+              <Tag>{t("landing.pricing.badge")}</Tag>
               <h2 className="display" style={{ fontSize: "clamp(36px, 5vw, 64px)", lineHeight: 1.1, margin: "24px 0 12px", fontWeight: 400 }}>
-                Investe no teu<br />
-                <span style={{ color: C.gold, fontStyle: "italic" }}>crescimento.</span>
+                {t("landing.pricing.title_a")}<br />
+                <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.pricing.title_b")}</span>
               </h2>
-              <p style={{ color: C.textMuted, fontSize: 14, fontWeight: 300 }}>Sem contratos. Cancela quando quiseres. 10 créditos gratuitos para começar.</p>
+              <p style={{ color: C.textMuted, fontSize: 14, fontWeight: 300 }}>{t("landing.pricing.subtitle")}</p>
             </div>
           </Reveal>
 
@@ -468,7 +395,7 @@ export default function Landing() {
               <Reveal key={plan.key} delay={i * 0.1}>
                 <div style={{ backgroundColor: plan.primary ? C.bg : C.surfaceHover, padding: "48px 36px", position: "relative", borderTop: plan.primary ? `2px solid ${C.gold}` : `2px solid transparent`, display: "flex", flexDirection: "column", height: "100%" }}>
                   {plan.primary && (
-                    <span style={{ position: "absolute", top: -1, right: 24, fontSize: 9, letterSpacing: "2px", backgroundColor: C.gold, color: C.bg, padding: "4px 12px" }}>POPULAR</span>
+                    <span style={{ position: "absolute", top: -1, right: 24, fontSize: 9, letterSpacing: "2px", backgroundColor: C.gold, color: C.bg, padding: "4px 12px" }}>{t("landing.pricing.popular")}</span>
                   )}
                   <p style={{ fontSize: 10, letterSpacing: "3px", color: C.textMuted, marginBottom: 16 }}>{plan.name.toUpperCase()}</p>
                   <div style={{ marginBottom: 8 }}>
@@ -502,7 +429,7 @@ export default function Landing() {
                 onMouseEnter={e => (e.currentTarget.style.color = C.gold)}
                 onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}
               >
-                VER PACKS DE CRÉDITOS AVULSO <ArrowRight size={12} />
+                {t("landing.pricing.viewPacks")} <ArrowRight size={12} />
               </Link>
             </div>
           </Reveal>
@@ -514,10 +441,10 @@ export default function Landing() {
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <Reveal>
             <div style={{ marginBottom: 64 }}>
-              <Tag>FAQ</Tag>
+              <Tag>{t("landing.faq.badge")}</Tag>
               <h2 className="display" style={{ fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1.1, margin: "24px 0 0", fontWeight: 400 }}>
-                Tens dúvidas?<br />
-                <span style={{ color: C.gold, fontStyle: "italic" }}>Temos respostas.</span>
+                {t("landing.faq.title_a")}<br />
+                <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.faq.title_b")}</span>
               </h2>
             </div>
           </Reveal>
@@ -554,17 +481,17 @@ export default function Landing() {
           <Reveal>
             <GoldLine className="mx-auto mb-16" />
             <h2 className="display" style={{ fontSize: "clamp(40px, 7vw, 88px)", lineHeight: 1.05, fontWeight: 400, marginBottom: 24, letterSpacing: "-0.03em" }}>
-              O teu próximo vídeo<br />
-              <span style={{ color: C.gold, fontStyle: "italic" }}>começa aqui.</span>
+              {t("landing.ctaFinal.title_a")}<br />
+              <span style={{ color: C.gold, fontStyle: "italic" }}>{t("landing.ctaFinal.title_b")}</span>
             </h2>
             <p style={{ fontSize: 14, color: C.textMuted, marginBottom: 48, fontWeight: 300 }}>
-              10 créditos gratuitos. Sem cartão de crédito. Cancela quando quiseres.
+              {t("landing.ctaFinal.subtitle")}
             </p>
             <Link to="/register" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 40px", backgroundColor: C.gold, color: C.bg, textDecoration: "none", fontSize: 11, letterSpacing: "2px", fontWeight: 500, transition: "all 0.2s" }}
               onMouseEnter={e => { e.currentTarget.style.backgroundColor = C.goldLight; }}
               onMouseLeave={e => { e.currentTarget.style.backgroundColor = C.gold; }}
             >
-              CRIAR CONTA GRÁTIS <ArrowRight size={14} />
+              {t("landing.ctaFinal.cta")} <ArrowRight size={14} />
             </Link>
             <GoldLine className="mx-auto mt-16" />
           </Reveal>
@@ -579,7 +506,7 @@ export default function Landing() {
             <span style={{ fontSize: 10, letterSpacing: "2px", color: C.textFaint }}>SAVVYOWL</span>
           </div>
           <div style={{ display: "flex", gap: 32 }}>
-            {[["#features", "Features"], ["#pricing", "Preços"], ["/pricing", "Planos"], ["/login", "Entrar"]].map(([href, label]) => (
+            {[["#features", t("landing.footer.features")], ["#pricing", t("landing.footer.pricing")], ["/pricing", t("landing.footer.plans")], ["/login", t("landing.footer.login")]].map(([href, label]) => (
               <a key={label} href={href} style={{ fontSize: 10, letterSpacing: "2px", color: C.textFaint, textDecoration: "none", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = C.textMuted)}
                 onMouseLeave={e => (e.currentTarget.style.color = C.textFaint)}
