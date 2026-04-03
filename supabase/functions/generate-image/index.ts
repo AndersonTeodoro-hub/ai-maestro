@@ -1,15 +1,15 @@
-// generate-image — plan-based Gemini model routing + credits system
+// generate-image — plan-based Gemini model routing + Flux 2 Pro via fal.ai + credits system
 // Uses Deno.serve() + native fetch only (no external imports)
 
-// Plan-based model routing for visual consistency
-// Pro gets best Gemini 3 Pro Image for maximum character consistency
+// Plan-based model routing for visual consistency (Gemini engine)
 const PLAN_MODELS: Record<string, string[]> = {
   free:    ["gemini-2.5-flash-image", "gemini-3.1-flash-image-preview"],
   starter: ["gemini-3.1-flash-image-preview", "gemini-2.5-flash-image"],
   pro:     ["gemini-3-pro-image-preview", "gemini-3.1-flash-image-preview", "gemini-2.5-flash-image"],
 };
 
-const CREDIT_COST = 1;
+const GEMINI_CREDIT_COST = 1;
+const FLUX_CREDIT_COST = 2;
 
 Deno.serve(async (req) => {
   const corsHeaders = {
@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
     const anonKey    = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const googleKey  = Deno.env.get("GOOGLE_API_KEY") || "";
+    const falApiKey  = Deno.env.get("FAL_API_KEY") || "";
 
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
@@ -43,9 +44,128 @@ Deno.serve(async (req) => {
     if (!user?.id) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json();
-    const { prompt, apiKey: userApiKey, referenceImageUrl } = body;
+    const { prompt, apiKey: userApiKey, referenceImageUrl, engine, action, requestId: pollRequestId } = body;
+
+    // ── FLUX POLL ACTION — frontend polls for fal.ai result ──
+    if (engine === "flux" && action === "poll" && pollRequestId) {
+      const { statusUrl, responseUrl } = body;
+      if (!statusUrl || !responseUrl) {
+        return json({ status: "FAILED", error: "Missing statusUrl/responseUrl" });
+      }
+
+      const statusResp = await fetch(statusUrl, {
+        headers: { Authorization: `Key ${falApiKey}` },
+      });
+      if (!statusResp.ok) return json({ status: "PENDING" });
+      const status = await statusResp.json();
+
+      if (status.status === "COMPLETED") {
+        const resultResp = await fetch(responseUrl, {
+          headers: { Authorization: `Key ${falApiKey}` },
+        });
+        const result = await resultResp.json();
+        const imageUrl = result.images?.[0]?.url;
+        if (!imageUrl) return json({ status: "FAILED", error: "No image in result" });
+        return json({ status: "COMPLETED", imageUrl });
+      }
+      if (status.status === "FAILED") {
+        return json({ status: "FAILED", error: JSON.stringify(status.error || status).substring(0, 300) });
+      }
+      return json({ status: status.status || "PENDING" });
+    }
+
     if (!prompt) return json({ error: "Prompt is required" }, 400);
 
+    // Get profile: plan + credits
+    const profileResp = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=credits_balance,plan`,
+      { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } }
+    );
+    const profiles = await profileResp.json();
+    const profile = profiles?.[0];
+    const plan = profile?.plan ?? "free";
+    const balance = profile?.credits_balance ?? 0;
+    const usingOwnKey = !!userApiKey;
+
+    // ── FLUX ENGINE ──
+    if (engine === "flux") {
+      if (!falApiKey) return json({ error: "Serviço Flux não configurado." }, 503);
+
+      if (!usingOwnKey && balance < FLUX_CREDIT_COST) {
+        return json({
+          error: "insufficient_credits",
+          message: `Sem créditos suficientes (tens ${balance}, precisas de ${FLUX_CREDIT_COST}). Carrega créditos nas Definições.`,
+          balance,
+          cost: FLUX_CREDIT_COST,
+        }, 402);
+      }
+
+      // Build Flux request
+      const falBody: Record<string, unknown> = {
+        prompt,
+        image_size: "landscape_16_9",
+        num_images: 1,
+      };
+      if (referenceImageUrl) {
+        falBody.image_url = referenceImageUrl;
+      }
+
+      console.log(`[IMG-FLUX] Submitting Flux 2 Pro`);
+
+      const submitResp = await fetch("https://queue.fal.run/fal-ai/flux/v2/pro", {
+        method: "POST",
+        headers: { Authorization: `Key ${falApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(falBody),
+      });
+
+      if (!submitResp.ok) {
+        const err = await submitResp.text();
+        throw new Error(`fal.ai Flux ${submitResp.status}: ${err.substring(0, 400)}`);
+      }
+
+      const submitData = await submitResp.json();
+      const requestId = submitData.request_id;
+      if (!requestId) throw new Error("No request_id from fal.ai");
+
+      // Deduct credits
+      if (!usingOwnKey) {
+        const newBalance = balance - FLUX_CREDIT_COST;
+        await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json" },
+          body: JSON.stringify({ credits_balance: newBalance }),
+        });
+        await fetch(`${supabaseUrl}/rest/v1/credit_transactions`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({ user_id: user.id, amount: -FLUX_CREDIT_COST, type: "spend", description: "Imagem (Flux 2 Pro)" }),
+        });
+        console.log(`[IMG-FLUX] ✅ Submitted ${requestId} | ${balance} → ${newBalance}`);
+
+        return json({
+          status: "SUBMITTED",
+          requestId,
+          statusUrl: submitData.status_url,
+          responseUrl: submitData.response_url,
+          credits: { balance: newBalance, cost: FLUX_CREDIT_COST },
+          backend: "flux-v2-pro",
+          plan,
+        });
+      }
+
+      console.log(`[IMG-FLUX] ✅ Submitted ${requestId} (own key)`);
+      return json({
+        status: "SUBMITTED",
+        requestId,
+        statusUrl: submitData.status_url,
+        responseUrl: submitData.response_url,
+        credits: null,
+        backend: "flux-v2-pro",
+        plan,
+      });
+    }
+
+    // ── GEMINI ENGINE (default) ──
     // If reference image provided, fetch it as base64 for img2img
     let referenceImageBase64: string | null = null;
     let referenceImageMime = "image/png";
@@ -69,24 +189,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Get profile: plan + credits
-    const profileResp = await fetch(
-      `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=credits_balance,plan`,
-      { headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey } }
-    );
-    const profiles = await profileResp.json();
-    const profile = profiles?.[0];
-    const plan = profile?.plan ?? "free";
-    const balance = profile?.credits_balance ?? 0;
-    const usingOwnKey = !!userApiKey;
-
     // Credit check (server-side generation only)
-    if (!usingOwnKey && balance < CREDIT_COST) {
+    if (!usingOwnKey && balance < GEMINI_CREDIT_COST) {
       return json({
         error: "insufficient_credits",
-        message: `Sem créditos suficientes (tens ${balance}, precisas de ${CREDIT_COST}). Carrega créditos nas Definições.`,
+        message: `Sem créditos suficientes (tens ${balance}, precisas de ${GEMINI_CREDIT_COST}). Carrega créditos nas Definições.`,
         balance,
-        cost: CREDIT_COST,
+        cost: GEMINI_CREDIT_COST,
       }, 402);
     }
 
@@ -152,7 +261,7 @@ Deno.serve(async (req) => {
     // Deduct credits for server-side generation
     let newBalance = balance;
     if (!usingOwnKey) {
-      newBalance = balance - CREDIT_COST;
+      newBalance = balance - GEMINI_CREDIT_COST;
       await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json" },
@@ -161,7 +270,7 @@ Deno.serve(async (req) => {
       await fetch(`${supabaseUrl}/rest/v1/credit_transactions`, {
         method: "POST",
         headers: { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey, "Content-Type": "application/json", Prefer: "return=minimal" },
-        body: JSON.stringify({ user_id: user.id, amount: -CREDIT_COST, type: "spend", description: `Imagem (${usedModel})` }),
+        body: JSON.stringify({ user_id: user.id, amount: -GEMINI_CREDIT_COST, type: "spend", description: `Imagem (${usedModel})` }),
       });
     }
 
@@ -177,7 +286,7 @@ Deno.serve(async (req) => {
     return json({
       image: imageData,
       text: textResponse,
-      credits: usingOwnKey ? null : { balance: newBalance, cost: CREDIT_COST },
+      credits: usingOwnKey ? null : { balance: newBalance, cost: GEMINI_CREDIT_COST },
       backend: usedModel,
       plan,
     });
