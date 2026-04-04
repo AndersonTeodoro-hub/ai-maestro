@@ -1,6 +1,6 @@
 # SavvyOwl — Especificação Completa do Projecto
 
-> Última actualização: 02/04/2026
+> Última actualização: 04/04/2026
 > Este ficheiro é a fonte de verdade para a estrutura do projecto. Qualquer alteração no código deve respeitar esta spec. Quando corriges um componente, NÃO alteres outros componentes listados aqui sem autorização.
 
 ---
@@ -36,6 +36,7 @@ Serviços externos: fal.ai, ElevenLabs, Google Gemini, Anthropic Claude, Stripe
 | `/dashboard/analytics` | `Analytics.tsx` | Estatísticas de uso e custos | Sim |
 | `/dashboard/characters` | `CharactersPage.tsx` | Character Engine (criar/editar/lock personagens) | Sim |
 | `/dashboard/dark-pipeline` | `DarkPipelinePage.tsx` | Dark Pipeline Pro (vídeos dark sem UGC) | Sim |
+| `/dashboard/dubbing` | `DubbingPage.tsx` | AI Dubbing — Kling Motion Control Pro | Sim |
 | `/dashboard/settings` | `SettingsPage.tsx` | Definições, API keys, plano, créditos | Sim |
 | `*` | `NotFound.tsx` | Página 404 | Não |
 
@@ -80,7 +81,7 @@ Serviços externos: fal.ai, ElevenLabs, Google Gemini, Anthropic Claude, Stripe
 
 ## 5. COMPONENTES PRINCIPAIS
 
-### 5.1 StructuredTemplates (`src/components/StructuredTemplates.tsx`) — 2224 linhas
+### 5.1 StructuredTemplates (`src/components/StructuredTemplates.tsx`) — 2119 linhas
 **Localização:** Renderizado dentro de `Chat.tsx`
 **Função:** Motor principal do Vídeo Viral Pipeline (8 etapas) + templates auxiliares
 
@@ -89,12 +90,12 @@ Serviços externos: fal.ai, ElevenLabs, Google Gemini, Anthropic Claude, Stripe
 |-------|-----|--------------|
 | 1. Tema | `theme` | Input texto livre do nicho/tema |
 | 2. Título | `title` | Gera 5 títulos via `callChat`, utilizador escolhe 1. Selector de palavras (30/60/120/300/500) |
-| 3. Config | `config` | Duração por cena (8s Veo3 / 15s Wan), número de cenas, formato (9:16/16:9/1:1), custo estimado + saldo |
+| 3. Config | `config` | Duração por cena (8s Seedance / 15s Wan), número de cenas, formato (9:16/16:9/1:1), custo estimado + saldo |
 | 4. Roteiro | `script` | Gera roteiro completo via `callChat` com número de palavras seleccionado |
 | 5. Personagem | `character` | Lista personagens locked, selector, botão criar novo (navega para `/dashboard/characters`) |
 | 6. Narração | `narration` | Gera narração inteira com ElevenLabs (voz personagem) ou Gemini TTS. Player + download MP3 |
 | 7. Cenas | `scenes` | Gera cenas via Claude Sonnet (mode: deep quando há personagem). Cada cena tem DESC + DIALOGUE + PROMPT. Áudios por cena gerados em background. Botões copiar prompt |
-| 8. Gerar | `generate` | Gerar vídeo por cena. Veo3 com `generate_audio: true` + lip-sync automático. Badge de status por cena |
+| 8. Gerar | `generate` | Gerar vídeo por cena. Seedance 1.5 Pro (12 créd, 8s, lip-sync nativo) como motor principal. Veo3 continua disponível como alternativa no edge function. Badge de status por cena |
 
 #### Templates auxiliares (dentro do chat):
 | ID | Nome | Campos |
@@ -123,9 +124,11 @@ Serviços externos: fal.ai, ElevenLabs, Google Gemini, Anthropic Claude, Stripe
 - `handleExportPrompts()` — copia todos os prompts
 - `handleViralVideoSelect(vid)` — selecciona vídeo viral para modelar
 
-### 5.2 DarkPipelinePage (`src/pages/DarkPipelinePage.tsx`) — 1603 linhas
+### 5.2 DarkPipelinePage (`src/pages/DarkPipelinePage.tsx`) — 2121 linhas
 **Rota:** `/dashboard/dark-pipeline`
 **Função:** Pipeline para vídeos dark/cinematográficos sem UGC
+**Motor:** Wan 2.6 T2V (15s, 8 créd) + R2V (10s com personagem, 8 créd)
+**Extras:** Style profiles (Supabase), niche selector com categorias predefinidas, niche-specific prompts
 
 #### Steps: theme → title → script → character → scenes → generate
 #### Funções handler:
@@ -234,19 +237,35 @@ interface SceneData {
 - `handleBuyPack(pack)` — compra pack de créditos
 - `handleManageSubscription()` — portal Stripe
 
-### 5.6 Landing (`src/pages/Landing.tsx`) — 580 linhas
+### 5.6 DubbingPage (`src/pages/DubbingPage.tsx`) — 669 linhas
+**Rota:** `/dashboard/dubbing`
+**Função:** AI Dubbing com Kling 3.0 Motion Control Pro
+
+#### Steps: upload vídeo → seleccionar personagem → voice cloning (create-voice via fal.ai) → gerar vídeo com motion control (30 créd)
+#### Funções handler:
+- `handleUpload()` — upload de vídeo
+- `handleSelectCharacter()` — selecciona personagem
+- `handleGenerateVoice()` — voice cloning (create-voice via fal.ai)
+- `handleGenerateDubbing()` — gera vídeo com motion control
+- `handleNewProject()` — reset do projecto
+
+### 5.7 Landing (`src/pages/Landing.tsx`) — 525 linhas
 **Rota:** `/`
 **Função:** Página pública com hero, features, pricing, footer
+**i18n:** Completo (4 idiomas: en, pt, fr, es). LanguageSelector na nav. Rebranding: zero nomes de modelos IA visíveis ao utilizador.
 
-### 5.7 Pricing (`src/pages/Pricing.tsx`) — 276 linhas
+### 5.8 Pricing (`src/pages/Pricing.tsx`) — 226 linhas
 **Rota:** `/pricing`
 **Função:** Página de planos com checkout Stripe
+**i18n:** Completo (4 idiomas: en, pt, fr, es). LanguageSelector na nav.
+**Planos:** Free €0/10cr, Starter €29.99/60cr, Pro €59.99/180cr (POPULAR), Studio €119.99/500cr
+**Packs avulso:** S €4.99/50cr, M €12.99/150cr, L €29.99/400cr
 
-### 5.8 Analytics (`src/pages/Analytics.tsx`) — 272 linhas
+### 5.9 Analytics (`src/pages/Analytics.tsx`) — 272 linhas
 **Rota:** `/dashboard/analytics`
 **Função:** Gráficos de uso, custos por modelo, histórico
 
-### 5.9 Prompts (`src/pages/Prompts.tsx`) — 265 linhas
+### 5.10 Prompts (`src/pages/Prompts.tsx`) — 265 linhas
 **Rota:** `/dashboard/prompts`
 **Função:** Biblioteca de prompts guardados pelo utilizador
 
@@ -265,7 +284,7 @@ interface SceneData {
 | `ErrorBoundary` | `ErrorBoundary.tsx` | Catch de erros React com fallback UI |
 | `InstallPrompt` | `InstallPrompt.tsx` | Prompt PWA para instalação |
 | `OnboardingModal` | `OnboardingModal.tsx` | Modal de boas-vindas primeiro login |
-| `LanguageSelector` | `LanguageSelector.tsx` | Selector de idioma |
+| `LanguageSelector` | `LanguageSelector.tsx` | Selector de idioma (presente em DashboardLayout, Chat, Landing.tsx e Pricing.tsx) |
 | `MobileBottomNav` | `MobileBottomNav.tsx` | Navegação inferior mobile |
 | `NavLink` | `NavLink.tsx` | Link de navegação activo |
 | `ThemeToggle` | `ThemeToggle.tsx` | Toggle dark/light mode |
@@ -313,20 +332,26 @@ interface SceneData {
 
 | Key | Endpoint | Créditos | Uso |
 |-----|----------|----------|-----|
-| `veo3-fast` | `fal-ai/veo3/fast` | 15 | T2V 8s sem ref image |
-| `veo3-fast-i2v` | `fal-ai/veo3/fast/image-to-video` | 15 | I2V 8s com ref image |
-| `wan26-t2v-flash` | `wan/v2.6/text-to-video` | 8 | T2V 15s (dark/b-roll) |
+| `seedance-t2v` | `fal-ai/seedance/1.5-pro/text-to-video` | 12 | T2V 8s (Viral Pipeline principal) |
+| `seedance-i2v` | `fal-ai/seedance/1.5-pro/image-to-video` | 12 | I2V 8s com ref image (Viral Pipeline principal) |
+| `veo3-fast` | `fal-ai/veo3/fast` | 15 | T2V 8s (alternativa no edge function) |
+| `veo3-fast-i2v` | `fal-ai/veo3/fast/image-to-video` | 15 | I2V 8s (alternativa no edge function) |
+| `wan26-t2v-flash` | `wan/v2.6/text-to-video` | 8 | T2V 15s (Dark Pipeline) |
 | `wan26-i2v-flash` | `wan/v2.6/image-to-video` | 8 | I2V 15s |
-| `wan26-r2v-flash` | `wan/v2.6/reference-to-video/flash` | 10 | R2V (futuro) |
+| `wan26-r2v-flash` | `wan/v2.6/reference-to-video/flash` | 8 | R2V 10s com personagem (Dark Pipeline) |
+| `kling-motion-standard` | `fal-ai/kling-video/v3/motion-control/standard` | 20 | Kling Motion Standard |
+| `kling-motion-pro` | `fal-ai/kling-video/v3/motion-control/pro` | 30 | Kling Motion Control Pro (Dubbing) |
 | `kling` | `fal-ai/kling-video/v2.1/pro` | 10 | Alternativa budget |
 | Lip-sync | `fal-ai/sync-lipsync/v2/pro` | 3 | Sync Lipsync 2.0 Pro |
 
 ### Lógica de selecção:
-- **8s + referenceImageUrl** → `veo3-fast-i2v`
-- **8s sem referenceImageUrl** → `veo3-fast`
-- **15s** → `wan26-t2v-flash`
-- **Personagem + narração** → `generate_audio: true` + lip-sync automático
-- **Sem narração** → `generate_audio: true` (áudio nativo)
+- **Viral Pipeline 8s + referenceImageUrl** → `seedance-i2v`
+- **Viral Pipeline 8s sem referenceImageUrl** → `seedance-t2v`
+- **Dark Pipeline 15s** → `wan26-t2v-flash`
+- **Dark Pipeline 10s com personagem** → `wan26-r2v-flash`
+- **Dubbing** → `kling-motion-pro`
+- **Personagem + narração** → lip-sync automático
+- Veo3 mantém-se disponível no edge function como alternativa
 
 ---
 
@@ -354,7 +379,7 @@ interface SceneData {
 
 | Serviço | Uso | Chave |
 |---------|-----|-------|
-| fal.ai | Vídeo (Veo3, Wan 2.6, Kling) + Lip-sync + Imagem | `FAL_API_KEY` (Supabase secret) |
+| fal.ai | Vídeo (Seedance, Veo3, Wan 2.6, Kling) + Lip-sync + Imagem (Flux 2 Pro via generate-image engine:"flux") | `FAL_API_KEY` (Supabase secret) |
 | Anthropic Claude | Character expansion, roteiro, cenas (Sonnet/Opus) | `ANTHROPIC_API_KEY` (Supabase secret) |
 | Google Gemini | Chat (Flash), TTS, imagem de referência | `GOOGLE_API_KEY` (Supabase secret) |
 | ElevenLabs | Voz personalizada (BYOK — chave do utilizador) | localStorage do utilizador |
@@ -386,7 +411,7 @@ interface SceneData {
 4. Gera cenas (Claude Sonnet divide roteiro em DIALOGUE + PROMPT)
 5. Áudios por cena gerados em background (ElevenLabs, upload a Supabase Storage)
 6. Para cada cena, utilizador clica "Gerar":
-   a) Submit ao fal.ai (Veo3 com generate_audio:true + diálogo em PT no prompt)
+   a) Submit ao fal.ai (Seedance 1.5 Pro como motor principal, lip-sync nativo)
    b) Poll até COMPLETED → videoUrl
    c) Se audioUrl existe → submit lip-sync (Sync Lipsync 2.0 Pro)
    d) Poll lip-sync até COMPLETED → lipsyncVideoUrl
@@ -405,4 +430,40 @@ interface SceneData {
 5. **Testar com `npx tsc --noEmit` antes de fazer push**
 6. **`identityBlock` depende de `activeCharacter`** — pode ser null após reload (re-selecção automática via useEffect)
 7. **Smart identity prepend:** verificar se prompt já contém "FIXED CHARACTER" antes de adicionar
-8. **Créditos são deduzidos ANTES de chamar o fal.ai** — se falhar, devolver créditos (TODO)
+8. **Créditos são deduzidos ANTES de chamar o fal.ai** — se falhar, auto-refund (implementado)
+9. **Texto visível ao utilizador NUNCA menciona nomes de modelos IA** (Seedance, Kling, Wan, Veo3, Flux). Usar nomes genéricos (motor de vídeo, motor de dublagem).
+
+---
+
+## 15. i18n — INTERNACIONALIZAÇÃO
+
+**Idiomas suportados:** en, pt, fr, es
+**Config:** `src/i18n/index.ts`
+**Locales:** `src/i18n/locales/*.json` (um ficheiro por idioma)
+**Componente:** `LanguageSelector` — presente em DashboardLayout, Chat, Landing.tsx, Pricing.tsx
+**Fallback:** `en`
+**Detecção:** localStorage (`savvyowl-language`) > `navigator.language`
+
+---
+
+## 16. PRICING & STRIPE
+
+### Planos:
+| Plano | Preço/mês | Créditos/mês |
+|-------|-----------|-------------|
+| Free | €0 | 10 |
+| Starter | €29.99 | 60 |
+| Pro | €59.99 | 180 |
+| Studio | €119.99 | 500 |
+
+### Packs avulso:
+| Pack | Preço | Créditos |
+|------|-------|----------|
+| S | €4.99 | 50 |
+| M | €12.99 | 150 |
+| L | €29.99 | 400 |
+
+### Implementação:
+- Price IDs do Stripe estão definidos em `SUBSCRIPTION_PRICES` dentro de `stripe-checkout` edge function (NÃO listar aqui)
+- `PLAN_CREDITS` no `stripe-webhook` define créditos por plano
+- **NOTA:** Actualmente `stripe-webhook` tem starter=150 e pro=500 — ERRADO, precisa ser corrigido para starter=60, pro=180, e adicionar studio=500
