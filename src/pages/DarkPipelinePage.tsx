@@ -70,6 +70,7 @@ interface PipelineState {
   sceneCount: number;
   scenes: SceneData[];
   aspectRatio: string;
+  speechLang: string;
 }
 
 const NICHE_IDS = [
@@ -79,6 +80,24 @@ const NICHE_IDS = [
   { id: "historias-reais", emoji: "📖" },
   { id: "corpo-humano", emoji: "🫀" },
 ];
+
+const SPEECH_LANGS = [
+  { id: "pt-BR", label: "Português (BR)", prompt: "em português do Brasil" },
+  { id: "pt-PT", label: "Português (PT)", prompt: "em português de Portugal" },
+  { id: "en",    label: "English",         prompt: "in English" },
+  { id: "es",    label: "Español",         prompt: "en español" },
+];
+
+function getDefaultSpeechLang(lang: string): string {
+  if (lang.startsWith("pt")) return "pt-BR";
+  if (lang.startsWith("es")) return "es";
+  if (lang.startsWith("en")) return "en";
+  return "pt-BR";
+}
+
+function getSpeechLangPrompt(id: string): string {
+  return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
+}
 
 const STEP_KEYS: { key: Step; icon: any }[] = [
   { key: "niche", icon: Sparkles },
@@ -153,7 +172,7 @@ export default function DarkPipelinePage() {
   const { characters, activeCharacter, selectCharacter, referenceImageUrl, identityBlock, wanT2VBlock, negativePrompt } = useCharacter();
   const elevenLabs = useElevenLabsKey();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const NICHES = NICHE_IDS.map((n) => ({ ...n, label: t(`dp.niches.${n.id}`) }));
   const STEPS = STEP_KEYS.map((s) => ({ ...s, label: t(`dp.steps.${s.key}`) }));
@@ -238,6 +257,7 @@ export default function DarkPipelinePage() {
       sceneCount: 5,
       scenes: [],
       aspectRatio: "9:16",
+      speechLang: getDefaultSpeechLang(i18n.language),
     };
   });
 
@@ -490,7 +510,7 @@ export default function DarkPipelinePage() {
     setPipeline({
       niche: "", styleProfileId: null, styleProfile: null, theme: "", titles: [], selectedTitle: "", wordCount: 450, script: "",
       characterId: null, characterName: null, characterVoiceId: null,
-      referenceImageUrl: null, sceneDuration: 15, sceneCount: 5, scenes: [], aspectRatio: "9:16",
+      referenceImageUrl: null, sceneDuration: 15, sceneCount: 5, scenes: [], aspectRatio: "9:16", speechLang: getDefaultSpeechLang(i18n.language),
     });
     setVoiceUrl(null);
     setNarrationStorageUrl(null);
@@ -787,7 +807,7 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
       const hasNarrationForScenes = !!narrationStorageUrl || !!voiceUrl;
       const silentRule = hasNarrationForScenes
         ? `   - OBRIGATÓRIO no final de CADA prompt: "No dialogue, no speech, no voiceover, no narration, no text on screen. Silent cinematic footage only. Audio will be added separately."`
-        : `   - O vídeo DEVE ter áudio nativo: sons ambiente, diálogos em português do Brasil se o personagem falar, sons naturais da cena. O áudio faz parte do vídeo.`;
+        : `   - O vídeo DEVE ter áudio nativo: sons ambiente, diálogos ${getSpeechLangPrompt(pipeline.speechLang)} se o personagem falar, sons naturais da cena. O áudio faz parte do vídeo.`;
 
       // Build style block from style profile (if selected)
       const styleBlock = pipeline.styleProfile
@@ -1741,6 +1761,18 @@ Sem texto adicional fora deste formato.`,
                         }`}
                       >
                         {o.l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] text-muted-foreground mb-1">{t("pipeline.speechLang")}</p>
+                  <div className="flex gap-1 flex-wrap">
+                    {SPEECH_LANGS.map((l) => (
+                      <button key={l.id} onClick={() => setPipeline((p) => ({ ...p, speechLang: l.id }))}
+                        className={`px-3 py-1.5 rounded text-[10px] font-medium transition-all ${pipeline.speechLang === l.id ? "bg-purple-600 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
+                        {l.label}
                       </button>
                     ))}
                   </div>

@@ -65,6 +65,9 @@
     "cta_title_a": "Empieza hoy.", "cta_title_b": "Gratis.", "cta_subtitle": "10 créditos gratis. Sin tarjeta de crédito.", "cta_button": "CREAR CUENTA GRATIS",
     "footer": "© 2026 SAVVYOWL — TODOS LOS DERECHOS RESERVADOS"
   },
+  "pipeline": {
+    "speechLang": "Idioma del habla"
+  },
   "auth": {
     "welcomeBack": "Bienvenido de vuelta",
     "signInAccount": "Inicia sesión en tu cuenta",

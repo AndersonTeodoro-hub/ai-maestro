@@ -132,6 +132,9 @@
     "cta_title_a": "Start today.", "cta_title_b": "Free.", "cta_subtitle": "10 free credits. No credit card.", "cta_button": "CREATE FREE ACCOUNT",
     "footer": "© 2026 SAVVYOWL — ALL RIGHTS RESERVED"
   },
+  "pipeline": {
+    "speechLang": "Speech language"
+  },
   "auth": {
     "welcomeBack": "Welcome back",
     "signInAccount": "Sign in to your account",

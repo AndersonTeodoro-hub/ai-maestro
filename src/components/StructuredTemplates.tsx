@@ -132,6 +132,7 @@ interface VPState {
   sceneDuration: 8;
   sceneCount: number;
   aspectRatio: string;
+  speechLang: string;
   script: string;
   characterId: string | null;
   characterName: string | null;
@@ -161,9 +162,27 @@ const TTS_VOICES = [
   { id: "Aoede",   name: "Aoede (Feminino, Leve)" },
 ];
 
+const SPEECH_LANGS = [
+  { id: "pt-BR", label: "Português (BR)", prompt: "em português do Brasil" },
+  { id: "pt-PT", label: "Português (PT)", prompt: "em português de Portugal" },
+  { id: "en",    label: "English",         prompt: "in English" },
+  { id: "es",    label: "Español",         prompt: "en español" },
+];
+
+function getDefaultSpeechLang(lang: string): string {
+  if (lang.startsWith("pt")) return "pt-BR";
+  if (lang.startsWith("es")) return "es";
+  if (lang.startsWith("en")) return "en";
+  return "pt-BR";
+}
+
+function getSpeechLangPrompt(id: string): string {
+  return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
+}
+
 const EMPTY_VP: VPState = {
   theme: "", titles: [], selectedTitle: "", wordCount: 60,
-  sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16",
+  sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16", speechLang: "pt-BR",
   script: "", characterId: null, characterName: null,
   characterVoiceId: null, referenceImageUrl: null, scenes: [],
 };
@@ -189,7 +208,7 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const [pipelineActive, setPipelineActive] = useState(false);
   const [vpStep, setVpStep] = useState<PipelineStep>("theme");
   const [vpLoading, setVpLoading] = useState(false);
-  const [vp, setVp] = useState<VPState>(EMPTY_VP);
+  const [vp, setVp] = useState<VPState>({ ...EMPTY_VP, speechLang: getDefaultSpeechLang(i18n.language) });
 
   // Voice state
   const [voiceUrl, setVoiceUrl] = useState<string | null>(null);
@@ -227,7 +246,7 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
 
   // ── Reset pipeline ──
   const handleNewPipeline = () => {
-    setVp(EMPTY_VP);
+    setVp({ ...EMPTY_VP, speechLang: getDefaultSpeechLang(i18n.language) });
     setVpStep("theme");
     setPipelineMode("viral");
     setSgFields({});
@@ -465,7 +484,7 @@ ${charSection}
 Para CADA cena entrega EXACTAMENTE neste formato:
 CENA 1:
 DESC: [1 frase em PT descrevendo a cena]
-DIALOGUE: [texto exacto que será narrado nesta cena, em português do Brasil]
+DIALOGUE: [texto exacto que será narrado nesta cena, ${getSpeechLangPrompt(vp.speechLang)}]
 PROMPT: [prompt em inglês, 3-5 frases: ação + câmera + iluminação + cenário. "Photorealistic, shot on iPhone 15 Pro, UGC aesthetic"]
 NARRAÇÃO: [mesmo texto do DIALOGUE]
 
@@ -664,12 +683,12 @@ ${silentRule_VP}
 Formato OBRIGATÓRIO (uma cena por bloco):
 CENA 1:
 DESC: [descrição em PT]
-DIALOGUE: [trecho exacto do roteiro para esta cena, em português]
+DIALOGUE: [trecho exacto do roteiro para esta cena, ${getSpeechLangPrompt(vp.speechLang)}]
 PROMPT: [prompt em inglês]
 
 CENA 2:
 DESC: [descrição em PT]
-DIALOGUE: [trecho exacto do roteiro para esta cena, em português]
+DIALOGUE: [trecho exacto do roteiro para esta cena, ${getSpeechLangPrompt(vp.speechLang)}]
 PROMPT: [prompt em inglês]
 
 ...e assim por diante até CENA ${vp.sceneCount}.
@@ -865,7 +884,7 @@ Sem texto adicional fora deste formato.`,
     const fv = { ...fieldValues };
     setVmSelectedVideo(vid);
     setVmFieldValues(fv);
-    setVp((p) => ({ ...p, sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16" }));
+    setVp((p) => ({ ...p, sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16", speechLang: getDefaultSpeechLang(i18n.language) }));
     setPipelineMode("viral-model");
     setPipelineActive(true);
     setVpStep("vm-adapt");
@@ -1663,6 +1682,18 @@ Negative: [negative prompt]
                   <button key={o.v} onClick={() => setVp((p) => ({ ...p, aspectRatio: o.v }))}
                     className={`px-3 py-1.5 rounded text-[10px] font-medium transition-all ${vp.aspectRatio === o.v ? "bg-purple-600 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
                     {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] text-muted-foreground mb-1">{t("pipeline.speechLang")}</p>
+              <div className="flex gap-1 flex-wrap">
+                {SPEECH_LANGS.map((l) => (
+                  <button key={l.id} onClick={() => setVp((p) => ({ ...p, speechLang: l.id }))}
+                    className={`px-3 py-1.5 rounded text-[10px] font-medium transition-all ${vp.speechLang === l.id ? "bg-purple-600 text-white" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}>
+                    {l.label}
                   </button>
                 ))}
               </div>
