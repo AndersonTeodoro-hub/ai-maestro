@@ -180,22 +180,15 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
-const AUDIO_LANG_MAP: Record<string, string> = {
-  "pt-BR": "Brazilian Portuguese (pt-BR)",
-  "pt-PT": "European Portuguese (pt-PT)",
-  "en":    "English (en-US)",
-  "es":    "Spanish (es)",
+const SPEECH_LANG_NAMES: Record<string, string> = {
+  "pt-BR": "Brazilian Portuguese",
+  "pt-PT": "European Portuguese",
+  "en":    "English",
+  "es":    "Spanish",
 };
 
-function buildAudioLangDirective(speechLang: string): string {
-  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
-  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language. The dialogue in quotes is in ${lang} — pronounce it in ${lang}, NOT in Spanish.\n\n`;
-}
-
-function buildDialogueLayer(dialogueText: string | undefined, speechLang: string): string {
-  if (!dialogueText) return "";
-  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
-  return `\n\n[DIALOGUE — spoken in ${lang}, NOT in Spanish]\nCharacter speaking in ${lang}: "${dialogueText}"`;
+function getSpeechLangName(id: string): string {
+  return SPEECH_LANG_NAMES[id] ?? "Brazilian Portuguese";
 }
 
 const EMPTY_VP: VPState = {
@@ -787,22 +780,25 @@ Sem texto adicional fora deste formato.`,
       const model = vp.referenceImageUrl ? "seedance-i2v" : "seedance-t2v";
 
       const promptAlreadyHasIdentity = scene.prompt.includes("FIXED CHARACTER") || scene.prompt.includes("same person in every frame");
+      const langName = getSpeechLangName(vp.speechLang);
 
-      // Build prompt in layers: identity → visual scene → dialogue with explicit language
-      let finalPrompt: string;
-      if (promptAlreadyHasIdentity) {
-        finalPrompt = scene.prompt;
-      } else {
-        finalPrompt = identityBlock
-          ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
-          : scene.prompt;
+      // Build prompt: dialogue first (language anchor) → identity → visual scene
+      const parts: string[] = [];
+
+      // Layer 1: dialogue with language command (first words set the audio language)
+      if (scene.dialogueText) {
+        parts.push(`Character speaks in ${langName}. Character saying "${scene.dialogueText}"`);
       }
 
-      // Append dialogue as a separate layer with explicit language tag
-      finalPrompt += buildDialogueLayer(scene.dialogueText, vp.speechLang);
+      // Layer 2: identity block
+      if (!promptAlreadyHasIdentity && identityBlock) {
+        parts.push(identityBlock);
+      }
 
-      // Prepend audio language directive
-      finalPrompt = buildAudioLangDirective(vp.speechLang) + finalPrompt;
+      // Layer 3: visual scene description
+      parts.push(promptAlreadyHasIdentity ? scene.prompt : `SCENE: ${scene.prompt}`);
+
+      const finalPrompt = parts.join("\n\n");
 
       // Submit
       const submitResp = await fetch(baseUrl, {

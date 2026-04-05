@@ -99,16 +99,15 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
-const AUDIO_LANG_MAP: Record<string, string> = {
-  "pt-BR": "Brazilian Portuguese (pt-BR)",
-  "pt-PT": "European Portuguese (pt-PT)",
-  "en":    "English (en-US)",
-  "es":    "Spanish (es)",
+const SPEECH_LANG_NAMES: Record<string, string> = {
+  "pt-BR": "Brazilian Portuguese",
+  "pt-PT": "European Portuguese",
+  "en":    "English",
+  "es":    "Spanish",
 };
 
-function buildAudioLangDirective(speechLang: string): string {
-  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
-  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language. The dialogue in quotes is in ${lang} — pronounce it in ${lang}, NOT in Spanish.\n\n`;
+function getSpeechLangName(id: string): string {
+  return SPEECH_LANG_NAMES[id] ?? "Brazilian Portuguese";
 }
 
 const STEP_KEYS: { key: Step; icon: any }[] = [
@@ -960,21 +959,28 @@ Sem texto adicional fora deste formato.`,
         ? buildStyleBlock(pipeline.styleProfile)
         : "";
 
-      let finalPrompt: string;
+      const langName = getSpeechLangName(pipeline.speechLang);
+
+      // Build prompt: language anchor → identity → style → visual scene
+      const parts: string[] = [];
+
+      // Layer 1: language command for native audio (only when no separate narration)
+      if (!narrationStorageUrl && !voiceUrl) {
+        parts.push(`Character speaks in ${langName}.`);
+      }
+
+      // Layer 2: identity + style + scene
       if (promptAlreadyHasIdentity) {
-        finalPrompt = videoStyleBlock
-          ? `${videoStyleBlock} ${scene.prompt}`
-          : scene.prompt;
+        if (videoStyleBlock) parts.push(`${videoStyleBlock} ${scene.prompt}`);
+        else parts.push(scene.prompt);
       } else {
         const identity = wanT2VBlock || "";
         const style = videoStyleBlock ? `${videoStyleBlock} ` : "";
-        finalPrompt = identity
-          ? `${identity} ${style}SCENE: ${scene.prompt}`
-          : `${style}${scene.prompt}`;
+        if (identity) parts.push(`${identity} ${style}SCENE: ${scene.prompt}`);
+        else parts.push(`${style}${scene.prompt}`);
       }
 
-      // Prepend audio language directive
-      finalPrompt = buildAudioLangDirective(pipeline.speechLang) + finalPrompt;
+      const finalPrompt = parts.join("\n\n");
 
       // Step 1: Submit job
       const submitBody: Record<string, unknown> = {
