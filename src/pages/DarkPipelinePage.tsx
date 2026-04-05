@@ -99,16 +99,7 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
-const SPEECH_LANG_NAMES: Record<string, string> = {
-  "pt-BR": "Brazilian Portuguese",
-  "pt-PT": "European Portuguese",
-  "en":    "English",
-  "es":    "Spanish",
-};
-
-function getSpeechLangName(id: string): string {
-  return SPEECH_LANG_NAMES[id] ?? "Brazilian Portuguese";
-}
+const DEFAULT_NEGATIVE = "no perfect symmetry, no airbrushed skin, no CGI render, no illustration, no anime, no cartoon, screen on wrong side of device, screen on back of phone, screen on back of laptop, extra fingers, missing fingers, deformed hands";
 
 const STEP_KEYS: { key: Step; icon: any }[] = [
   { key: "niche", icon: Sparkles },
@@ -959,28 +950,23 @@ Sem texto adicional fora deste formato.`,
         ? buildStyleBlock(pipeline.styleProfile)
         : "";
 
-      const langName = getSpeechLangName(pipeline.speechLang);
+      const neg = negativePrompt || DEFAULT_NEGATIVE;
 
-      // Build prompt: language anchor → identity → style → visual scene
-      const parts: string[] = [];
-
-      // Layer 1: language command for native audio (only when no separate narration)
-      if (!narrationStorageUrl && !voiceUrl) {
-        parts.push(`Character speaks in ${langName}.`);
-      }
-
-      // Layer 2: identity + style + scene
+      let finalPrompt: string;
       if (promptAlreadyHasIdentity) {
-        if (videoStyleBlock) parts.push(`${videoStyleBlock} ${scene.prompt}`);
-        else parts.push(scene.prompt);
+        finalPrompt = videoStyleBlock
+          ? `${videoStyleBlock} ${scene.prompt}`
+          : scene.prompt;
       } else {
         const identity = wanT2VBlock || "";
         const style = videoStyleBlock ? `${videoStyleBlock} ` : "";
-        if (identity) parts.push(`${identity} ${style}SCENE: ${scene.prompt}`);
-        else parts.push(`${style}${scene.prompt}`);
+        finalPrompt = identity
+          ? `${identity} ${style}SCENE: ${scene.prompt}`
+          : `${style}${scene.prompt}`;
       }
 
-      const finalPrompt = parts.join("\n\n");
+      // Append negative prompt
+      finalPrompt += `\n\nNegative: ${neg}`;
 
       // Step 1: Submit job
       const submitBody: Record<string, unknown> = {

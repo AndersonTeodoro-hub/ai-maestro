@@ -180,16 +180,7 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
-const SPEECH_LANG_NAMES: Record<string, string> = {
-  "pt-BR": "Brazilian Portuguese",
-  "pt-PT": "European Portuguese",
-  "en":    "English",
-  "es":    "Spanish",
-};
-
-function getSpeechLangName(id: string): string {
-  return SPEECH_LANG_NAMES[id] ?? "Brazilian Portuguese";
-}
+const DEFAULT_NEGATIVE = "no perfect symmetry, no airbrushed skin, no CGI render, no illustration, no anime, no cartoon, screen on wrong side of device, screen on back of phone, screen on back of laptop, extra fingers, missing fingers, deformed hands";
 
 const EMPTY_VP: VPState = {
   theme: "", titles: [], selectedTitle: "", wordCount: 60,
@@ -480,8 +471,7 @@ REGRA ABSOLUTA DE OUTPUT:
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
         : "";
 
-      const dialogueRule_SG = `   - O campo DIALOGUE é OBRIGATÓRIO — contém o texto exacto da fala no idioma indicado.
-   - No campo PROMPT, descreve APENAS a acção visual. NÃO repitas o texto do DIALOGUE dentro do PROMPT. Em vez de character saying "texto", escreve apenas: "The character speaks with emotion and gestures".`;
+      const dialogueRule_SG = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
 
       const reply = await callChat(
         `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -531,7 +521,7 @@ ${dialogueRule_SG}
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
         : "";
 
-      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação visual + câmera + iluminação + cenário. NÃO repitas o texto do DIALOGUE aqui. Indica apenas: "The character speaks with emotion and gestures"]`;
+      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Inclui: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures]`;
 
       const reply = await callChat(
         `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
@@ -670,8 +660,7 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
           : "";
 
       // Narration is always intended in this pipeline (step 6 = voice selection)
-      const silentRule_VP = `   - O campo DIALOGUE é OBRIGATÓRIO — contém o trecho exacto do roteiro para esta cena.
-   - No campo PROMPT, descreve APENAS a acção visual. NÃO repitas o texto do DIALOGUE dentro do PROMPT. Em vez de character saying "texto", escreve apenas: "The character speaks with emotion and gestures".`;
+      const silentRule_VP = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
 
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -780,26 +769,24 @@ Sem texto adicional fora deste formato.`,
       const model = vp.referenceImageUrl ? "seedance-i2v" : "seedance-t2v";
 
       const promptAlreadyHasIdentity = scene.prompt.includes("FIXED CHARACTER") || scene.prompt.includes("same person in every frame");
-      const langName = getSpeechLangName(vp.speechLang);
+      const neg = negativePrompt || DEFAULT_NEGATIVE;
 
-      // Build prompt: dialogue first (language anchor) → identity → visual scene
-      const parts: string[] = [];
-
-      // Layer 1: dialogue with language command (first words set the audio language)
-      const speechText = scene.dialogueText || scene.narrationText;
-      if (speechText) {
-        parts.push(`Character speaks in ${langName}. Character saying "${speechText}"`);
+      let finalPrompt: string;
+      if (promptAlreadyHasIdentity) {
+        finalPrompt = scene.prompt;
+      } else if (model === "seedance-i2v") {
+        // I2V: reference image provides visual consistency — skip full identity block
+        // but keep PHOTOREALISM MANDATE for quality
+        finalPrompt = `PHOTOREALISM MANDATE: This is a REAL person filmed with a smartphone. Visible skin pores, real skin texture, natural lighting, no airbrushing, no CGI smoothness. Shot on iPhone 15 Pro, handheld, available light. UGC authentic aesthetic.\n\nSCENE: ${scene.prompt}`;
+      } else {
+        // T2V: full identity block for visual consistency
+        finalPrompt = identityBlock
+          ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
+          : scene.prompt;
       }
 
-      // Layer 2: identity block (skip for I2V — reference image provides visual consistency)
-      if (!promptAlreadyHasIdentity && identityBlock && model !== "seedance-i2v") {
-        parts.push(identityBlock);
-      }
-
-      // Layer 3: visual scene description
-      parts.push(promptAlreadyHasIdentity ? scene.prompt : `SCENE: ${scene.prompt}`);
-
-      const finalPrompt = parts.join("\n\n");
+      // Append negative prompt
+      finalPrompt += `\n\nNegative: ${neg}`;
 
       // Submit
       const submitResp = await fetch(baseUrl, {
