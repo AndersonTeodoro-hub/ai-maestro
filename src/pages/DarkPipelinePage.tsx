@@ -108,7 +108,7 @@ const AUDIO_LANG_MAP: Record<string, string> = {
 
 function buildAudioLangDirective(speechLang: string): string {
   const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
-  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language.\n\n`;
+  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language. The dialogue in quotes is in ${lang} — pronounce it in ${lang}, NOT in Spanish.\n\n`;
 }
 
 const STEP_KEYS: { key: Step; icon: any }[] = [

@@ -189,7 +189,13 @@ const AUDIO_LANG_MAP: Record<string, string> = {
 
 function buildAudioLangDirective(speechLang: string): string {
   const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
-  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language.\n\n`;
+  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language. The dialogue in quotes is in ${lang} — pronounce it in ${lang}, NOT in Spanish.\n\n`;
+}
+
+function buildDialogueLayer(dialogueText: string | undefined, speechLang: string): string {
+  if (!dialogueText) return "";
+  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
+  return `\n\n[DIALOGUE — spoken in ${lang}, NOT in Spanish]\nCharacter speaking in ${lang}: "${dialogueText}"`;
 }
 
 const EMPTY_VP: VPState = {
@@ -481,7 +487,8 @@ REGRA ABSOLUTA DE OUTPUT:
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
         : "";
 
-      const dialogueRule_SG = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
+      const dialogueRule_SG = `   - No PROMPT descreve APENAS a acção visual. NÃO incluas o texto do diálogo no PROMPT — o diálogo é adicionado automaticamente pelo sistema.
+   - O PROMPT deve indicar que o personagem está a falar: "The character speaks with emotion and gestures" mas SEM o texto do diálogo.`;
 
       const reply = await callChat(
         `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -531,7 +538,7 @@ ${dialogueRule_SG}
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
         : "";
 
-      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Inclui: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures]`;
+      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação visual + câmera + iluminação + cenário. NÃO incluas texto do diálogo no PROMPT. Indica apenas: "The character speaks with emotion and gestures"]`;
 
       const reply = await callChat(
         `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
@@ -670,7 +677,8 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
           : "";
 
       // Narration is always intended in this pipeline (step 6 = voice selection)
-      const silentRule_VP = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
+      const silentRule_VP = `   - No PROMPT descreve APENAS a acção visual. NÃO incluas o texto do diálogo no PROMPT — o diálogo é adicionado automaticamente pelo sistema.
+   - O PROMPT deve indicar que o personagem está a falar com emoção e gestos: "The character speaks with emotion and gestures" mas SEM o texto do diálogo.`;
 
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -780,6 +788,7 @@ Sem texto adicional fora deste formato.`,
 
       const promptAlreadyHasIdentity = scene.prompt.includes("FIXED CHARACTER") || scene.prompt.includes("same person in every frame");
 
+      // Build prompt in layers: identity → visual scene → dialogue with explicit language
       let finalPrompt: string;
       if (promptAlreadyHasIdentity) {
         finalPrompt = scene.prompt;
@@ -788,6 +797,9 @@ Sem texto adicional fora deste formato.`,
           ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
           : scene.prompt;
       }
+
+      // Append dialogue as a separate layer with explicit language tag
+      finalPrompt += buildDialogueLayer(scene.dialogueText, vp.speechLang);
 
       // Prepend audio language directive
       finalPrompt = buildAudioLangDirective(vp.speechLang) + finalPrompt;
