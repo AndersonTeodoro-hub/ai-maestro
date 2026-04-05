@@ -180,6 +180,18 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
+const AUDIO_LANG_MAP: Record<string, string> = {
+  "pt-BR": "Brazilian Portuguese (pt-BR)",
+  "pt-PT": "European Portuguese (pt-PT)",
+  "en":    "English (en-US)",
+  "es":    "Spanish (es)",
+};
+
+function buildAudioLangDirective(speechLang: string): string {
+  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
+  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language.\n\n`;
+}
+
 const EMPTY_VP: VPState = {
   theme: "", titles: [], selectedTitle: "", wordCount: 60,
   sceneDuration: 8, sceneCount: 5, aspectRatio: "9:16", speechLang: "pt-BR",
@@ -776,6 +788,9 @@ Sem texto adicional fora deste formato.`,
           ? `${identityBlock}\n\nSCENE: ${scene.prompt}`
           : scene.prompt;
       }
+
+      // Prepend audio language directive
+      finalPrompt = buildAudioLangDirective(vp.speechLang) + finalPrompt;
 
       // Submit
       const submitResp = await fetch(baseUrl, {

@@ -99,6 +99,18 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
+const AUDIO_LANG_MAP: Record<string, string> = {
+  "pt-BR": "Brazilian Portuguese (pt-BR)",
+  "pt-PT": "European Portuguese (pt-PT)",
+  "en":    "English (en-US)",
+  "es":    "Spanish (es)",
+};
+
+function buildAudioLangDirective(speechLang: string): string {
+  const lang = AUDIO_LANG_MAP[speechLang] ?? "Brazilian Portuguese (pt-BR)";
+  return `AUDIO LANGUAGE: ${lang}. All speech, dialogue and narration in this video MUST be in ${lang}. Do NOT use any other language.\n\n`;
+}
+
 const STEP_KEYS: { key: Step; icon: any }[] = [
   { key: "niche", icon: Sparkles },
   { key: "style", icon: Palette },
@@ -960,6 +972,9 @@ Sem texto adicional fora deste formato.`,
           ? `${identity} ${style}SCENE: ${scene.prompt}`
           : `${style}${scene.prompt}`;
       }
+
+      // Prepend audio language directive
+      finalPrompt = buildAudioLangDirective(pipeline.speechLang) + finalPrompt;
 
       // Step 1: Submit job
       const submitBody: Record<string, unknown> = {
