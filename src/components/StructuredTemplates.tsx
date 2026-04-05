@@ -790,8 +790,8 @@ Sem texto adicional fora deste formato.`,
         parts.push(`Character speaks in ${langName}. Character saying "${scene.dialogueText}"`);
       }
 
-      // Layer 2: identity block
-      if (!promptAlreadyHasIdentity && identityBlock) {
+      // Layer 2: identity block (skip for I2V — reference image provides visual consistency)
+      if (!promptAlreadyHasIdentity && identityBlock && model !== "seedance-i2v") {
         parts.push(identityBlock);
       }
 
