@@ -262,6 +262,25 @@ export default function CharactersPage() {
     }
   };
 
+  const handleDeleteVoiceId = async () => {
+    if (!activeChar?.id) return;
+    const confirmed = window.confirm(
+      isPT ? "Tens a certeza que queres apagar o Voice ID deste personagem?" : "Are you sure you want to delete this character's Voice ID?"
+    );
+    if (!confirmed) return;
+    try {
+      const { error } = await supabase
+        .from("characters")
+        .update({ elevenlabs_voice_id: null })
+        .eq("id", activeChar.id);
+      if (error) throw error;
+      toast.success(isPT ? "Voice ID apagado!" : "Voice ID deleted!");
+      engine.list();
+    } catch (e: any) {
+      toast.error(e.message || (isPT ? "Erro ao apagar Voice ID" : "Error deleting Voice ID"));
+    }
+  };
+
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -655,28 +674,39 @@ export default function CharactersPage() {
                         ? "Esta voz será usada automaticamente em todos os vídeos deste personagem."
                         : "This voice will be used automatically in all videos for this character."}
                     </p>
-                    {/* Allow changing voice ID */}
-                    <details className="text-xs">
-                      <summary className="text-muted-foreground cursor-pointer hover:text-foreground">
-                        {isPT ? "Alterar Voice ID" : "Change Voice ID"}
-                      </summary>
-                      <div className="flex gap-2 mt-2">
-                        <input
-                          value={voiceIdInput}
-                          onChange={(e) => setVoiceIdInput(e.target.value)}
-                          placeholder="Novo Voice ID..."
-                          className="flex-1 rounded-lg border border-border bg-secondary/30 px-2 py-1.5 text-xs focus:outline-none focus:border-orange-400/40"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleSaveVoiceId}
-                          disabled={savingVoiceId || !voiceIdInput.trim()}
-                          className="text-xs gap-1 bg-orange-500 hover:bg-orange-600 text-white"
-                        >
-                          <Save className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </details>
+                    {/* Allow changing or deleting voice ID */}
+                    <div className="flex gap-2 items-center">
+                      <details className="text-xs flex-1">
+                        <summary className="text-muted-foreground cursor-pointer hover:text-foreground">
+                          {isPT ? "Alterar Voice ID" : "Change Voice ID"}
+                        </summary>
+                        <div className="flex gap-2 mt-2">
+                          <input
+                            value={voiceIdInput}
+                            onChange={(e) => setVoiceIdInput(e.target.value)}
+                            placeholder="Novo Voice ID..."
+                            className="flex-1 rounded-lg border border-border bg-secondary/30 px-2 py-1.5 text-xs focus:outline-none focus:border-orange-400/40"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={handleSaveVoiceId}
+                            disabled={savingVoiceId || !voiceIdInput.trim()}
+                            className="text-xs gap-1 bg-orange-500 hover:bg-orange-600 text-white"
+                          >
+                            <Save className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </details>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleDeleteVoiceId}
+                        className="text-[10px] gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        {isPT ? "Apagar" : "Delete"}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
