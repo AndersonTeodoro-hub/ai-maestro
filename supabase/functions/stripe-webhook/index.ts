@@ -3,12 +3,14 @@
 const PRICE_TO_PLAN: Record<string, string> = {
   "price_1TG1KaKg016ceaDVbTqFq1CW": "starter",
   "price_1TG1NMKg016ceaDVQFtsygnH": "pro",
+  "price_1TIfPOKg016ceaDVBGyj6Kgw": "studio",
 };
 
 const PLAN_CREDITS: Record<string, number> = {
   free: 10,
-  starter: 150,
-  pro: 500,
+  starter: 60,
+  pro: 180,
+  studio: 500,
 };
 
 const log = (step: string, d?: unknown) =>

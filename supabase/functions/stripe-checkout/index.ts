@@ -10,6 +10,7 @@ const corsHeaders = {
 const SUBSCRIPTION_PRICES: Record<string, string> = {
   starter: "price_1TG1KaKg016ceaDVbTqFq1CW",
   pro: "price_1TG1NMKg016ceaDVQFtsygnH",
+  studio: "price_1TIfPOKg016ceaDVBGyj6Kgw",
 };
 
 const CREDIT_PACK_PRICES: Record<string, string> = {
@@ -19,9 +20,9 @@ const CREDIT_PACK_PRICES: Record<string, string> = {
 };
 
 const PACK_CREDITS: Record<string, number> = {
-  pack_s: 50,
-  pack_m: 150,
-  pack_l: 400,
+  pack_s: 15,
+  pack_m: 45,
+  pack_l: 120,
 };
 
 // Stripe REST API helper
