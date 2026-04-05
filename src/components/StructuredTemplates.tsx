@@ -480,8 +480,8 @@ REGRA ABSOLUTA DE OUTPUT:
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
         : "";
 
-      const dialogueRule_SG = `   - No PROMPT descreve APENAS a acção visual. NÃO incluas o texto do diálogo no PROMPT — o diálogo é adicionado automaticamente pelo sistema.
-   - O PROMPT deve indicar que o personagem está a falar: "The character speaks with emotion and gestures" mas SEM o texto do diálogo.`;
+      const dialogueRule_SG = `   - O campo DIALOGUE é OBRIGATÓRIO — contém o texto exacto da fala no idioma indicado.
+   - No campo PROMPT, descreve APENAS a acção visual. NÃO repitas o texto do DIALOGUE dentro do PROMPT. Em vez de character saying "texto", escreve apenas: "The character speaks with emotion and gestures".`;
 
       const reply = await callChat(
         `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -531,7 +531,7 @@ ${dialogueRule_SG}
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
         : "";
 
-      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação visual + câmera + iluminação + cenário. NÃO incluas texto do diálogo no PROMPT. Indica apenas: "The character speaks with emotion and gestures"]`;
+      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação visual + câmera + iluminação + cenário. NÃO repitas o texto do DIALOGUE aqui. Indica apenas: "The character speaks with emotion and gestures"]`;
 
       const reply = await callChat(
         `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
@@ -670,8 +670,8 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
           : "";
 
       // Narration is always intended in this pipeline (step 6 = voice selection)
-      const silentRule_VP = `   - No PROMPT descreve APENAS a acção visual. NÃO incluas o texto do diálogo no PROMPT — o diálogo é adicionado automaticamente pelo sistema.
-   - O PROMPT deve indicar que o personagem está a falar com emoção e gestos: "The character speaks with emotion and gestures" mas SEM o texto do diálogo.`;
+      const silentRule_VP = `   - O campo DIALOGUE é OBRIGATÓRIO — contém o trecho exacto do roteiro para esta cena.
+   - No campo PROMPT, descreve APENAS a acção visual. NÃO repitas o texto do DIALOGUE dentro do PROMPT. Em vez de character saying "texto", escreve apenas: "The character speaks with emotion and gestures".`;
 
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
