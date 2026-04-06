@@ -181,6 +181,11 @@ function getSpeechLangPrompt(id: string): string {
   return SPEECH_LANGS.find((l) => l.id === id)?.prompt ?? "em português do Brasil";
 }
 
+function getSpeechLangName(id: string): string {
+  const names: Record<string, string> = { "pt-BR": "Brazilian Portuguese", "pt-PT": "European Portuguese", "en": "English", "es": "Spanish" };
+  return names[id] ?? "Brazilian Portuguese";
+}
+
 const DEFAULT_NEGATIVE = "no perfect symmetry, no airbrushed skin, no CGI render, no illustration, no anime, no cartoon, screen on wrong side of device, screen on back of phone, screen on back of laptop, extra fingers, missing fingers, deformed hands";
 
 const SCENE_MODES = [
@@ -499,7 +504,7 @@ REGRA ABSOLUTA DE OUTPUT:
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" ou "He/She" nos prompts, nunca descrição física.`
         : "";
 
-      const dialogueRule_SG = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
+      const dialogueRule_SG = `   - No PROMPT inclui OBRIGATORIAMENTE: character speaking in ${getSpeechLangName(vp.speechLang)}: "[texto do DIALOGUE]" with appropriate emotion and gestures`;
 
       const reply = await callChat(
         `Cria exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
@@ -549,7 +554,7 @@ ${dialogueRule_SG}
         ? `PERSONAGEM PRINCIPAL:\n"""\n${identityBlock}\n"""\n- Usa "The character" nos prompts.`
         : "";
 
-      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Inclui: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures]`;
+      const promptRule_VM = `PROMPT: [prompt em inglês ${vp.sceneDuration}s: ação + câmera + iluminação + cenário. Inclui: character speaking in ${getSpeechLangName(vp.speechLang)}: "[texto do DIALOGUE]" with appropriate emotion and gestures]`;
 
       const reply = await callChat(
         `Adapta este vídeo viral ao meu contexto e gera ${sceneCount} cenas prontas para vídeo IA.
@@ -688,7 +693,7 @@ REGRAS DE USO DO PERSONAGEM NOS PROMPTS:
           : "";
 
       // Narration is always intended in this pipeline (step 6 = voice selection)
-      const silentRule_VP = `   - No PROMPT inclui OBRIGATORIAMENTE: character saying "[texto do DIALOGUE]" with appropriate emotion and gestures`;
+      const silentRule_VP = `   - No PROMPT inclui OBRIGATORIAMENTE: character speaking in ${getSpeechLangName(vp.speechLang)}: "[texto do DIALOGUE]" with appropriate emotion and gestures`;
 
       const reply = await callChat(
         `Analisa este roteiro e divide-o em exatamente ${vp.sceneCount} cenas visuais para geração de vídeo IA.
