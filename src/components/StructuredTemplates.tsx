@@ -156,6 +156,7 @@ interface VPState {
   referenceUrl: string;
   referenceContext: ReferenceContext | null;
   scenes: SceneData[];
+  finalVideoUrl?: string;
 }
 
 const VP_STEPS: { key: PipelineStep; label: string }[] = [
@@ -259,6 +260,9 @@ export function StructuredTemplates({ onSend, disabled }: Props) {
   const [refLoading, setRefLoading] = useState(false);
   const [pipelineMode, setPipelineMode] = useState<PipelineMode>("viral");
   const [sgFields, setSgFields] = useState<Record<string, string>>({});
+  const [finalVideoTransition, setFinalVideoTransition] = useState<"fade" | "dissolve" | "slideLeft" | "slideRight">("fade");
+  const [finalVideoRendering, setFinalVideoRendering] = useState(false);
+  const [finalVideoError, setFinalVideoError] = useState<string | null>(null);
   const [vmSelectedVideo, setVmSelectedVideo] = useState<any>(null);
   const [vmFieldValues, setVmFieldValues] = useState<Record<string, string>>({});
 
@@ -884,6 +888,54 @@ Sem texto adicional fora deste formato.`,
       toast.error(e.message || "Erro ao gerar cenas");
     } finally {
       setVpLoading(false);
+    }
+  };
+
+  // ── Render final video (Shotstack) ──
+  const handleRenderFinalVideo = async () => {
+    const scenes = vpRef.current.scenes;
+    if (scenes.length === 0 || scenes.some((s) => !s.videoUrl)) return;
+    setFinalVideoRendering(true);
+    setFinalVideoError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("render-video", {
+        body: {
+          action: "render",
+          scenes: scenes.map((s) => ({ videoUrl: s.videoUrl, duration: vpRef.current.sceneDuration ?? 8 })),
+          transition: finalVideoTransition,
+          transitionDuration: 0.5,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const renderId = data?.renderId;
+      if (!renderId) throw new Error("No renderId returned");
+
+      // Poll every 5s
+      const startedAt = Date.now();
+      const poll = async (): Promise<void> => {
+        if (Date.now() - startedAt > 15 * 60 * 1000) throw new Error("Render timeout");
+        const { data: pollData, error: pollErr } = await supabase.functions.invoke("render-video", {
+          body: { action: "poll", renderId },
+        });
+        if (pollErr) throw new Error(pollErr.message);
+        if (pollData?.error) throw new Error(pollData.error);
+        if (pollData.status === "done" && pollData.url) {
+          setVp((p) => ({ ...p, finalVideoUrl: pollData.url }));
+          setFinalVideoRendering(false);
+          toast.success(isPT ? "Vídeo final pronto!" : "Final video ready!");
+          return;
+        }
+        if (pollData.status === "failed") throw new Error("Render failed");
+        await new Promise((r) => setTimeout(r, 5000));
+        return poll();
+      };
+      await poll();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Render error";
+      setFinalVideoError(msg);
+      setFinalVideoRendering(false);
+      toast.error(msg);
     }
   };
 
@@ -2214,6 +2266,79 @@ Negative: [negative prompt]
                 </div>
               </div>
             ))}
+
+            {/* Final video — only when all scenes have videoUrl */}
+            {vp.scenes.length > 0 && vp.scenes.every((s) => !!s.videoUrl) && (
+              <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-3 space-y-3">
+                <div className="text-center">
+                  <Film className="h-6 w-6 text-purple-500 mx-auto mb-1" />
+                  <h4 className="text-xs font-bold text-foreground">
+                    {isPT ? "Criar Vídeo Final" : "Create Final Video"}
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground">
+                    {isPT ? "Junta todas as cenas com transições profissionais (sem custo extra)" : "Stitch all scenes with professional transitions (no extra cost)"}
+                  </p>
+                </div>
+
+                {!vp.finalVideoUrl && (
+                  <>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground mb-1">{isPT ? "Transição" : "Transition"}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {([
+                          { id: "fade",       labelPT: "Fade",        label: "Fade" },
+                          { id: "dissolve",   labelPT: "Dissolve",    label: "Dissolve" },
+                          { id: "slideLeft",  labelPT: "Slide ←",     label: "Slide Left" },
+                          { id: "slideRight", labelPT: "Slide →",     label: "Slide Right" },
+                        ] as const).map((opt) => (
+                          <button
+                            key={opt.id}
+                            onClick={() => setFinalVideoTransition(opt.id)}
+                            disabled={finalVideoRendering}
+                            className={`px-2.5 py-1 rounded-full text-[11px] transition-all ${
+                              finalVideoTransition === opt.id
+                                ? "bg-purple-600 text-white"
+                                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                            }`}
+                          >
+                            {isPT ? opt.labelPT : opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={handleRenderFinalVideo}
+                      disabled={finalVideoRendering}
+                      size="sm"
+                      className="w-full gap-1.5 text-xs bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      {finalVideoRendering ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" />{isPT ? "A renderizar vídeo final..." : "Rendering final video..."}</>
+                      ) : (
+                        <><Film className="h-3 w-3" />{isPT ? "Criar Vídeo Final" : "Create Final Video"}</>
+                      )}
+                    </Button>
+                    {finalVideoError && (
+                      <p className="text-[10px] text-destructive">{finalVideoError}</p>
+                    )}
+                  </>
+                )}
+
+                {vp.finalVideoUrl && (
+                  <div className="space-y-2">
+                    <video src={vp.finalVideoUrl} controls className="rounded-lg w-full max-h-[280px] border border-border/50" />
+                    <a
+                      href={vp.finalVideoUrl}
+                      download={`${vp.selectedTitle || "final"}.mp4`}
+                      className="inline-flex items-center gap-1 text-[11px] text-purple-500 hover:underline"
+                    >
+                      <Download className="h-3 w-3" />{isPT ? "Download vídeo final" : "Download final video"}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2 border-t border-border/50">
               <Button onClick={handleExportPrompts} variant="outline" size="sm" className="gap-1 text-xs">
